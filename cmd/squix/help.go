@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleHelp() {
@@ -20,7 +20,7 @@ func (a *App) PrintGeneralHelp() {
 	// Header
 	fmt.Println(
 		styles.Title.Render(
-			"Pam's database drawer - query manager for your databases",
+			"Squix's SQL Stash - query manager for your databases",
 		),
 	)
 	fmt.Println(
@@ -32,7 +32,7 @@ func (a *App) PrintGeneralHelp() {
 
 	// Usage
 	fmt.Println(styles.Title.Render("Usage"))
-	fmt.Println(styles.Separator.Render("  pam <command> [arguments]"))
+	fmt.Println(styles.Separator.Render("  squix <command> [arguments]"))
 	fmt.Println()
 
 	// Commands
@@ -103,7 +103,7 @@ func (a *App) PrintGeneralHelp() {
 	)
 	fmt.Println(
 		"  help        " + styles.Faint.Render(
-			"Show help for pam or a specific command",
+			"Show help for squix or a specific command",
 		),
 	)
 	fmt.Println()
@@ -111,10 +111,10 @@ func (a *App) PrintGeneralHelp() {
 	// Short help
 	fmt.Println(styles.Title.Render("Help"))
 	fmt.Println(
-		"  pam help              " + styles.Faint.Render("Show this help"),
+		"  squix help              " + styles.Faint.Render("Show this help"),
 	)
 	fmt.Println(
-		"  pam help <command>    " + styles.Faint.Render(
+		"  squix help <command>    " + styles.Faint.Render(
 			"Show detailed help for a specific command",
 		),
 	)
@@ -123,19 +123,19 @@ func (a *App) PrintGeneralHelp() {
 	// Examples
 	fmt.Println(styles.Title.Render("Examples"))
 	fmt.Println(
-		"  pam init dev postgres \"postgres://user:pass@localhost:5432/dbname\"",
+		"  squix init dev postgres \"postgres://user:pass@localhost:5432/dbname\"",
 	)
 	fmt.Println(
-		"  pam init prod sqlserver \"sqlserver://sa:password@localhost:1433?database=mydb\"",
+		"  squix init prod sqlserver \"sqlserver://sa:password@localhost:1433?database=mydb\"",
 	)
-	fmt.Println("  pam switch dev")
-	fmt.Println("  pam add list_users \"SELECT * FROM users\"")
-	fmt.Println("  pam run list_users")
-	fmt.Println("  pam run \"select * from users\"")
-	fmt.Println("  pam list connections")
-	fmt.Println("  pam list queries")
-	fmt.Println("  pam edit config")
-	fmt.Println("  pam edit queries")
+	fmt.Println("  squix switch dev")
+	fmt.Println("  squix add list_users \"SELECT * FROM users\"")
+	fmt.Println("  squix run list_users")
+	fmt.Println("  squix run \"select * from users\"")
+	fmt.Println("  squix list connections")
+	fmt.Println("  squix list queries")
+	fmt.Println("  squix edit config")
+	fmt.Println("  squix edit queries")
 }
 
 func (a *App) PrintCommandHelp() {
@@ -160,9 +160,9 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam init [flags]")
-		fmt.Println("  pam init <name> <connection-string>          # type auto-inferred")
-		fmt.Println("  pam init <name> <db-type> <connection-string> [schema]  # legacy")
+		fmt.Println("  squix init [flags]")
+		fmt.Println("  squix init <name> <connection-string>          # type auto-inferred")
+		fmt.Println("  squix init <name> <db-type> <connection-string> [schema]  # legacy")
 		fmt.Println()
 		section("Flags")
 		fmt.Println("  --name, -n              Connection name")
@@ -187,28 +187,28 @@ func (a *App) PrintCommandHelp() {
 		section("Examples")
 		fmt.Println("  # Flag mode with auto-inference")
 		fmt.Println(
-			"  pam init --name dev --conn \"postgres://user:pass@localhost:5432/dbname\"",
+			"  squix init --name dev --conn \"postgres://user:pass@localhost:5432/dbname\"",
 		)
 		fmt.Println()
 		fmt.Println("  # 2-arg positional with auto-inference")
 		fmt.Println(
-			"  pam init dev \"postgres://user:pass@localhost:5432/dbname\"",
+			"  squix init dev \"postgres://user:pass@localhost:5432/dbname\"",
 		)
 		fmt.Println()
 		fmt.Println("  # 3-arg positional (legacy, explicit type)")
 		fmt.Println(
-			"  pam init dev postgres \"postgres://user:pass@localhost:5432/dbname\"",
+			"  squix init dev postgres \"postgres://user:pass@localhost:5432/dbname\"",
 		)
 		fmt.Println()
 		fmt.Println("  # Interactive mode")
-		fmt.Println("  pam init")
+		fmt.Println("  squix init")
 		fmt.Println()
 		fmt.Println("  # With schema")
 		fmt.Println(
-			"  pam init prod sqlserver \"sqlserver://sa:password@localhost:1433?database=mydb\" --schema public",
+			"  squix init prod sqlserver \"sqlserver://sa:password@localhost:1433?database=mydb\" --schema public",
 		)
 		fmt.Println(
-			"  pam init staging mysql \"user:pass@tcp(127.0.0.1:3306)/dbname\"",
+			"  squix init staging mysql \"user:pass@tcp(127.0.0.1:3306)/dbname\"",
 		)
 
 	case "switch", "use":
@@ -220,7 +220,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam switch/use <connection-name>")
+		fmt.Println("  squix switch/use <connection-name>")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -228,8 +228,8 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam switch dev")
-		fmt.Println("  pam use prod")
+		fmt.Println("  squix switch dev")
+		fmt.Println("  squix use prod")
 
 	case "add", "save":
 		section("Command: add")
@@ -240,30 +240,30 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam add <run-name> [query]")
+		fmt.Println("  squix add <run-name> [query]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
-			"  - If [query] is omitted, pam opens $EDITOR (default: vim) so you",
+			"  - If [query] is omitted, squix opens $EDITOR (default: vim) so you",
 		)
 		fmt.Println("    can write the query interactively.")
 		fmt.Println("  - Each query gets a numeric ID as well as a name.")
-		fmt.Println("  - Requires an active connection (use 'pam switch').")
+		fmt.Println("  - Requires an active connection (use 'squix switch').")
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam add list_users \"SELECT * FROM users\"")
-		fmt.Println("  pam add update_status    # opens editor to write SQL")
+		fmt.Println("  squix add list_users \"SELECT * FROM users\"")
+		fmt.Println("  squix add update_status    # opens editor to write SQL")
 
 	case "remove", "delete":
 		section("Command: remove")
 		fmt.Println(styles.Faint.Render("Remove a saved query by name or ID."))
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam remove <run-name-or-id>")
+		fmt.Println("  squix remove <run-name-or-id>")
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam remove list_users")
-		fmt.Println("  pam remove 3")
+		fmt.Println("  squix remove list_users")
+		fmt.Println("  squix remove 3")
 
 	case "run", "query":
 		section("Command: run")
@@ -274,17 +274,17 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam run <query-name-or-id> [--edit | -e] [--last | -l]")
-		fmt.Println("  pam run                      " + styles.Faint.Render("# Opens the editor to build sql query"))
+		fmt.Println("  squix run <query-name-or-id> [--edit | -e] [--last | -l]")
+		fmt.Println("  squix run                      " + styles.Faint.Render("# Opens the editor to build sql query"))
 		fmt.Println()
 		section("Description")
 		fmt.Println(
 			"  - Looks up a saved query by name or numeric ID and runs it against",
 		)
 		fmt.Println("    the current connection.")
-		fmt.Println("  - If no selector is provided, pam will open the editor to build sql query")
+		fmt.Println("  - If no selector is provided, squix will open the editor to build sql query")
 		fmt.Println("  - The result is rendered as an interactive table in your terminal.")
-		fmt.Println("  - With '--edit' or '-e', pam opens the query in your $EDITOR before")
+		fmt.Println("  - With '--edit' or '-e', squix opens the query in your $EDITOR before")
 		fmt.Println("    running it and saves any changes back to the configuration.")
 		fmt.Println("  - With '--last' or '-l', runs the last used query")
 		fmt.Println()
@@ -321,11 +321,11 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam run list_users")
-		fmt.Println("  pam run \"select * from orders\"")
-		fmt.Println("  pam run 2 --edit")
-		fmt.Println("  pam run --last")
-		fmt.Println("  pam query list_users")
+		fmt.Println("  squix run list_users")
+		fmt.Println("  squix run \"select * from orders\"")
+		fmt.Println("  squix run 2 --edit")
+		fmt.Println("  squix run --last")
+		fmt.Println("  squix query list_users")
 
 	case "list":
 		section("Command: list")
@@ -336,7 +336,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam list [connections | queries] [search-term]")
+		fmt.Println("  squix list [connections | queries] [search-term]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -357,13 +357,13 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println()
 		section("Examples")
 		fmt.Println(
-			"  pam list                      # lists queries for the current connection",
+			"  squix list                      # lists queries for the current connection",
 		)
-		fmt.Println("  pam list queries")
-		fmt.Println("  pam list queries emp          # list queries containing 'emp'")
-		fmt.Println("  pam list queries employees    # list queries containing 'employees'")
-		fmt.Println("  pam list queries --oneline    # list each query in one separate line")
-		fmt.Println("  pam list connections")
+		fmt.Println("  squix list queries")
+		fmt.Println("  squix list queries emp          # list queries containing 'emp'")
+		fmt.Println("  squix list queries employees    # list queries containing 'employees'")
+		fmt.Println("  squix list queries --oneline    # list each query in one separate line")
+		fmt.Println("  squix list connections")
 
 	case "tables":
 		section("Command: tables")
@@ -374,7 +374,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam tables [table-name] [--oneline | -o]")
+		fmt.Println("  squix tables [table-name] [--oneline | -o]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -392,9 +392,9 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam tables              # list all tables")
-		fmt.Println("  pam tables users        # query the users table")
-		fmt.Println("  pam tables --oneline    # list tables in oneline format")
+		fmt.Println("  squix tables              # list all tables")
+		fmt.Println("  squix tables users        # query the users table")
+		fmt.Println("  squix tables --oneline    # list tables in oneline format")
 
 	case "disconnect":
 		section("Command: disconnect")
@@ -405,27 +405,27 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam disconnect")
+		fmt.Println("  squix disconnect")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
-			"  Clears the current active connection. You will need to use 'pam switch'",
+			"  Clears the current active connection. You will need to use 'squix switch'",
 		)
 		fmt.Println("  to select a connection before running queries again.")
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam disconnect")
+		fmt.Println("  squix disconnect")
 
 	case "edit":
 		section("Command: edit")
 		fmt.Println(
 			styles.Faint.Render(
-				"Open pam's configuration or queries in your editor.",
+				"Open squix's configuration or queries in your editor.",
 			),
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam edit [config | queries]")
+		fmt.Println("  squix edit [config | queries]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -440,9 +440,9 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam edit           # defaults to 'config'")
-		fmt.Println("  pam edit config")
-		fmt.Println("  pam edit queries")
+		fmt.Println("  squix edit           # defaults to 'config'")
+		fmt.Println("  squix edit config")
+		fmt.Println("  squix edit queries")
 
 	case "explore":
 		section("Command: explore")
@@ -453,8 +453,8 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam explore")
-		fmt.Println("  pam explore <table> [--limit | -l N]")
+		fmt.Println("  squix explore")
+		fmt.Println("  squix explore <table> [--limit | -l N]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -463,7 +463,7 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println(
 			"  With a table name, queries the table and shows results in an",
 		)
-		fmt.Println("  interactive table view (similar to 'pam run').")
+		fmt.Println("  interactive table view (similar to 'squix run').")
 		fmt.Println()
 		fmt.Println(
 			"  --limit, -l N  " + styles.Faint.Render(
@@ -472,9 +472,9 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam explore                  # list all tables and views")
-		fmt.Println("  pam explore employees        # query employees table")
-		fmt.Println("  pam explore orders -l 50     # query with 50 row limit")
+		fmt.Println("  squix explore                  # list all tables and views")
+		fmt.Println("  squix explore employees        # query employees table")
+		fmt.Println("  squix explore orders -l 50     # query with 50 row limit")
 
 	case "explain":
 		section("Command: explain")
@@ -491,7 +491,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam explain <table> [--depth | -d N]")
+		fmt.Println("  squix explain <table> [--depth | -d N]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -518,9 +518,9 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam explain employees")
-		fmt.Println("  pam explain employees --depth 2")
-		fmt.Println("  pam explain departments -d 3")
+		fmt.Println("  squix explain employees")
+		fmt.Println("  squix explain employees --depth 2")
+		fmt.Println("  squix explain departments -d 3")
 
 	case "info":
 		section("Command: info")
@@ -531,7 +531,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam info <tables | views>")
+		fmt.Println("  squix info <tables | views>")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -551,15 +551,15 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  - owner (if supported by database)")
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam info tables")
-		fmt.Println("  pam info views")
+		fmt.Println("  squix info tables")
+		fmt.Println("  squix info views")
 
 	case "status":
 		section("Command: status")
 		fmt.Println(styles.Faint.Render("Show the current active connection."))
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam status")
+		fmt.Println("  squix status")
 
 	case "history":
 		section("Command: history")
@@ -568,7 +568,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam history")
+		fmt.Println("  squix history")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -585,12 +585,12 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam help [command]")
+		fmt.Println("  squix help [command]")
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  pam help")
-		fmt.Println("  pam help run")
-		fmt.Println("  pam help list")
+		fmt.Println("  squix help")
+		fmt.Println("  squix help run")
+		fmt.Println("  squix help list")
 
 	default:
 		fmt.Printf("%s %q\n\n", styles.Error.Render("Unknown command"), cmd)

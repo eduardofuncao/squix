@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/parser"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/parser"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 type listFlags struct {
@@ -67,7 +67,7 @@ func (a *App) handleList() {
 
 	case "queries":
 		if a.config.CurrentConnection == "" {
-			printError("No active connection.  Use 'pam switch <connection>' or 'pam init' first")
+			printError("No active connection.  Use 'squix switch <connection>' or 'squix init' first")
 		}
 		conn := a.config.Connections[a.config.CurrentConnection]
 		if len(conn.Queries) == 0 {

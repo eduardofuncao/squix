@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/run"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/run"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleExplore() {
@@ -39,7 +39,7 @@ func (a *App) handleExplore() {
 	}
 
 	if a.config.CurrentConnection == "" {
-		printError("No active connection. Use 'pam switch <connection>' or 'pam init' first")
+		printError("No active connection. Use 'squix switch <connection>' or 'squix init' first")
 	}
 
 	conn := config.FromConnectionYaml(a.config.Connections[a.config.CurrentConnection])
@@ -72,7 +72,7 @@ func (a *App) handleExplore() {
 func (a *App) listTablesAndViews() {
 	if a.config.CurrentConnection == "" {
 		printError(
-			"No active connection. Use 'pam switch <connection>' or 'pam init' first",
+			"No active connection. Use 'squix switch <connection>' or 'squix init' first",
 		)
 	}
 

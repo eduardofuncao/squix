@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 const Version = "v0.2.0"
@@ -72,7 +72,7 @@ func (a *App) Run() {
 }
 
 func (a *App) printUsage() {
-	fmt.Println(styles.Title.Render("Pam's database drawer"))
+	fmt.Println(styles.Title.Render("Squix's SQL Stash"))
 	fmt.Println(styles.Faint.Render("Query manager for your databases"))
 	fmt.Println()
 
@@ -130,7 +130,7 @@ func (a *App) printUsage() {
 }
 
 func (a *App) printVersion() {
-	fmt.Println(styles.Title.Render("Pam's database drawer"))
+	fmt.Println(styles.Title.Render("Squix's SQL Stash"))
 	fmt.Println(styles.Faint.Render("version: " + Version))
 }
 

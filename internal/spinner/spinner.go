@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func Wait(done chan struct{}) {

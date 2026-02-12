@@ -8,9 +8,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/editor"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/editor"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 type saveQueryCompleteMsg struct {
@@ -54,7 +54,7 @@ func (m Model) saveQuery() (tea.Model, tea.Cmd) {
 	editorCmd := editor.GetEditorCommand()
 	instructions := "# Enter the name for this query\n# Lines starting with # will be ignored\n# Save and exit to confirm, or exit without saving to cancel\n"
 
-	tmpFile, err := editor.CreateTempFile("pam-query-name-", instructions)
+	tmpFile, err := editor.CreateTempFile("squix-query-name-", instructions)
 	if err != nil {
 		m.statusMessage = lipgloss.NewStyle().Foreground(lipgloss.Color("red")).Render("Error creating temp file")
 		return m, nil

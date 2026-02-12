@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/run"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/run"
 )
 
 func (a *App) handleInfo() {
 	if len(os.Args) < 3 {
-		printError("Usage: pam info <tables|views>")
+		printError("Usage: squix info <tables|views>")
 	}
 
 	infoType := os.Args[2]
@@ -21,7 +21,7 @@ func (a *App) handleInfo() {
 	}
 
 	if a.config.CurrentConnection == "" {
-		printError("No active connection. Use 'pam switch <connection>' or 'pam init' first")
+		printError("No active connection. Use 'squix switch <connection>' or 'squix init' first")
 	}
 
 	conn := config.FromConnectionYaml(a.config.Connections[a.config.CurrentConnection])

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/eduardofuncao/pam/internal/db"
+	"github.com/eduardofuncao/squix/internal/db"
 )
 
 func Render(

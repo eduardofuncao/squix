@@ -7,12 +7,12 @@ import (
 
 	stdlib "database/sql"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/parser"
-	"github.com/eduardofuncao/pam/internal/spinner"
-	"github.com/eduardofuncao/pam/internal/styles"
-	"github.com/eduardofuncao/pam/internal/table"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/parser"
+	"github.com/eduardofuncao/squix/internal/spinner"
+	"github.com/eduardofuncao/squix/internal/styles"
+	"github.com/eduardofuncao/squix/internal/table"
 )
 
 type SaveQueryCallback func(query db.Query) (db.Query, error)

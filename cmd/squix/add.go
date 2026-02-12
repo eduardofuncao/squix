@@ -5,19 +5,19 @@ import (
 	"os"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/editor"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/editor"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleAdd() {
 	if len(os.Args) < 3 {
-		printError("Usage: pam add <run-name> [query]")
+		printError("Usage: squix add <run-name> [query]")
 	}
 
 	if a.config.CurrentConnection == "" {
-		printError("No active connection.  Use 'pam switch <connection>' or 'pam init' first")
+		printError("No active connection.  Use 'squix switch <connection>' or 'squix init' first")
 	}
 
 	_, ok := a.config.Connections[a.config.CurrentConnection]
@@ -38,7 +38,7 @@ func (a *App) handleAdd() {
 			a.config.Connections[a.config.CurrentConnection].DBType)
 		header += "-- Write your SQL run below and save\n\n"
 
-		editedContent, err := editor.EditTempFileWithTemplate(header, "pam-new-run-")
+		editedContent, err := editor.EditTempFileWithTemplate(header, "squix-new-run-")
 		if err != nil {
 			printError("Failed to open editor: %v", err)
 		}

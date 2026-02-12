@@ -7,10 +7,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/editor"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/editor"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleEdit() {
@@ -55,7 +55,7 @@ func (a *App) editConfig(editorCmd string) {
 
 func (a *App) editQueries(editorCmd string) {
 	if a.config.CurrentConnection == "" {
-		log.Fatal("No active connection. Use 'pam switch <connection>' or 'pam init' first")
+		log.Fatal("No active connection. Use 'squix switch <connection>' or 'squix init' first")
 	}
 
 	conn, ok := a.config.Connections[a.config.CurrentConnection]
@@ -76,7 +76,7 @@ func (a *App) editQueries(editorCmd string) {
 		content.WriteString("\n\n")
 	}
 
-	tmpFile, err := editor.CreateTempFile("pam-queries-", content.String())
+	tmpFile, err := editor.CreateTempFile("squix-queries-", content.String())
 	if err != nil {
 		log.Fatalf("Failed to create temp file: %v", err)
 	}

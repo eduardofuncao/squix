@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 env:
-  APP_NAME: pam
+  APP_NAME: squix
   GO_VERSION: '1.25'
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
           GOARCH: amd64
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-linux-amd64 ./cmd/pam
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-linux-amd64 ./cmd/squix
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -64,7 +64,7 @@ jobs:
           CC: aarch64-linux-gnu-gcc
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-linux-arm64 ./cmd/pam
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-linux-arm64 ./cmd/squix
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -93,7 +93,7 @@ jobs:
           GOARCH: amd64
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-darwin-amd64 ./cmd/pam
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-darwin-amd64 ./cmd/squix
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -122,7 +122,7 @@ jobs:
           GOARCH: arm64
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-darwin-arm64 ./cmd/pam
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-darwin-arm64 ./cmd/squix
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -152,7 +152,7 @@ jobs:
           CC: x86_64-w64-mingw32-gcc
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-windows-amd64.exe ./cmd/pam
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-windows-amd64.exe ./cmd/squix
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

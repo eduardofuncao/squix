@@ -2,7 +2,7 @@
 set -e
 
 # Configuration
-APP_NAME="pam"
+APP_NAME="squix"
 VERSION=${1:-"dev"}
 BUILD_DIR="./dist"
 DOCKER_IMAGE="ghcr.io/goreleaser/goreleaser-cross:v1.25"
@@ -34,7 +34,7 @@ build_with_docker() {
         -e GOARCH=$goarch \
         -e CC=$cc \
         $DOCKER_IMAGE \
-        bash -c "git config --global --add safe.directory /workspace && go build -buildvcs=false -ldflags='-s -w' -o $output ./cmd/pam"
+        bash -c "git config --global --add safe.directory /workspace && go build -buildvcs=false -ldflags='-s -w' -o $output ./cmd/squix"
     
     echo "✓ Built $platform successfully"
 }
@@ -59,7 +59,7 @@ docker run --rm \
     -e GOOS=darwin \
     -e GOARCH=amd64 \
     $DOCKER_IMAGE \
-    bash -c "git config --global --add safe.directory /workspace && go build -buildvcs=false -ldflags='-s -w' -tags=nocgo -o $BUILD_DIR/${APP_NAME}-darwin-amd64 ./cmd/pam"
+    bash -c "git config --global --add safe.directory /workspace && go build -buildvcs=false -ldflags='-s -w' -tags=nocgo -o $BUILD_DIR/${APP_NAME}-darwin-amd64 ./cmd/squix"
 echo "✓ Built macOS AMD64 successfully"
 
 echo ""
@@ -72,7 +72,7 @@ docker run --rm \
     -e GOOS=darwin \
     -e GOARCH=arm64 \
     $DOCKER_IMAGE \
-    bash -c "git config --global --add safe.directory /workspace && go build -buildvcs=false -ldflags='-s -w' -tags=nocgo -o $BUILD_DIR/${APP_NAME}-darwin-arm64 ./cmd/pam"
+    bash -c "git config --global --add safe.directory /workspace && go build -buildvcs=false -ldflags='-s -w' -tags=nocgo -o $BUILD_DIR/${APP_NAME}-darwin-arm64 ./cmd/squix"
 echo "✓ Built macOS ARM64 successfully"
 
 echo ""
@@ -89,7 +89,7 @@ echo "  ✓ macOS ARM64 (without CGO - Oracle/SQLite unavailable)"
 echo ""
 echo "Note: macOS binaries will show errors if Oracle/SQLite are used."
 echo "For full macOS support with CGO, build on a Mac with:"
-echo "  CGO_ENABLED=1 go build -o pam ./cmd/pam"
+echo "  CGO_ENABLED=1 go build -o pam ./cmd/squix"
 echo ""
 
 # Create source code archives

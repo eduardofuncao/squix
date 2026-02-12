@@ -8,7 +8,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (m Model) updateCell() (tea.Model, tea.Cmd) {
@@ -25,7 +25,7 @@ func (m Model) updateCell() (tea.Model, tea.Cmd) {
 		editorCmd = "vim"
 	}
 
-	tmpFile, err := os.CreateTemp("", "pam-update-*.sql")
+	tmpFile, err := os.CreateTemp("", "squix-update-*.sql")
 	if err != nil {
 		return m, nil
 	}

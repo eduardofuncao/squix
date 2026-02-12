@@ -1,4 +1,4 @@
-# Contributing to Pam
+# Contributing to Squix
 
 We welcome contributions! Here's how to get started:
 
@@ -27,7 +27,7 @@ Install Go and the database clients you need:
 
 ```bash
 # Go
-go install github.com/eduardofuncao/pam/cmd/pam@latest
+go install github.com/eduardofuncao/squix/cmd/squix@latest
 
 # PostgreSQL client (Ubuntu/Debian)
 sudo apt install postgresql-client
@@ -41,7 +41,7 @@ sudo apt install sqlite3
 
 ### Testing with Real Databases
 
-To test Pam with actual database connections, use the
+To test Squix with actual database connections, use the
 **[dbeesly](https://github.com/eduardofuncao/dbeesly)** project - a collection
 of pre-configured database setups with sample data.
 
@@ -53,7 +53,7 @@ of pre-configured database setups with sample data.
 git clone https://github.com/dbeesly/sqlserver.git
 cd sqlserver
 make start
-pam init sqlserver-dev sqlserver "sqlserver://sa:MyStrongPass123@localhost:1433/master"
+squix init sqlserver-dev sqlserver "sqlserver://sa:MyStrongPass123@localhost:1433/master"
 ```
 
 Each dbeesly database includes:
@@ -75,14 +75,14 @@ start the db server), which run docker-compose under the hood if needed
 
 ```bash
 # Build locally
-go build -o pam ./cmd/pam
+go build -o squix ./cmd/squix
 
 # Run your build
-./pam status
+./squix status
 
 # Test with a dbeesly database
 cd ../dbeesly/sqlserver
 make start
-cd ../pam
-./pam run "SELECT * FROM employees"
+cd ../squix
+./squix run "SELECT * FROM employees"
 ```

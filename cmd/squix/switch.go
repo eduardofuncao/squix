@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleSwitch() {
 	if len(os.Args) < 3 {
-		printError("Usage: pam switch/use <db-name>")
+		printError("Usage: squix switch/use <db-name>")
 	}
 
 	connName := os.Args[2]

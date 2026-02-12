@@ -251,7 +251,7 @@ func (m Model) editFromDetailView() (Model, tea.Cmd) {
 		editorCmd = "vim"
 	}
 
-	tmpFile, err := os.CreateTemp("", "pam-update-*.sql")
+	tmpFile, err := os.CreateTemp("", "squix-update-*.sql")
 	if err != nil {
 		return m, nil
 	}

@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/spinner"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/spinner"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleStatus() {

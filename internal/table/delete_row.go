@@ -8,7 +8,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (m Model) deleteRow() (tea.Model, tea.Cmd) {
@@ -27,7 +27,7 @@ func (m Model) deleteRow() (tea.Model, tea.Cmd) {
 		editorCmd = "vim"
 	}
 
-	tmpFile, err := os.CreateTemp("", "pam-delete-*.sql")
+	tmpFile, err := os.CreateTemp("", "squix-delete-*.sql")
 	if err != nil {
 		return m, nil
 	}

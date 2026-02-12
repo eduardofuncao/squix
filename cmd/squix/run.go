@@ -5,16 +5,16 @@ import (
 	"os"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/editor"
-	"github.com/eduardofuncao/pam/internal/params"
-	"github.com/eduardofuncao/pam/internal/run"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/editor"
+	"github.com/eduardofuncao/squix/internal/params"
+	"github.com/eduardofuncao/squix/internal/run"
 )
 
 func (a *App) handleRun() {
 	if a.config.CurrentConnection == "" {
-		printError("No active connection.   Use 'pam switch <connection>' or 'pam init' first")
+		printError("No active connection.   Use 'squix switch <connection>' or 'squix init' first")
 	}
 
 	flags := parseRunFlags()
@@ -155,7 +155,7 @@ func (a *App) createNewQueryOrEdit() db.Query {
 -- Save and exit to execute, or exit without saving to cancel
 --
 `
-	editedSQL, err := editor.EditTempFileWithTemplate(instructions, "pam-run-")
+	editedSQL, err := editor.EditTempFileWithTemplate(instructions, "squix-run-")
 	if err != nil {
 		printError("Error opening editor: %v", err)
 	}
@@ -166,7 +166,7 @@ func (a *App) createNewQueryOrEdit() db.Query {
 }
 
 func (a *App) editQueryOrExit(query db.Query) db.Query {
-	editedSQL, err := editor.EditTempFile(query.SQL, "pam-run-")
+	editedSQL, err := editor.EditTempFile(query.SQL, "squix-run-")
 	if err != nil {
 		printError("Error opening editor: %v", err)
 	}

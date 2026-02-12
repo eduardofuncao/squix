@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleDisconnect() {
@@ -27,7 +27,7 @@ func (a *App) handleDisconnect() {
 	fmt.Println()
 	fmt.Println(
 		styles.Faint.Render(
-			"Use 'pam switch <connection>' to connect to a database",
+			"Use 'squix switch <connection>' to connect to a database",
 		),
 	)
 }

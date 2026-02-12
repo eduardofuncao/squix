@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 var sqlKeywords = []string{

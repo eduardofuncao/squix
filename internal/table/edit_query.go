@@ -6,7 +6,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (m Model) editAndRerunQuery() (tea.Model, tea.Cmd) {
@@ -15,7 +15,7 @@ func (m Model) editAndRerunQuery() (tea.Model, tea.Cmd) {
 		editorCmd = "vim"
 	}
 
-	tmpFile, err := os.CreateTemp("", "pam-edit-query-*.sql")
+	tmpFile, err := os.CreateTemp("", "squix-edit-query-*.sql")
 	if err != nil {
 		return m, nil
 	}

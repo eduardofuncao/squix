@@ -3,8 +3,8 @@ package run
 import (
 	"fmt"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
 )
 
 // ResolveQuery determines which query to run based on flags and config
@@ -21,7 +21,7 @@ func ResolveQuery(flags Flags, cfg *config.Config, currentConn string, conn db.D
 		}
 		lastQuery := cfg.Connections[currentConn].LastQuery
 		if lastQuery.Name == "" {
-			return ResolvedQuery{}, fmt.Errorf("no last query found. Run a query first, then use pam run --last")
+			return ResolvedQuery{}, fmt.Errorf("no last query found. Run a query first, then use squix run --last")
 		}
 		return ResolvedQuery{
 			Query:    lastQuery,
@@ -29,7 +29,7 @@ func ResolveQuery(flags Flags, cfg *config.Config, currentConn string, conn db.D
 		}, nil
 	}
 
-	// Priority 2: Inline SQL (pam run "select * from employees")
+	// Priority 2: Inline SQL (squix run "select * from employees")
 	if flags.Selector != "" && IsLikelySQL(flags.Selector) {
 		return ResolvedQuery{
 			Query:    db.Query{Name: "<inline>", SQL: flags.Selector, Id: -1},
@@ -49,7 +49,7 @@ func ResolveQuery(flags Flags, cfg *config.Config, currentConn string, conn db.D
 		}, nil
 	}
 
-	// Priority 4: Default - will create new query in editor (pam run with no args)
+	// Priority 4: Default - will create new query in editor (squix run with no args)
 	// Return a placeholder that indicates caller should prompt for new query
 	return ResolvedQuery{
 		Query:    db.Query{Name: "<new>", SQL: "", Id: -1},

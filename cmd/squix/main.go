@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func main() {

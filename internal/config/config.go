@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 	"gopkg.in/yaml.v2"
 )
 
-var CfgPath = os.ExpandEnv("$HOME/.config/pam/")
+var CfgPath = os.ExpandEnv("$HOME/.config/squix/")
 var CfgFile = filepath.Join(CfgPath, "config.yaml")
 
 type Config struct {

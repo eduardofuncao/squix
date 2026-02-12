@@ -1,6 +1,6 @@
 package run
 
-import "github.com/eduardofuncao/pam/internal/db"
+import "github.com/eduardofuncao/squix/internal/db"
 
 type Flags struct {
 	EditMode  bool

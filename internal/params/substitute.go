@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/eduardofuncao/pam/internal/db"
+	"github.com/eduardofuncao/squix/internal/db"
 )
 
 func SubstituteParameters(sql string, paramValues map[string]string, conn db.DatabaseConnection) (string, []any, error) {

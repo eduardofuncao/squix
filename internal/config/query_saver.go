@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/eduardofuncao/pam/internal/db"
+	"github.com/eduardofuncao/squix/internal/db"
 )
 
 func GetNextQueryId(queries map[string]db.Query) int {

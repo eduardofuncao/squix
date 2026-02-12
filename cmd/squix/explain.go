@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 type explainFlags struct {
@@ -46,14 +46,14 @@ func parseExplainFlags() (explainFlags, []string) {
 func (a *App) handleExplain() {
 	if a.config.CurrentConnection == "" {
 		printError(
-			"No active connection. Use 'pam switch <connection>' or 'pam init' first",
+			"No active connection. Use 'squix switch <connection>' or 'squix init' first",
 		)
 	}
 
 	flags, args := parseExplainFlags()
 
 	if len(args) == 0 {
-		fmt.Println("Usage: pam explain [--depth|-d N] [--verbose|-v] <table-name>")
+		fmt.Println("Usage: squix explain [--depth|-d N] [--verbose|-v] <table-name>")
 		os.Exit(1)
 	}
 

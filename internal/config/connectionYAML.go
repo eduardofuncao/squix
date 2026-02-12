@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 
-	"github.com/eduardofuncao/pam/internal/db"
+	"github.com/eduardofuncao/squix/internal/db"
 )
 
 type ConnectionYAML struct {

@@ -1,4 +1,4 @@
-module github.com/eduardofuncao/pam
+module github.com/eduardofuncao/squix
 
 go 1.25.0
 

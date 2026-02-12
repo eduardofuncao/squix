@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleRemove() {
 	if len(os.Args) < 3 {
-		printError("Usage:  pam remove <run-name>")
+		printError("Usage:  squix remove <run-name>")
 	}
 
 	conn := a.config.Connections[a.config.CurrentConnection]

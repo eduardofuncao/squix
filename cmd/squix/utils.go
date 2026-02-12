@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/eduardofuncao/pam/internal/styles"
+	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func printError(format string, args ...any) {

@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eduardofuncao/pam/internal/config"
-	"github.com/eduardofuncao/pam/internal/db"
-	"github.com/eduardofuncao/pam/internal/run"
-	"github.com/eduardofuncao/pam/internal/spinner"
-	"github.com/eduardofuncao/pam/internal/table"
+	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
+	"github.com/eduardofuncao/squix/internal/run"
+	"github.com/eduardofuncao/squix/internal/spinner"
+	"github.com/eduardofuncao/squix/internal/table"
 )
 
 type tablesFlags struct {
@@ -36,7 +36,7 @@ func parseTablesFlags() (tablesFlags, []string) {
 func (a *App) handleTables() {
 	if a.config.CurrentConnection == "" {
 		printError(
-			"No active connection. Use 'pam switch <connection>' or 'pam init' first",
+			"No active connection. Use 'squix switch <connection>' or 'squix init' first",
 		)
 	}
 
