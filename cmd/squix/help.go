@@ -59,7 +59,7 @@ func (a *App) PrintGeneralHelp() {
 	)
 	fmt.Println(
 		"  remove      " + styles.Faint.Render(
-			"Remove a saved query by name or id (alias: delete)",
+			"Remove a saved query by name/id, or remove a connection entirely (alias: delete)",
 		),
 	)
 	fmt.Println(
@@ -256,14 +256,18 @@ func (a *App) PrintCommandHelp() {
 
 	case "remove", "delete":
 		section("Command: remove")
-		fmt.Println(styles.Faint.Render("Remove a saved query by name or ID."))
+		fmt.Println(styles.Faint.Render("Remove a saved query by name/id, or remove a connection entirely."))
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  squix remove <run-name-or-id>")
+		fmt.Println("  squix remove <run-name-or-id>              # Remove query")
+		fmt.Println("  squix remove --connection <conn-name>    # Remove connection")
+		fmt.Println("  squix remove -c <conn-name>             # Remove connection (short)")
 		fmt.Println()
 		section("Examples")
-		fmt.Println("  squix remove list_users")
-		fmt.Println("  squix remove 3")
+		fmt.Println("  squix remove list_users                    # Remove query")
+		fmt.Println("  squix remove 3                             # Remove query by ID")
+		fmt.Println("  squix remove --connection dev              # Remove connection")
+		fmt.Println("  squix remove -c prod                         # Remove connection (short)")
 
 	case "run", "query":
 		section("Command: run")

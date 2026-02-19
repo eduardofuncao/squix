@@ -40,7 +40,7 @@ func (a *App) Run() {
 		a.handleSwitch()
 	case "add", "save":
 		a.handleAdd()
-	case "remove", "delete":
+	case "remove", "rm", "delete":
 		a.handleRemove()
 	case "query", "run":
 		a.handleRun()
