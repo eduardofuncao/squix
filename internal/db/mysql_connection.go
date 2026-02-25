@@ -109,7 +109,7 @@ func (m *MySQLConnection) GetTableMetadata(
 	if rows.Next() {
 		var pkColumn string
 		if err := rows.Scan(&pkColumn); err == nil {
-			metadata.PrimaryKey = pkColumn
+			metadata.PrimaryKeys = append(metadata.PrimaryKeys, pkColumn)
 		}
 	}
 
@@ -132,6 +132,12 @@ func (m *MySQLConnection) GetTableMetadata(
 				metadata.ColumnTypes = append(metadata.ColumnTypes, colType)
 			}
 		}
+	}
+
+	// Fetch foreign keys
+	fks, err := m.GetForeignKeys(tableName)
+	if err == nil {
+		metadata.ForeignKeys = fks
 	}
 
 	return metadata, nil
@@ -270,6 +276,131 @@ func (m *MySQLConnection) BuildDropColumnSQL(
 	)
 }
 
+func (m *MySQLConnection) GetForeignKeys(
+	tableName string,
+) ([]ForeignKey, error) {
+	if m.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	query := `
+		SELECT
+			COLUMN_NAME,
+			REFERENCED_TABLE_NAME,
+			REFERENCED_COLUMN_NAME
+		FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+		WHERE TABLE_NAME = ?
+		AND TABLE_SCHEMA = DATABASE()
+		AND REFERENCED_TABLE_NAME IS NOT NULL
+		ORDER BY COLUMN_NAME
+	`
+
+	rows, err := m.db.Query(query, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query foreign keys: %w", err)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		if err := rows.Scan(
+			&fk.Column,
+			&fk.ReferencedTable,
+			&fk.ReferencedColumn,
+		); err == nil {
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (m *MySQLConnection) GetForeignKeysReferencingTable(
+	tableName string,
+) ([]ForeignKey, error) {
+	if m.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	query := `
+		SELECT
+			COLUMN_NAME,
+			TABLE_NAME,
+			REFERENCED_COLUMN_NAME
+		FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+		WHERE REFERENCED_TABLE_NAME = ?
+		AND TABLE_SCHEMA = DATABASE()
+		AND REFERENCED_TABLE_SCHEMA = DATABASE()
+		ORDER BY TABLE_NAME, COLUMN_NAME
+	`
+
+	rows, err := m.db.Query(query, tableName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to query referencing foreign keys: %w",
+			err,
+		)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		// Note: In this reverse query, COLUMN_NAME is the FK column in the other table,
+		// TABLE_NAME is the other table, and REFERENCED_COLUMN_NAME is in this table
+		if err := rows.Scan(
+			&fk.Column,
+			&fk.ReferencedTable,
+			&fk.ReferencedColumn,
+		); err == nil {
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (m *MySQLConnection) GetUniqueConstraints(
+	tableName string,
+) ([]string, error) {
+	if m.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	query := `
+		SELECT COLUMN_NAME
+		FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+		WHERE TABLE_NAME = ?
+		AND TABLE_SCHEMA = DATABASE()
+		AND CONSTRAINT_NAME <> 'PRIMARY'
+		AND CONSTRAINT_NAME IN (
+			SELECT CONSTRAINT_NAME
+			FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+			WHERE TABLE_NAME = ?
+			AND TABLE_SCHEMA = DATABASE()
+			AND CONSTRAINT_TYPE = 'UNIQUE'
+		)
+		ORDER BY COLUMN_NAME
+	`
+
+	rows, err := m.db.Query(query, tableName, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query unique constraints: %w", err)
+	}
+	defer rows.Close()
+
+	var uniqueColumns []string
+	for rows.Next() {
+		var column string
+		if err := rows.Scan(&column); err == nil {
+			uniqueColumns = append(uniqueColumns, column)
+		}
+	}
+
+	return uniqueColumns, nil
+}
+
 func (m *MySQLConnection) GetInfoSQL(infoType string) string {
 	switch infoType {
 	case "tables":
@@ -279,6 +410,65 @@ func (m *MySQLConnection) GetInfoSQL(infoType string) string {
 	default:
 		return ""
 	}
+}
+
+func (m *MySQLConnection) GetTables() ([]string, error) {
+	if m.db == nil {
+		return nil, fmt.Errorf("database not open")
+	}
+
+	query := `
+		SELECT TABLE_NAME
+		FROM information_schema.TABLES
+		WHERE TABLE_SCHEMA = DATABASE()
+		  AND TABLE_TYPE = 'BASE TABLE'
+		ORDER BY TABLE_NAME
+	`
+
+	rows, err := m.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tables: %w", err)
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err == nil {
+			tables = append(tables, tableName)
+		}
+	}
+
+	return tables, nil
+}
+
+func (m *MySQLConnection) GetViews() ([]string, error) {
+	if m.db == nil {
+		return nil, fmt.Errorf("database not open")
+	}
+
+	query := `
+		SELECT TABLE_NAME
+		FROM information_schema.VIEWS
+		WHERE TABLE_SCHEMA = DATABASE()
+		ORDER BY TABLE_NAME
+	`
+
+	rows, err := m.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query views: %w", err)
+	}
+	defer rows.Close()
+
+	var views []string
+	for rows.Next() {
+		var viewName string
+		if err := rows.Scan(&viewName); err == nil {
+			views = append(views, viewName)
+		}
+	}
+
+	return views, nil
 }
 
 func (m *MySQLConnection) BuildUpdateStatement(
@@ -317,4 +507,8 @@ func (m *MySQLConnection) BuildDeleteStatement(
 		primaryKeyCol,
 		escapedPkValue,
 	)
+}
+
+func (m *MySQLConnection) GetPlaceholder(paramIndex int) string {
+	return "?"
 }

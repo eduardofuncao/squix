@@ -41,9 +41,10 @@
 
 - **Query Library** - Save and organize your most-used queries
 - **Runs in the CLI** - Execute queries with minimal overhead
-- **Multi-Database** - Works with PostgreSQL, MySQL, SQLite, Oracle, SQL Server and ClickHouse
+- **Multi-Database** - Works with PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse and Firebird
 - **Table view TUI** - Keyboard focused navigation with vim-style bindings
 - **In-Place Editing** - Update cells, delete rows and edit your SQL directly from the results table
+- **Export your data** - Export your data as CSV, JSON, SQL, Markdown or HTML tables
 
 ---
 
@@ -195,6 +196,7 @@ g/G        # Jump to first/last row
 # Copy data
 y          # Yank (copy) current cell
 v          # Enter visual mode to select multiple cells and copy with y
+x          # Export selected data as csv, tsv, json, sql, markdown or html
 
 # Sort data
 f          # Toggle sort on current column
@@ -237,6 +239,15 @@ The table will:
 - Distribute extra space proportionally among columns
 
 You can still configure a fallback `default_column_width` in the config file for edge cases, but the dynamic sizing will take precedence in most scenarios.
+
+### Color Schemes `color_scheme: "default"`
+Customize the terminal UI colors with built-in schemes:
+
+**Available schemes:**
+`default`, `dracula`, `gruvbox`, `solarized`, `nord`, `monokai`
+`black-metal`, `black-metal-gorgoroth`, `vesper`, `catppuccin-mocha`, `tokyo-night`, `rose-pine`, `terracotta`
+
+Each scheme uses a 7-color palette: Primary (titles, headers), Success (success messages), Error (errors), Normal (table data), Muted (borders, help text), Highlight (selected backgrounds), Accent (keywords, strings).
 
 ---
 
@@ -293,6 +304,12 @@ pam init oracle-stg oracle myuser/mypassword@localhost:1521/XEPDB1 schema-name
 pam init clickhouse-docker clickhouse "clickhouse://myuser:mypassword@localhost:9000/dundermifflin"
 ```
 
+### FireBird
+
+```bash
+pam init firebird-docker firebird user:masterkey@localhost:3050//var/lib/firebird/data/the_office
+```
+
 ---
 
 ## 🐝 Dbeesly
@@ -319,6 +336,19 @@ pam add daily_report "SELECT * FROM sales WHERE date = CURRENT_DATE"
 pam add user_count "SELECT COUNT(*) FROM users"
 pam add employees "SELECT TOP 10 * FROM employees ORDER BY last_name"
 
+# Add parameterized queries with :param|default syntax
+pam add emp_by_salary "SELECT * FROM employees WHERE salary > :min_sal|30000"
+pam add search_users "SELECT * FROM users WHERE name LIKE :name|P% AND status = :status|active"
+
+# When creating queries with params and not default, pam will prompt you for the param value every time you run the query
+pam add search_by_name "SELECT * FROM employees where first_name = :name"
+
+# Run parameterized queries with named parameters (order doesn't matter!)
+pam run emp_by_salary --min_sal 50000
+pam run search_users --name Michael --status active
+# Or use positional args (must match SQL order)
+pam run search_users Michael active
+
 # List all saved queries
 pam list queries
 
@@ -329,13 +359,16 @@ pam list queries employees --oneline # displays each query in one line
 # Run by name or ID
 pam run daily_report
 pam run 2
+
+# Edit query before running (great for testing parameter values)
+pam run emp_by_salary --edit
 ```
 
 <img width="1166" height="687" alt="image" src="https://github.com/user-attachments/assets/6f05c2dc-aa48-49ca-ab68-fdf3cfcc4eae" />
 
 ### TUI Table Viewer
 
-Navigate query results with Vim-style keybindings, update cells in-place, dekete rows and copy data
+Navigate query results with Vim-style keybindings, update cells in-place, delete rows and copy data
 
 <img width="1155" height="689" alt="image" src="https://github.com/user-attachments/assets/839bb77d-b358-43d0-98cd-0dc8102a9ac0" />
 
@@ -353,16 +386,38 @@ Manage multiple database connections and switch between them instantly.
 ```bash
 # List all connections
 pam list connections
-
-# Switch active connection
-pam switch mysql_prod
-
-# Display current connection and check if it is reacheable
+pam switch production
+```
+Display current connection and check if it is reachable
+```
 pam status
 ```
 <div align=center>
   <img width="425" height="503" alt="image" src="https://github.com/user-attachments/assets/e291de99-3c03-4e2a-b559-dcbbb89dc232" />
 </div>
+
+### Database Exploration
+
+Explore your database schema and visualize relationships between tables.
+
+```bash
+# List all tables and views in multi-column format
+pam explore
+
+# Query a table directly
+pam explore employees --limit 100
+
+# Visualize foreign key relationships
+pam explain employees
+pam explain employees --depth 2    # Show relationships 2 levels deep
+```
+
+<img width="855" height="171" alt="image" src="https://github.com/user-attachments/assets/e824e87d-d3b3-4a1a-9850-cc041cf94216" />
+
+**Note:** The `pam explain` command is currently a work in progress and may change in future versions.
+
+
+
 
 ---
 
@@ -388,7 +443,10 @@ You can also use the editor to edit queries before running them
 pam run daily_report --edit
 
 # Create and run a new query on the fly
-pam run --new
+pam run
+
+# Re-run the last executed query
+pam run --last
 
 # Edit all queries at once
 pam edit queries
@@ -421,9 +479,19 @@ pam edit queries
 | `list queries --oneline` | lists each query in one line | `pam list -o` |
 | `list queries <searchterm>` | lists queries containing search term | `pam list employees` |
 | `run <name\|id\|sql>` | Execute a query | `pam run users` or `pam run 2` |
+| `run` | Create and run a new query | `pam run` |
 | `run --edit` | Edit query before running | `pam run users --edit` |
-| `run --new` | Create and run new query | `pam run --new` |
-| `run` | Re-run last query | `pam run` |
+| `run --last`, `-l` | Re-run last executed query | `pam run --last` |
+| `run --param` | run with named params | `pam run --name Pam` |
+
+
+### Database Exploration
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `explore` | List all tables and views in multi-column format | `pam explore` |
+| `explore <table> [-l N]` | Query a table with optional row limit | `pam explore employees --limit 100` |
+| `explain <table> [-d N] [-c]` | Visualize foreign key relationships | `pam explain employees --depth 2` |
 
 ### Tables
 
@@ -498,6 +566,7 @@ When viewing query results in the TUI, you have full Vim-style navigation and ed
 | `u` | Update current cell (opens editor) |
 | `D` | Delete current row (requires WHERE clause) |
 | `e` | Edit and re-run query |
+| `s` | Save current query |
 | `q`, `Ctrl+c`, `Esc` | Quit table view |
 
 ### Detail View Mode
@@ -521,7 +590,10 @@ When you press `e` in detail view:
 
 ### Visual Mode
 
-Press `v` to enter visual mode, then navigate to select a range of cells. Press `y` to copy the selection.
+Press `v` to enter visual mode, then navigate to select a range of cells. 
+Press `y` to copy the selection as plain text, or `x` to export the selected data as csv, tsv, json, sql insert statement, markdown or html
+
+> The copied or exported data will be available in your clipboard
 
 ---
 
@@ -532,7 +604,7 @@ Press `v` to enter visual mode, then navigate to select a range of cells. Press 
 
 > This project is currently in beta, please report unexpected behavior through the issues tab
 
-### v0.1.0 Ryan
+### v0.1.0 Ryan 📎
 - [x] Multi-database support (PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse)
 - [x] Query library with save/edit/remove functionality
 - [x] Interactive TUI with Vim navigation
@@ -545,19 +617,17 @@ Press `v` to enter visual mode, then navigate to select a range of cells. Press 
 - [x] Row limit configuration option
 - [x] Info command, list all tables/views in current connection
 
-### v0.2.0 - Kelly
-- [ ] Dynamic column width
-- [ ] Program colors configuration option
-- [ ] Query parameter/placeholder support (e.g., `WHERE id = $1`)
-- [ ] Query execution history with persistence
-- [ ] CSV/JSON export for multiple cells
-- [ ] Display column types correctly for join queries
+### v0.2.0 - Kelly 👗
+- [x] Program colors configuration option
+- [x] Query parameter with prompt and defaults (e.g., `WHERE first_name = :name|Pam`)
+- [x] CSV/JSON export for multiple cells
+- [x] Display column types correctly for join queries
+- [x] `pam explore` and `pam explain`
 
-### v0.3.0 - Jim
+### v0.3.0 - Jim 👔
 - [ ] Shell autocomplete (bash, fish, zsh)
-- [ ] `pam info table <table>` - Show table metadata (columns, types, constraints)
-- [ ] `pam info connection` - Show connection/database overview
-
+- [ ] Encryption on connection username/password in config file
+- [ ] Dynamic column width
 
 ---
 
@@ -568,6 +638,7 @@ We welcome contributions! Get started with detailed instructions from [CONTRIBUT
 Thanks a lot to all the contributors:
 
 <a href="https://github.com/DeprecatedLuar"><img src="https://github.com/DeprecatedLuar.png" width="40" /></a>
+<a href="https://github.com/caiolandgraf"><img src="https://github.com/caiolandgraf.png" width="40" /></a>
 <a href="https://github.com/eduardofuncao"><img src="https://github.com/eduardofuncao.png" width="40" /></a>
 
 

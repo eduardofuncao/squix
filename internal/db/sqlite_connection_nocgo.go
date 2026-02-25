@@ -112,3 +112,7 @@ func (oc *SQLiteConnection) BuildDropColumnSQL(
 ) string {
 	return "-- SQLite driver not available: binary built without CGO"
 }
+
+func (oc *SQLiteConnection) GetPlaceholder(paramIndex int) string {
+	return "?"
+}

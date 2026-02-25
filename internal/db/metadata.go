@@ -7,10 +7,12 @@ import (
 )
 
 type TableMetadata struct {
-	TableName   string
-	PrimaryKey  string
-	ColumnTypes []string
-	Columns     []string
+	TableName         string
+	PrimaryKeys       []string
+	ColumnTypes       []string
+	Columns           []string
+	ForeignKeys       []ForeignKey
+	UniqueConstraints []string
 }
 
 // ColumnInfo holds detailed metadata about a single column
@@ -22,6 +24,12 @@ type ColumnInfo struct {
 	IsPrimaryKey bool
 	OrdinalPos   int
 	Extra        string // e.g. "auto_increment", "GENERATED", etc.
+}
+
+type ForeignKey struct {
+	Column           string
+	ReferencedTable  string
+	ReferencedColumn string
 }
 
 func ExtractTableNameFromSQL(sqlQuery string) string {
@@ -49,24 +57,19 @@ func InferTableMetadata(
 	conn DatabaseConnection,
 	query Query,
 ) (*TableMetadata, error) {
-	if HasJoinClause(query.SQL) {
-		return nil, fmt.Errorf(
-			"update/delete operations are not supported for JOIN queries",
-		)
-	}
-
 	if query.TableName != "" {
 		metadata := &TableMetadata{
-			TableName:  query.TableName,
-			PrimaryKey: query.PrimaryKey,
+			TableName: query.TableName,
 		}
 
-		if metadata.PrimaryKey == "" && conn != nil {
+		if len(query.PrimaryKeys) == 0 && conn != nil {
 			if dbMeta, err := conn.GetTableMetadata(
 				query.TableName,
 			); err == nil {
-				metadata.PrimaryKey = dbMeta.PrimaryKey
+				metadata.PrimaryKeys = dbMeta.PrimaryKeys
 			}
+		} else {
+			metadata.PrimaryKeys = query.PrimaryKeys
 		}
 
 		return metadata, nil
@@ -74,6 +77,17 @@ func InferTableMetadata(
 
 	tableName := ExtractTableNameFromSQL(query.SQL)
 	if tableName == "" {
+		// Check if this is a JOIN query
+		if HasJoinClause(query.SQL) {
+			// Try to extract the primary table from the JOIN
+			primaryTable := ExtractPrimaryTableFromJoin(query.SQL)
+			if primaryTable != "" && conn != nil {
+				// Get metadata for the primary table
+				return conn.GetTableMetadata(primaryTable)
+			}
+			// Return empty metadata for complex JOINs
+			return &TableMetadata{TableName: ""}, nil
+		}
 		return nil, fmt.Errorf("could not extract table name from query")
 	}
 
@@ -84,6 +98,43 @@ func InferTableMetadata(
 	return &TableMetadata{
 		TableName: tableName,
 	}, nil
+}
+
+func ExtractPrimaryTableFromJoin(sqlQuery string) string {
+	normalized := strings.Join(strings.Fields(strings.ToLower(sqlQuery)), " ")
+
+	// Extract FROM clause
+	fromPattern := regexp.MustCompile(`from\s+([^where^group^order^limit^;]+)`)
+	matches := fromPattern.FindStringSubmatch(normalized)
+	if len(matches) < 2 {
+		return ""
+	}
+
+	fromClause := strings.TrimSpace(matches[1])
+
+	// Split by JOIN to get the first table
+	// Handle various JOIN types
+	joinPattern := regexp.MustCompile(
+		`\s+(?:inner|left|right|full|outer|cross)\s+join\s+`,
+	)
+	tables := joinPattern.Split(fromClause, -1)
+
+	// Get the first table (before any JOIN)
+	firstTable := strings.TrimSpace(tables[0])
+
+	// Remove any alias (e.g., "users u" or "users AS u")
+	tableParts := strings.Fields(firstTable)
+	if len(tableParts) > 0 {
+		// The first part should be the table name
+		tableName := tableParts[0]
+		// Clean up schema prefix if present (e.g., "public.users" -> "users")
+		if dotIdx := strings.LastIndex(tableName, "."); dotIdx != -1 {
+			tableName = tableName[dotIdx+1:]
+		}
+		return tableName
+	}
+
+	return ""
 }
 
 func HasJoinClause(sqlQuery string) bool {

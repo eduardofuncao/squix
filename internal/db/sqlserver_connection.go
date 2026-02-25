@@ -116,7 +116,7 @@ func (s *SQLServerConnection) GetTableMetadata(
 	if rows.Next() {
 		var pkColumn string
 		if err := rows.Scan(&pkColumn); err == nil {
-			metadata.PrimaryKey = pkColumn
+			metadata.PrimaryKeys = append(metadata.PrimaryKeys, pkColumn)
 		}
 	}
 
@@ -150,7 +150,173 @@ func (s *SQLServerConnection) GetTableMetadata(
 		}
 	}
 
+	// Fetch foreign keys
+	fks, err := s.GetForeignKeys(tableName)
+	if err == nil {
+		metadata.ForeignKeys = fks
+	}
+
 	return metadata, nil
+}
+
+func (s *SQLServerConnection) GetForeignKeys(
+	tableName string,
+) ([]ForeignKey, error) {
+	if s.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT SCHEMA_NAME()`
+	row := s.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if s.Schema != "" {
+			currentSchema = s.Schema
+		} else {
+			currentSchema = "dbo"
+		}
+	}
+
+	query := `
+		SELECT
+			kcu.COLUMN_NAME,
+			rcu.TABLE_NAME AS FOREIGN_TABLE_NAME,
+			rcu.COLUMN_NAME AS FOREIGN_COLUMN_NAME
+		FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+		JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+			ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+		JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE rcu
+			ON rc.UNIQUE_CONSTRAINT_NAME = rcu.CONSTRAINT_NAME
+		WHERE kcu.TABLE_NAME = @p1
+		  AND kcu.TABLE_SCHEMA = @p2
+		  AND rc.CONSTRAINT_SCHEMA = @p2
+		ORDER BY kcu.COLUMN_NAME
+	`
+
+	rows, err := s.db.Query(query, tableName, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query foreign keys: %w", err)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		if err := rows.Scan(
+			&fk.Column,
+			&fk.ReferencedTable,
+			&fk.ReferencedColumn,
+		); err == nil {
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (s *SQLServerConnection) GetForeignKeysReferencingTable(
+	tableName string,
+) ([]ForeignKey, error) {
+	if s.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT SCHEMA_NAME()`
+	row := s.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if s.Schema != "" {
+			currentSchema = s.Schema
+		} else {
+			currentSchema = "dbo"
+		}
+	}
+
+	query := `
+		SELECT
+			kcu.COLUMN_NAME,
+			kcu.TABLE_NAME AS FOREIGN_TABLE_NAME,
+			rcu.COLUMN_NAME AS FOREIGN_COLUMN_NAME
+		FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+		JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+			ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+		JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE rcu
+			ON rc.UNIQUE_CONSTRAINT_NAME = rcu.CONSTRAINT_NAME
+		WHERE rcu.TABLE_NAME = @p1
+		  AND rcu.TABLE_SCHEMA = @p2
+		  AND rc.CONSTRAINT_SCHEMA = @p2
+		ORDER BY kcu.TABLE_NAME, kcu.COLUMN_NAME
+	`
+
+	rows, err := s.db.Query(query, tableName, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to query referencing foreign keys: %w",
+			err,
+		)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		if err := rows.Scan(
+			&fk.Column,
+			&fk.ReferencedTable,
+			&fk.ReferencedColumn,
+		); err == nil {
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (s *SQLServerConnection) GetUniqueConstraints(
+	tableName string,
+) ([]string, error) {
+	if s.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT SCHEMA_NAME()`
+	row := s.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if s.Schema != "" {
+			currentSchema = s.Schema
+		} else {
+			currentSchema = "dbo"
+		}
+	}
+
+	query := `
+		SELECT kcu.COLUMN_NAME
+		FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+		JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+			ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+			AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+		WHERE tc.CONSTRAINT_TYPE = 'UNIQUE'
+		  AND tc.TABLE_NAME = @p1
+		  AND tc.TABLE_SCHEMA = @p2
+		ORDER BY kcu.COLUMN_NAME
+	`
+
+	rows, err := s.db.Query(query, tableName, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query unique constraints: %w", err)
+	}
+	defer rows.Close()
+
+	var uniqueColumns []string
+	for rows.Next() {
+		var column string
+		if err := rows.Scan(&column); err == nil {
+			uniqueColumns = append(uniqueColumns, column)
+		}
+	}
+
+	return uniqueColumns, nil
 }
 
 func (s *SQLServerConnection) GetColumnDetails(
@@ -346,6 +512,66 @@ func (s *SQLServerConnection) GetInfoSQL(infoType string) string {
 	}
 }
 
+func (s *SQLServerConnection) GetTables() ([]string, error) {
+	if s.db == nil {
+		return nil, fmt.Errorf("database not open")
+	}
+
+	query := `
+		SELECT t.NAME
+		FROM sys.tables t
+		INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+		WHERE s.NAME = SCHEMA_NAME()
+		ORDER BY t.NAME
+	`
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tables: %w", err)
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err == nil {
+			tables = append(tables, tableName)
+		}
+	}
+
+	return tables, nil
+}
+
+func (s *SQLServerConnection) GetViews() ([]string, error) {
+	if s.db == nil {
+		return nil, fmt.Errorf("database not open")
+	}
+
+	query := `
+		SELECT v.NAME
+		FROM sys.views v
+		INNER JOIN sys.schemas s ON v.schema_id = s.schema_id
+		WHERE s.NAME = SCHEMA_NAME()
+		ORDER BY v.NAME
+	`
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query views: %w", err)
+	}
+	defer rows.Close()
+
+	var views []string
+	for rows.Next() {
+		var viewName string
+		if err := rows.Scan(&viewName); err == nil {
+			views = append(views, viewName)
+		}
+	}
+
+	return views, nil
+}
+
 func (s *SQLServerConnection) BuildUpdateStatement(
 	tableName, columnName, currentValue, pkColumn, pkValue string,
 ) string {
@@ -388,6 +614,10 @@ func (s *SQLServerConnection) BuildDeleteStatement(
 		quotedPkColumn,
 		escapedPkValue,
 	)
+}
+
+func (s *SQLServerConnection) GetPlaceholder(paramIndex int) string {
+	return "@p" + fmt.Sprintf("%d", paramIndex)
 }
 
 func (s *SQLServerConnection) ApplyRowLimit(sql string, limit int) string {

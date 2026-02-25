@@ -126,7 +126,7 @@ func (c *ClickHouseConnection) GetTableMetadata(
 			// Remove quotes and trim whitespace
 			pk := strings.TrimSpace(keys[0])
 			pk = strings.Trim(pk, "`\"'")
-			metadata.PrimaryKey = pk
+			metadata.PrimaryKeys = append(metadata.PrimaryKeys, pk)
 		}
 	}
 
@@ -156,6 +156,8 @@ func (c *ClickHouseConnection) GetTableMetadata(
 		metadata.Columns = append(metadata.Columns, colName)
 		metadata.ColumnTypes = append(metadata.ColumnTypes, colType)
 	}
+
+	metadata.ForeignKeys = []ForeignKey{}
 
 	return metadata, nil
 }
@@ -227,6 +229,27 @@ func (c *ClickHouseConnection) GetColumnDetails(
 	return columns, nil
 }
 
+func (c *ClickHouseConnection) GetForeignKeys(
+	tableName string,
+) ([]ForeignKey, error) {
+	// Return empty list gracefully
+	return []ForeignKey{}, nil
+}
+
+func (c *ClickHouseConnection) GetForeignKeysReferencingTable(
+	tableName string,
+) ([]ForeignKey, error) {
+	// Return empty list gracefully
+	return []ForeignKey{}, nil
+}
+
+func (c *ClickHouseConnection) GetUniqueConstraints(
+	tableName string,
+) ([]string, error) {
+	// ClickHouse doesn't support traditional FKs or UNIQUE constraints
+	return []string{}, nil
+}
+
 func (c *ClickHouseConnection) GetInfoSQL(infoType string) string {
 	database := c.Schema
 	if database == "" {
@@ -255,6 +278,66 @@ func (c *ClickHouseConnection) GetInfoSQL(infoType string) string {
 	default:
 		return ""
 	}
+}
+
+func (c *ClickHouseConnection) GetTables() ([]string, error) {
+	if c.db == nil {
+		return nil, fmt.Errorf("database not open")
+	}
+
+	query := `
+		SELECT name
+		FROM system.tables
+		WHERE database = currentDatabase()
+		  AND engine != 'View'
+		ORDER BY name
+	`
+
+	rows, err := c.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tables: %w", err)
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err == nil {
+			tables = append(tables, tableName)
+		}
+	}
+
+	return tables, nil
+}
+
+func (c *ClickHouseConnection) GetViews() ([]string, error) {
+	if c.db == nil {
+		return nil, fmt.Errorf("database not open")
+	}
+
+	query := `
+		SELECT name
+		FROM system.tables
+		WHERE database = currentDatabase()
+		  AND engine = 'View'
+		ORDER BY name
+	`
+
+	rows, err := c.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query views: %w", err)
+	}
+	defer rows.Close()
+
+	var views []string
+	for rows.Next() {
+		var viewName string
+		if err := rows.Scan(&viewName); err == nil {
+			views = append(views, viewName)
+		}
+	}
+
+	return views, nil
 }
 
 func (c *ClickHouseConnection) BuildUpdateStatement(
@@ -306,6 +389,10 @@ WHERE %s = '%s';`,
 		primaryKeyCol,
 		escapedPkValue,
 	)
+}
+
+func (c *ClickHouseConnection) GetPlaceholder(paramIndex int) string {
+	return "?"
 }
 
 func (c *ClickHouseConnection) ApplyRowLimit(sql string, limit int) string {

@@ -20,6 +20,8 @@ func CreateConnection(name, dbType, connString string) (DatabaseConnection, erro
 		return NewClickHouseConnection(name, connString)
 	case "godror", "oracle":
 		return NewOracleConnection(name, connString)
+	case "firebird", "interbase":
+		return NewFirebirdConnection(name, connString)
 	default:
 		return nil, fmt.Errorf("driver not implemented for %s", dbType)
 	}

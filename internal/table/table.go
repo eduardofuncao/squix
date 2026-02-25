@@ -9,15 +9,19 @@ import (
 
 func Render(
 	columns []string,
+	columnTypes []string,
 	data [][]string,
 	elapsed time.Duration,
 	conn db.DatabaseConnection,
 	tableName, primaryKeyCol string,
 	query db.Query,
 	columnWidth int,
+	saveCallback func(query db.Query) (db.Query, error),
+	initialStatus ...string,
 ) (Model, error) {
 	model := New(
 		columns,
+		columnTypes,
 		data,
 		elapsed,
 		conn,
@@ -26,6 +30,10 @@ func Render(
 		query,
 		columnWidth,
 	)
+	model.saveQueryCallback = saveCallback
+	if len(initialStatus) > 0 && initialStatus[0] != "" {
+		model.statusMessage = initialStatus[0]
+	}
 	p := tea.NewProgram(model)
 	finalModel, err := p.Run()
 	if err != nil {
@@ -42,7 +50,7 @@ func RenderTablesList(
 	query db.Query,
 	columnWidth int,
 ) (Model, error) {
-	model := New(columns, data, elapsed, conn, "", "", query, columnWidth)
+	model := New(columns, nil, data, elapsed, conn, "", "", query, columnWidth)
 	model.isTablesList = true
 	p := tea.NewProgram(model)
 	finalModel, err := p.Run()

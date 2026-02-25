@@ -92,12 +92,10 @@ func (oc *OracleConnection) GetTableMetadata(
 
 	upperTableName := strings.ToUpper(tableName)
 
-	// Get the current schema
 	var currentOwner string
 	ownerQuery := `SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') FROM DUAL`
 	row := oc.db.QueryRow(ownerQuery)
 	if err := row.Scan(&currentOwner); err != nil {
-		// fall back to the BaseConnection.Schema if set
 		if oc.Schema != "" {
 			currentOwner = strings.ToUpper(oc.Schema)
 		} else {
@@ -116,7 +114,6 @@ func (oc *OracleConnection) GetTableMetadata(
 		ORDER BY cols.position
 	`
 
-	// Add owner filter if we have it
 	if currentOwner != "" {
 		pkQuery = `
 			SELECT cols.column_name
@@ -135,7 +132,6 @@ func (oc *OracleConnection) GetTableMetadata(
 		TableName: tableName,
 	}
 
-	// Execute PK query
 	var rows *sql.Rows
 	var err error
 	if currentOwner != "" {
@@ -152,11 +148,10 @@ func (oc *OracleConnection) GetTableMetadata(
 	if rows.Next() {
 		var pkColumn string
 		if err := rows.Scan(&pkColumn); err == nil {
-			metadata.PrimaryKey = pkColumn
+			metadata.PrimaryKeys = append(metadata.PrimaryKeys, pkColumn)
 		}
 	}
 
-	// Column metadata query
 	colQuery := `
 		SELECT column_name, data_type, data_length, data_precision, data_scale
 		FROM all_tab_columns
@@ -164,7 +159,6 @@ func (oc *OracleConnection) GetTableMetadata(
 		ORDER BY column_id
 	`
 
-	// Add owner filter if set
 	if currentOwner != "" {
 		colQuery = `
 			SELECT column_name, data_type, data_length, data_precision, data_scale
@@ -175,7 +169,6 @@ func (oc *OracleConnection) GetTableMetadata(
 		`
 	}
 
-	// Execute column query
 	var colRows *sql.Rows
 	if currentOwner != "" {
 		colRows, err = oc.db.Query(colQuery, upperTableName, currentOwner)
@@ -232,6 +225,12 @@ func (oc *OracleConnection) GetTableMetadata(
 
 		metadata.Columns = append(metadata.Columns, colName)
 		metadata.ColumnTypes = append(metadata.ColumnTypes, fullType)
+	}
+
+	// Fetch foreign keys
+	fks, err := oc.GetForeignKeys(tableName)
+	if err == nil {
+		metadata.ForeignKeys = fks
 	}
 
 	return metadata, nil
@@ -418,6 +417,306 @@ func (oc *OracleConnection) GetInfoSQL(infoType string) string {
 	}
 }
 
+func (oc *OracleConnection) GetTables() ([]string, error) {
+	if oc.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	// Get the current schema
+	var currentSchema string
+	schemaQuery := `SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') FROM DUAL`
+	row := oc.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if oc.Schema != "" {
+			currentSchema = oc.Schema
+		} else {
+			return nil, fmt.Errorf(
+				"failed to determine current schema: %w",
+				err,
+			)
+		}
+	}
+
+	query := `
+		SELECT TABLE_NAME
+		FROM ALL_TABLES
+		WHERE OWNER = :1
+		ORDER BY TABLE_NAME
+	`
+
+	rows, err := oc.db.Query(query, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tables: %w", err)
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err == nil {
+			tables = append(tables, tableName)
+		}
+	}
+
+	return tables, nil
+}
+
+func (oc *OracleConnection) GetViews() ([]string, error) {
+	if oc.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	// Get the current schema
+	var currentSchema string
+	schemaQuery := `SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') FROM DUAL`
+	row := oc.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if oc.Schema != "" {
+			currentSchema = oc.Schema
+		} else {
+			return nil, fmt.Errorf(
+				"failed to determine current schema: %w",
+				err,
+			)
+		}
+	}
+
+	query := `
+		SELECT VIEW_NAME
+		FROM ALL_VIEWS
+		WHERE OWNER = :1
+		ORDER BY VIEW_NAME
+	`
+
+	rows, err := oc.db.Query(query, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query views: %w", err)
+	}
+	defer rows.Close()
+
+	var views []string
+	for rows.Next() {
+		var viewName string
+		if err := rows.Scan(&viewName); err == nil {
+			views = append(views, viewName)
+		}
+	}
+
+	return views, nil
+}
+
+func (oc *OracleConnection) GetForeignKeys(
+	tableName string,
+) ([]ForeignKey, error) {
+	if oc.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	upperTableName := strings.ToUpper(tableName)
+
+	// Get the current schema
+	var currentOwner string
+	ownerQuery := `SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') FROM DUAL`
+	row := oc.db.QueryRow(ownerQuery)
+	if err := row.Scan(&currentOwner); err != nil {
+		if oc.Schema != "" {
+			currentOwner = strings.ToUpper(oc.Schema)
+		} else {
+			currentOwner = ""
+		}
+	}
+
+	query := `
+		SELECT
+			acc.column_name,
+			ac2.table_name AS foreign_table_name,
+			acc2.column_name AS foreign_column_name
+		FROM all_constraints ac
+		JOIN all_constraints ac2 ON ac.r_constraint_name = ac2.constraint_name
+		JOIN all_cons_columns acc ON ac.constraint_name = acc.constraint_name
+		JOIN all_cons_columns acc2 ON ac2.constraint_name = acc2.constraint_name
+		WHERE ac.constraint_type = 'R'
+		AND ac.table_name = :1
+		AND acc.position = 1
+		AND acc2.position = 1
+	`
+
+	var rows *sql.Rows
+	var err error
+	if currentOwner != "" {
+		query += " AND ac.owner = :2 AND ac2.owner = :3"
+		rows, err = oc.db.Query(
+			query,
+			upperTableName,
+			currentOwner,
+			currentOwner,
+		)
+	} else {
+		rows, err = oc.db.Query(query, upperTableName)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query foreign keys: %w", err)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		if err := rows.Scan(
+			&fk.Column,
+			&fk.ReferencedTable,
+			&fk.ReferencedColumn,
+		); err == nil {
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (oc *OracleConnection) GetForeignKeysReferencingTable(
+	tableName string,
+) ([]ForeignKey, error) {
+	if oc.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	upperTableName := strings.ToUpper(tableName)
+
+	// Get the current schema
+	var currentOwner string
+	ownerQuery := `SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') FROM DUAL`
+	row := oc.db.QueryRow(ownerQuery)
+	if err := row.Scan(&currentOwner); err != nil {
+		if oc.Schema != "" {
+			currentOwner = strings.ToUpper(oc.Schema)
+		} else {
+			currentOwner = ""
+		}
+	}
+
+	query := `
+		SELECT
+			acc.column_name,
+			ac.table_name AS foreign_table_name,
+			acc2.column_name AS foreign_column_name
+		FROM all_constraints ac
+		JOIN all_constraints ac2 ON ac.r_constraint_name = ac2.constraint_name
+		JOIN all_cons_columns acc ON ac.constraint_name = acc.constraint_name
+		JOIN all_cons_columns acc2 ON ac2.constraint_name = acc2.constraint_name
+		WHERE ac.constraint_type = 'R'
+		AND ac2.table_name = :1
+		AND acc.position = 1
+		AND acc2.position = 1
+	`
+
+	var rows *sql.Rows
+	var err error
+	if currentOwner != "" {
+		query += " AND ac.owner = :2 AND ac2.owner = :3"
+		rows, err = oc.db.Query(
+			query,
+			upperTableName,
+			currentOwner,
+			currentOwner,
+		)
+	} else {
+		rows, err = oc.db.Query(query, upperTableName)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf(
+			"failed to query referencing foreign keys: %w",
+			err,
+		)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		if err := rows.Scan(
+			&fk.Column,
+			&fk.ReferencedTable,
+			&fk.ReferencedColumn,
+		); err == nil {
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (oc *OracleConnection) GetUniqueConstraints(
+	tableName string,
+) ([]string, error) {
+	if oc.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	upperTableName := strings.ToUpper(tableName)
+
+	// Get the current schema
+	var currentOwner string
+	ownerQuery := `SELECT SYS_CONTEXT('USERENV', 'CURRENT_SCHEMA') FROM DUAL`
+	row := oc.db.QueryRow(ownerQuery)
+	if err := row.Scan(&currentOwner); err != nil {
+		if oc.Schema != "" {
+			currentOwner = strings.ToUpper(oc.Schema)
+		} else {
+			currentOwner = ""
+		}
+	}
+
+	query := `
+		SELECT DISTINCT cc.COLUMN_NAME
+		FROM ALL_CONSTRAINTS ac
+		JOIN ALL_CONS_COLUMNS cc
+			ON ac.CONSTRAINT_NAME = cc.CONSTRAINT_NAME
+			AND ac.OWNER = cc.OWNER
+		WHERE ac.CONSTRAINT_TYPE = 'U'
+		  AND ac.TABLE_NAME = :1
+		  AND cc.OWNER = :2
+		ORDER BY cc.POSITION
+	`
+
+	var rows *sql.Rows
+	var err error
+
+	if currentOwner != "" {
+		rows, err = oc.db.Query(query, upperTableName, currentOwner)
+	} else {
+		// If no schema specified, try without schema filter
+		queryWithoutSchema := `
+			SELECT DISTINCT cc.COLUMN_NAME
+			FROM ALL_CONSTRAINTS ac
+			JOIN ALL_CONS_COLUMNS cc
+				ON ac.CONSTRAINT_NAME = cc.CONSTRAINT_NAME
+				AND ac.OWNER = cc.OWNER
+			WHERE ac.CONSTRAINT_TYPE = 'U'
+			  AND ac.TABLE_NAME = :1
+			ORDER BY cc.POSITION
+		`
+		rows, err = oc.db.Query(queryWithoutSchema, upperTableName)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query unique constraints: %w", err)
+	}
+	defer rows.Close()
+
+	var uniqueColumns []string
+	for rows.Next() {
+		var column string
+		if err := rows.Scan(&column); err == nil {
+			uniqueColumns = append(uniqueColumns, strings.TrimSpace(column))
+		}
+	}
+
+	return uniqueColumns, nil
+}
+
 func (oc *OracleConnection) BuildUpdateStatement(
 	tableName, columnName, currentValue, pkColumn, pkValue string,
 ) string {
@@ -474,4 +773,8 @@ func (oc *OracleConnection) BuildDeleteStatement(
 		primaryKeyCol,
 		escapedPkValue,
 	)
+}
+
+func (oc *OracleConnection) GetPlaceholder(paramIndex int) string {
+	return fmt.Sprintf(":%d", paramIndex)
 }

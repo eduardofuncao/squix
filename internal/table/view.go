@@ -14,9 +14,14 @@ func (m Model) View() string {
 		return "Loading..."
 	}
 
-	// If in detail view mode, show the detail view
+	// If in detailed view mode, show the detailed view
 	if m.detailViewMode {
 		return m.renderDetailView()
+	}
+
+	// Don't render if we're about to rerun the query (prevents duplicate output)
+	if m.shouldRerunQuery {
+		return ""
 	}
 
 	var b strings.Builder
@@ -43,11 +48,7 @@ func (m Model) View() string {
 	separatorWidth := 0
 	endCol := min(m.offsetX+m.visibleCols, m.numCols())
 	for j := m.offsetX; j < endCol; j++ {
-		if j < len(m.columnWidths) {
-			separatorWidth += m.columnWidths[j]
-		} else {
-			separatorWidth += m.cellWidth
-		}
+		separatorWidth += m.cellWidth
 		if j < endCol-1 {
 			separatorWidth += 1
 		}
@@ -70,6 +71,14 @@ func (m Model) View() string {
 
 	b.WriteString(m.renderFooter())
 
+	// Always add a newline for status message area
+	b.WriteString("\n")
+
+	// Display status message if present
+	if m.statusMessage != "" {
+		b.WriteString(m.statusMessage)
+	}
+
 	return b.String()
 }
 
@@ -89,28 +98,13 @@ func (m Model) renderHeader() string {
 			pkIcon = "⚿ "
 		}
 
-		sortIcon := ""
-		if m.sortColumn != "" && j < len(m.columns) &&
-			m.columns[j] == m.sortColumn {
-			if m.sortDirection == "ASC" {
-				sortIcon = " ↑"
-			} else if m.sortDirection == "DESC" {
-				sortIcon = " ↓"
-			} else {
-				// No direction specified (default sort)
-				sortIcon = " •"
-			}
+		fkIcon := ""
+		if j < len(m.columnFKs) && m.columnFKs[j] != "" {
+			fkIcon = "⚭ "
 		}
 
-		columnDisplay := pkIcon + typeIcon + m.columns[j] + sortIcon
-
-		// Use dynamic column width if available, otherwise fall back to cellWidth
-		colWidth := m.cellWidth
-		if j < len(m.columnWidths) {
-			colWidth = m.columnWidths[j]
-		}
-
-		content := formatCell(columnDisplay, colWidth)
+		columnDisplay := pkIcon + fkIcon + typeIcon + m.columns[j]
+		content := formatCell(columnDisplay, m.cellWidth)
 		cells = append(cells, styles.TableHeader.Render(content))
 	}
 
@@ -122,13 +116,7 @@ func (m Model) renderDataRow(rowIndex int) string {
 	endCol := min(m.offsetX+m.visibleCols, m.numCols())
 
 	for j := m.offsetX; j < endCol; j++ {
-		// Use dynamic column width if available, otherwise fall back to cellWidth
-		colWidth := m.cellWidth
-		if j < len(m.columnWidths) {
-			colWidth = m.columnWidths[j]
-		}
-
-		content := formatCell(m.data[rowIndex][j], colWidth)
+		content := formatCell(m.data[rowIndex][j], m.cellWidth)
 		style := m.getCellStyle(rowIndex, j)
 		cells = append(cells, style.Render(content))
 	}
@@ -137,8 +125,28 @@ func (m Model) renderDataRow(rowIndex int) string {
 }
 
 func (m Model) renderFooter() string {
+	// Show export format prompt if active
+  if m.exportWaiting.active {
+      promptText := fmt.Sprintf(
+          "Export as %sSV %sSON %sSV %sTML %sQL %sarkdown",
+          styles.TableHeader.Render("[C]"),
+          styles.TableHeader.Render("[J]"),
+          styles.TableHeader.Render("[T]"),
+          styles.TableHeader.Render("[H]"),
+          styles.TableHeader.Render("[S]"),
+          styles.TableHeader.Render("[M]"),
+      )
+      return "\n" + promptText
+  }
+
+	// Show export status if available
+	if m.exportStatus != "" {
+		return "\n" + styles.Success.Render(m.exportStatus)
+	}
+
 	currentCellValue := ""
 	columnType := ""
+	fkRef := ""
 
 	if m.selectedRow >= 0 && m.selectedRow < len(m.data) &&
 		m.selectedCol >= 0 && m.selectedCol < len(m.data[m.selectedRow]) {
@@ -149,14 +157,19 @@ func (m Model) renderFooter() string {
 		columnType = m.columnTypes[m.selectedCol]
 	}
 
-	maxPreviewWidth := m.width - len(columnType) - 10
+	if m.selectedCol >= 0 && m.selectedCol < len(m.columnFKs) && m.columnFKs[m.selectedCol] != "" {
+		fkRef = fmt.Sprintf(" FK → %s", m.columnFKs[m.selectedCol])
+	}
+
+	maxPreviewWidth := m.width - len(columnType) - len(fkRef) - 10
 	displayValue := currentCellValue
 	if len(displayValue) > maxPreviewWidth && maxPreviewWidth > 0 {
 		displayValue = displayValue[:maxPreviewWidth-3] + "..."
 	}
 
-	cellPreview := fmt.Sprintf("%s %s\n",
+	cellPreview := fmt.Sprintf("%s%s %s\n",
 		styles.Faint.Render(columnType),
+		styles.Faint.Render(fkRef),
 		styles.TableCell.Render(displayValue))
 
 	updateInfo := ""
@@ -194,8 +207,9 @@ func (m Model) renderFooter() string {
 
 	sel := styles.TableHeader.Render("v") + styles.Faint.Render("sel")
 	edit := styles.TableHeader.Render("e") + styles.Faint.Render("ditSQL")
+	save := styles.TableHeader.Render("s") + styles.Faint.Render("ave")
 	yank := styles.TableHeader.Render("y") + styles.Faint.Render("ank")
-	sort := styles.TableHeader.Render("f") + styles.Faint.Render("sort")
+	exportKey := styles.Faint.Render("e") + styles.TableHeader.Render("x") + styles.Faint.Render("port")
 	quit := styles.TableHeader.Render("q") + styles.Faint.Render("uit")
 	hjkl := styles.TableHeader.Render("hjkl") + styles.Faint.Render("←↓↑→")
 
@@ -206,36 +220,53 @@ func (m Model) renderFooter() string {
 			cellPreview,
 			styles.Faint.Render(fmt.Sprintf("%dx%d", m.numRows(), m.numCols())),
 			styles.Faint.Render(fmt.Sprintf("In %.2fs", m.elapsed.Seconds())),
-			styles.Faint.Render(
-				fmt.Sprintf("[%d/%d]", m.selectedRow+1, m.selectedCol+1),
-			),
+			styles.Faint.Render(fmt.Sprintf("[%d/%d]", m.selectedRow+1, m.selectedCol+1)),
 			enterInfo,
 			yank,
-			sort,
 			edit,
+			save,
 			quit,
 			hjkl,
 		)
 	} else {
-		footer = fmt.Sprintf(
-			"\n%s%s %s | %s | %s  %s  %s  %s  %s  %s  %s  %s",
-			cellPreview,
-			styles.Faint.Render(fmt.Sprintf("%dx%d", m.numRows(), m.numCols())),
-			styles.Faint.Render(fmt.Sprintf("In %.2fs", m.elapsed.Seconds())),
-			styles.Faint.Render(
-				fmt.Sprintf("[%d/%d]", m.selectedRow+1, m.selectedCol+1),
-			),
-			updateInfo,
-			delInfo,
-			yank,
-			sel,
-			sort,
-			edit,
-			quit,
-			hjkl,
-		)
+		if m.visualMode {
+			footer = fmt.Sprintf(
+				"\n%s%s %s | %s | %s  %s  %s  %s  %s  %s  %s",
+				cellPreview,
+				styles.Faint.Render(fmt.Sprintf("%dx%d", m.numRows(), m.numCols())),
+				styles.Faint.Render(fmt.Sprintf("In %.2fs", m.elapsed.Seconds())),
+				styles.Faint.Render(
+					fmt.Sprintf("[%d/%d]", m.selectedRow+1, m.selectedCol+1),
+				),
+				yank,
+				exportKey,
+				sel,
+				edit,
+				save,
+				quit,
+				hjkl,
+			)
+		} else {
+			footer = fmt.Sprintf(
+				"\n%s%s %s | %s | %s  %s  %s  %s  %s  %s  %s  %s  %s",
+				cellPreview,
+				styles.Faint.Render(fmt.Sprintf("%dx%d", m.numRows(), m.numCols())),
+				styles.Faint.Render(fmt.Sprintf("In %.2fs", m.elapsed.Seconds())),
+				styles.Faint.Render(
+					fmt.Sprintf("[%d/%d]", m.selectedRow+1, m.selectedCol+1),
+				),
+				updateInfo,
+				delInfo,
+				yank,
+				sel,
+				edit,
+				save,
+				exportKey,
+				quit,
+				hjkl,
+			)
+		}
 	}
-
 	return footer
 }
 
@@ -294,8 +325,7 @@ func getTypeIcon(typeName string) string {
 	}
 
 	// Decimal/Float types
-	if strings.Contains(upper, "DECIMAL") ||
-		strings.Contains(upper, "NUMERIC") ||
+	if strings.Contains(upper, "DECIMAL") || strings.Contains(upper, "NUMERIC") ||
 		strings.Contains(upper, "FLOAT") ||
 		strings.Contains(upper, "DOUBLE") ||
 		strings.Contains(upper, "REAL") ||
@@ -395,7 +425,7 @@ func (m Model) renderDetailView() string {
 	)
 	b.WriteString(styles.Faint.Render(posInfo))
 
-	// Show if editable
+	// Show if editing/updating is enabled
 	if m.tableName != "" && m.primaryKeyCol != "" {
 		b.WriteString(" ")
 		b.WriteString(styles.Faint.Render("• Press 'e' to edit"))
@@ -467,12 +497,14 @@ func (m Model) renderDetailView() string {
 		)
 	}
 
-	hjkl := styles.TableHeader.Render("↑↓") + styles.Faint.Render(" scroll")
+	hjkl := styles.TableHeader.Render("kj↑↓") + styles.Faint.Render(" scroll")
 
 	edit := ""
 	if m.tableName != "" && m.primaryKeyCol != "" {
-		edit = styles.TableHeader.Render("e") + styles.Faint.Render(" edit  ")
+		edit = styles.TableHeader.Render("e") + styles.Faint.Render(" edit")
 	}
+
+	yank := styles.TableHeader.Render("y") + styles.Faint.Render(" yank")
 
 	quit := styles.TableHeader.Render(
 		"q/esc/enter",
@@ -480,7 +512,7 @@ func (m Model) renderDetailView() string {
 		" close",
 	)
 
-	footer := fmt.Sprintf("\n%s%s  %s%s", scrollInfo, hjkl, edit, quit)
+	footer := fmt.Sprintf("\n%s  %s  %s  %s  %s", scrollInfo, hjkl, edit, yank, quit)
 	b.WriteString(footer)
 
 	return b.String()

@@ -68,9 +68,7 @@ func (a *App) PrintGeneralHelp() {
 		),
 	)
 	fmt.Println(
-		"  tables      " + styles.Faint.Render(
-			"List or query database tables (aliases: t, explore)",
-		),
+		"  tables      " + styles.Faint.Render("List or query database tables"),
 	)
 	fmt.Println(
 		"  table-view  " + styles.Faint.Render(
@@ -78,9 +76,10 @@ func (a *App) PrintGeneralHelp() {
 		),
 	)
 	fmt.Println(
-		"  list        " + styles.Faint.Render(
-			"List connections or queries (alias: ls for connections)",
-		),
+		"  explore     " + styles.Faint.Render("Explore database schema"),
+	)
+	fmt.Println(
+		"  list        " + styles.Faint.Render("List connections or queries"),
 	)
 	fmt.Println(
 		"  info        " + styles.Faint.Render(
@@ -103,23 +102,18 @@ func (a *App) PrintGeneralHelp() {
 		),
 	)
 	fmt.Println(
+		"  explain     " + styles.Faint.Render(
+			"Show relationships between tables",
+		),
+	)
+	fmt.Println(
+		"  tv               → table-view",
+	)
+	fmt.Println(
 		"  help        " + styles.Faint.Render(
 			"Show help for pam or a specific command",
 		),
 	)
-	fmt.Println()
-
-	// Command Aliases
-	fmt.Println(styles.Title.Render("Command Aliases"))
-	fmt.Println("  use              → switch")
-	fmt.Println("  save             → add")
-	fmt.Println("  delete           → remove")
-	fmt.Println("  query            → run")
-	fmt.Println("  ls               → list connections")
-	fmt.Println("  t, explore       → tables")
-	fmt.Println("  tv               → table-view")
-	fmt.Println("  test             → status")
-	fmt.Println("  clear, unset     → disconnect")
 	fmt.Println()
 
 	// Short help
@@ -145,6 +139,7 @@ func (a *App) PrintGeneralHelp() {
 	fmt.Println("  pam switch dev")
 	fmt.Println("  pam add list_users \"SELECT * FROM users\"")
 	fmt.Println("  pam run list_users")
+	fmt.Println("  pam run \"select * from users\"")
 	fmt.Println("  pam list connections")
 	fmt.Println("  pam list queries")
 	fmt.Println("  pam edit config")
@@ -173,7 +168,21 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam init <name> <db-type> <connection-string> [schema]")
+		fmt.Println("  pam init [flags]")
+		fmt.Println(
+			"  pam init <name> <connection-string>          # type auto-inferred",
+		)
+		fmt.Println(
+			"  pam init <name> <db-type> <connection-string> [schema]  # legacy",
+		)
+		fmt.Println()
+		section("Flags")
+		fmt.Println("  --name, -n              Connection name")
+		fmt.Println(
+			"  --type, -t              Database type (optional, auto-inferred from conn)",
+		)
+		fmt.Println("  --conn-string, --conn, -c  Connection string")
+		fmt.Println("  --schema, -s            Schema (optional)")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -181,15 +190,38 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println("  - Saves the configuration if everything succeeds.")
 		fmt.Println(
+			"  - If any required parameter is missing, launches interactive TUI.",
+		)
+		fmt.Println(
+			"  - Database type is auto-inferred from connection string when possible",
+		)
+		fmt.Println("    (works in flag mode and 2-arg positional mode).")
+		fmt.Println(
 			"  - For Oracle databases, optionally specify a schema to set as default.",
 		)
 		fmt.Println()
 		section("Examples")
+		fmt.Println("  # Flag mode with auto-inference")
+		fmt.Println(
+			"  pam init --name dev --conn \"postgres://user:pass@localhost:5432/dbname\"",
+		)
+		fmt.Println()
+		fmt.Println("  # 2-arg positional with auto-inference")
+		fmt.Println(
+			"  pam init dev \"postgres://user:pass@localhost:5432/dbname\"",
+		)
+		fmt.Println()
+		fmt.Println("  # 3-arg positional (legacy, explicit type)")
 		fmt.Println(
 			"  pam init dev postgres \"postgres://user:pass@localhost:5432/dbname\"",
 		)
+		fmt.Println()
+		fmt.Println("  # Interactive mode")
+		fmt.Println("  pam init")
+		fmt.Println()
+		fmt.Println("  # With schema")
 		fmt.Println(
-			"  pam init prod sqlserver \"sqlserver://sa:password@localhost:1433?database=mydb\"",
+			"  pam init prod sqlserver \"sqlserver://sa:password@localhost:1433?database=mydb\" --schema public",
 		)
 		fmt.Println(
 			"  pam init staging mysql \"user:pass@tcp(127.0.0.1:3306)/dbname\"",
@@ -224,7 +256,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam add <query-name> [query]")
+		fmt.Println("  pam add <run-name> [query]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -243,7 +275,7 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println(styles.Faint.Render("Remove a saved query by name or ID."))
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam remove <query-name-or-id>")
+		fmt.Println("  pam remove <run-name-or-id>")
 		fmt.Println()
 		section("Examples")
 		fmt.Println("  pam remove list_users")
@@ -258,13 +290,10 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  pam run <query-name-or-id> [--edit | -e]")
-		fmt.Println("  pam run \"<inline-sql>\"")
-		fmt.Println("  pam run [--new | -n]")
-		fmt.Println("  pam query <query-name-or-id> [--edit | -e]")
+		fmt.Println("  pam run <query-name-or-id> [--edit | -e] [--last | -l]")
 		fmt.Println(
 			"  pam run                      " + styles.Faint.Render(
-				"# runs the last query for the active connection",
+				"# Opens the editor to build sql query",
 			),
 		)
 		fmt.Println()
@@ -274,11 +303,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println("    the current connection.")
 		fmt.Println(
-			"  - If no selector is provided, pam will try to execute the last query",
-		)
-		fmt.Println("    used for the current connection.")
-		fmt.Println(
-			"  - You can also run inline SQL by wrapping it in quotes.",
+			"  - If no selector is provided, pam will open the editor to build sql query",
 		)
 		fmt.Println(
 			"  - The result is rendered as an interactive table in your terminal.",
@@ -289,12 +314,7 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println(
 			"    running it and saves any changes back to the configuration.",
 		)
-		fmt.Println(
-			"  - With '--new' or '-n', pam opens your $EDITOR to create a new query",
-		)
-		fmt.Println(
-			"    that runs immediately without being saved.",
-		)
+		fmt.Println("  - With '--last' or '-l', runs the last used query")
 		fmt.Println()
 		section("Interactive table view")
 		fmt.Println(
@@ -349,17 +369,22 @@ func (a *App) PrintCommandHelp() {
 			),
 		)
 		fmt.Println(
-			"  D                     " + styles.Faint.Render(
-				"Delete current row (Shift+D)",
+			"  d                     " + styles.Faint.Render(
+				"Delete current row (requires WHERE clause)",
 			),
 		)
 		fmt.Println(
 			"  e                     " + styles.Faint.Render(
-				"Edit and re-run the query",
+				"Open the editor to update and rerun query",
 			),
 		)
 		fmt.Println(
-			"  q / Ctrl+c            " + styles.Faint.Render(
+			"  s                     " + styles.Faint.Render(
+				"Save current query",
+			),
+		)
+		fmt.Println(
+			"  Esc /Ctrl+c           " + styles.Faint.Render(
 				"Quit the table view",
 			),
 		)
@@ -377,17 +402,10 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println()
 		section("Examples")
 		fmt.Println("  pam run list_users")
+		fmt.Println("  pam run \"select * from orders\"")
 		fmt.Println("  pam run 2 --edit")
-		fmt.Println(
-			"  pam run \"SELECT * FROM employees WHERE department = 'IT'\"",
-		)
-		fmt.Println("  pam run --new")
+		fmt.Println("  pam run --last")
 		fmt.Println("  pam query list_users")
-		fmt.Println(
-			"  pam run              " + styles.Faint.Render(
-				"# run the last query for this connection",
-			),
-		)
 
 	case "list":
 		section("Command: list")
@@ -398,9 +416,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println(
-			"  pam list [connections | queries] [search-term] [--oneline | -o]",
-		)
+		fmt.Println("  pam list [connections | queries] [search-term]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -419,13 +435,6 @@ func (a *App) PrintCommandHelp() {
 			),
 		)
 		fmt.Println()
-		section("Flags")
-		fmt.Println(
-			"  --oneline, -o  " + styles.Faint.Render(
-				"Display each query on a single line (useful for scripting)",
-			),
-		)
-		fmt.Println()
 		section("Examples")
 		fmt.Println(
 			"  pam list                      # lists queries for the current connection",
@@ -438,11 +447,11 @@ func (a *App) PrintCommandHelp() {
 			"  pam list queries employees    # list queries containing 'employees'",
 		)
 		fmt.Println(
-			"  pam list queries --oneline    # list queries in one-line format",
+			"  pam list queries --oneline    # list each query in one separate line",
 		)
 		fmt.Println("  pam list connections")
 
-	case "tables", "t", "explore":
+	case "tables":
 		section("Command: tables")
 		fmt.Println(
 			styles.Faint.Render(
@@ -450,13 +459,8 @@ func (a *App) PrintCommandHelp() {
 			),
 		)
 		fmt.Println()
-		section("Aliases")
-		fmt.Println("  t, explore")
-		fmt.Println()
 		section("Usage")
 		fmt.Println("  pam tables [table-name] [--oneline | -o]")
-		fmt.Println("  pam t [table-name] [--oneline | -o]")
-		fmt.Println("  pam explore [table-name] [--oneline | -o]")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -477,6 +481,206 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  pam tables              # list all tables")
 		fmt.Println("  pam tables users        # query the users table")
 		fmt.Println("  pam tables --oneline    # list tables in oneline format")
+
+	case "disconnect":
+		section("Command: disconnect")
+		fmt.Println(
+			styles.Faint.Render(
+				"Disconnect from the current active database connection.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam disconnect")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  Clears the current active connection. You will need to use 'pam switch'",
+		)
+		fmt.Println("  to select a connection before running queries again.")
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  pam disconnect")
+
+	case "edit":
+		section("Command: edit")
+		fmt.Println(
+			styles.Faint.Render(
+				"Open pam's configuration or queries in your editor.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam edit [config | queries]")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  config   " + styles.Faint.Render(
+				"Edit the main configuration file (connections etc.).",
+			),
+		)
+		fmt.Println(
+			"  queries  " + styles.Faint.Render(
+				"Edit all queries for the current connection in one file.",
+			),
+		)
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  pam edit           # defaults to 'config'")
+		fmt.Println("  pam edit config")
+		fmt.Println("  pam edit queries")
+
+	case "explore":
+		section("Command: explore")
+		fmt.Println(
+			styles.Faint.Render(
+				"Explore your database schema and query tables interactively.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam explore")
+		fmt.Println("  pam explore <table> [--limit | -l N]")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  Without arguments, lists all tables and views in multi-column format.",
+		)
+		fmt.Println(
+			"  With a table name, queries the table and shows results in an",
+		)
+		fmt.Println("  interactive table view (similar to 'pam run').")
+		fmt.Println()
+		fmt.Println(
+			"  --limit, -l N  " + styles.Faint.Render(
+				"Limit number of rows returned (default: from config or 1000)",
+			),
+		)
+		fmt.Println()
+		section("Examples")
+		fmt.Println(
+			"  pam explore                  # list all tables and views",
+		)
+		fmt.Println("  pam explore employees        # query employees table")
+		fmt.Println("  pam explore orders -l 50     # query with 50 row limit")
+
+	case "explain":
+		section("Command: explain")
+		fmt.Println(
+			styles.Faint.Render(
+				"Visualize foreign key relationships between tables.",
+			),
+		)
+		fmt.Println()
+		fmt.Println(
+			styles.Faint.Render(
+				"  Note: This command is currently a work in progress and may change.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam explain <table> [--depth | -d N]")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  Shows a tree visualization of foreign key relationships for a table.",
+		)
+		fmt.Println(
+			"  Displays both 'belongs to' and 'has many' relationships.",
+		)
+		fmt.Println()
+		fmt.Println(
+			"  --depth, -d N  " + styles.Faint.Render(
+				"Show relationships up to N levels deep (default: 1)",
+			),
+		)
+		fmt.Println()
+		section("Relationship types")
+		fmt.Println(
+			"  belongs to [N:1]  " + styles.Faint.Render(
+				"FK from this table to another table",
+			),
+		)
+		fmt.Println(
+			"  has many [1:N]   " + styles.Faint.Render(
+				"FK from other tables to this table",
+			),
+		)
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  pam explain employees")
+		fmt.Println("  pam explain employees --depth 2")
+		fmt.Println("  pam explain departments -d 3")
+
+	case "info":
+		section("Command: info")
+		fmt.Println(
+			styles.Faint.Render(
+				"Show all tables or views in the current database connection.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam info <tables | views>")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  tables  " + styles.Faint.Render(
+				"List all tables in the current connection/schema.",
+			),
+		)
+		fmt.Println(
+			"  views   " + styles.Faint.Render(
+				"List all views in the current connection/schema.",
+			),
+		)
+		fmt.Println()
+		section("Columns displayed")
+		fmt.Println("  - schema (if supported by database)")
+		fmt.Println("  - name")
+		fmt.Println("  - owner (if supported by database)")
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  pam info tables")
+		fmt.Println("  pam info views")
+
+	case "status":
+		section("Command: status")
+		fmt.Println(styles.Faint.Render("Show the current active connection."))
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam status")
+
+	case "history":
+		section("Command: history")
+		fmt.Println(
+			styles.Faint.Render("Show query execution history (placeholder)."),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam history")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  This command is currently a placeholder and will be implemented",
+		)
+		fmt.Println("  in a future release.")
+
+	case "help":
+		section("Command: help")
+		fmt.Println(
+			styles.Faint.Render(
+				"Show general help or detailed help for a specific command.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  pam help [command]")
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  pam help")
+		fmt.Println("  pam help run")
+		fmt.Println("  pam help list")
 
 	case "table-view", "tv":
 		section("Command: table-view")
@@ -559,153 +763,6 @@ func (a *App) PrintCommandHelp() {
 		section("Examples")
 		fmt.Println("  pam table-view users")
 		fmt.Println("  pam tv employees")
-
-	case "disconnect", "clear", "unset":
-		section("Command: disconnect")
-		fmt.Println(
-			styles.Faint.Render(
-				"Disconnect from the current active database connection.",
-			),
-		)
-		fmt.Println()
-		section("Aliases")
-		fmt.Println("  clear, unset")
-		fmt.Println()
-		section("Usage")
-		fmt.Println("  pam disconnect")
-		fmt.Println("  pam clear")
-		fmt.Println("  pam unset")
-		fmt.Println()
-		section("Description")
-		fmt.Println(
-			"  Clears the current active connection. You will need to use 'pam switch'",
-		)
-		fmt.Println("  to select a connection before running queries again.")
-		fmt.Println()
-		section("Examples")
-		fmt.Println("  pam disconnect")
-		fmt.Println("  pam clear")
-
-	case "edit":
-		section("Command: edit")
-		fmt.Println(
-			styles.Faint.Render(
-				"Open pam's configuration or queries in your editor.",
-			),
-		)
-		fmt.Println()
-		section("Usage")
-		fmt.Println("  pam edit [config | queries]")
-		fmt.Println()
-		section("Description")
-		fmt.Println(
-			"  config   " + styles.Faint.Render(
-				"Edit the main configuration file (connections etc.).",
-			),
-		)
-		fmt.Println(
-			"  queries  " + styles.Faint.Render(
-				"Edit all queries for the current connection in one file.",
-			),
-		)
-		fmt.Println()
-		section("Examples")
-		fmt.Println("  pam edit           # defaults to 'config'")
-		fmt.Println("  pam edit config")
-		fmt.Println("  pam edit queries")
-
-	case "info":
-		section("Command: info")
-		fmt.Println(
-			styles.Faint.Render(
-				"Show all tables or views in the current database connection.",
-			),
-		)
-		fmt.Println()
-		section("Usage")
-		fmt.Println("  pam info <tables | views>")
-		fmt.Println()
-		section("Description")
-		fmt.Println(
-			"  tables  " + styles.Faint.Render(
-				"List all tables in the current connection/schema.",
-			),
-		)
-		fmt.Println(
-			"  views   " + styles.Faint.Render(
-				"List all views in the current connection/schema.",
-			),
-		)
-		fmt.Println()
-		section("Columns displayed")
-		fmt.Println("  - schema (if supported by database)")
-		fmt.Println("  - name")
-		fmt.Println("  - owner (if supported by database)")
-		fmt.Println()
-		section("Examples")
-		fmt.Println("  pam info tables")
-		fmt.Println("  pam info views")
-
-	case "status", "test":
-		section("Command: status")
-		fmt.Println(styles.Faint.Render("Show the current active connection."))
-		fmt.Println()
-		section("Aliases")
-		fmt.Println("  test")
-		fmt.Println()
-		section("Usage")
-		fmt.Println("  pam status")
-		fmt.Println("  pam test")
-
-	case "history":
-		section("Command: history")
-		fmt.Println(
-			styles.Faint.Render("Show query execution history (placeholder)."),
-		)
-		fmt.Println()
-		section("Usage")
-		fmt.Println("  pam history")
-		fmt.Println()
-		section("Description")
-		fmt.Println(
-			"  This command is currently a placeholder and will be implemented",
-		)
-		fmt.Println("  in a future release.")
-
-	case "help":
-		section("Command: help")
-		fmt.Println(
-			styles.Faint.Render(
-				"Show general help or detailed help for a specific command.",
-			),
-		)
-		fmt.Println()
-		section("Usage")
-		fmt.Println("  pam help [command]")
-		fmt.Println()
-		section("Examples")
-		fmt.Println("  pam help")
-		fmt.Println("  pam help run")
-		fmt.Println("  pam help list")
-
-	case "ls":
-		// Redirect to list connections help
-		section("Command: ls")
-		fmt.Println(styles.Faint.Render("Shortcut for 'pam list connections'."))
-		fmt.Println()
-		section("Usage")
-		fmt.Println("  pam ls")
-		fmt.Println()
-		section("Description")
-		fmt.Println("  Lists all configured database connections.")
-		fmt.Println("  The active connection is highlighted.")
-		fmt.Println()
-		section("Examples")
-		fmt.Println("  pam ls")
-		fmt.Println()
-		fmt.Println(
-			styles.Faint.Render("See 'pam help list' for more options."),
-		)
 
 	default:
 		fmt.Printf("%s %q\n\n", styles.Error.Render("Unknown command"), cmd)

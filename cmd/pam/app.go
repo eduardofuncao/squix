@@ -9,7 +9,7 @@ import (
 	"github.com/eduardofuncao/pam/internal/styles"
 )
 
-const Version = "v0.1.0"
+const Version = "v0.2.0"
 
 type App struct {
 	config *config.Config
@@ -43,7 +43,7 @@ func (a *App) Run() {
 	case "remove", "delete":
 		a.handleRemove()
 	case "query", "run":
-		a.handleQuery()
+		a.handleRun()
 	case "list":
 		a.handleList()
 	case "ls":
@@ -62,6 +62,8 @@ func (a *App) Run() {
 		a.handleTableView()
 	case "disconnect", "clear", "unset":
 		a.handleDisconnect()
+	case "explain":
+		a.handleExplain()
 	case "help":
 		a.handleHelp()
 	default:
@@ -77,20 +79,20 @@ func (a *App) printUsage() {
 	fmt.Println(styles.Title.Render("Quick Start"))
 	fmt.Println(
 		"  1. Create a connection: " + styles.Faint.Render(
-			"pam init <name> <db-type> <connection-string>",
+			"pam init --name mydb --type postgres --conn \"postgres://localhost/db\"",
 		),
 	)
 	fmt.Println(
 		"  2. Add a query: " + styles.Faint.Render(
-			"pam add <query-name> <sql>",
+			"pam add <run-name> <sql>",
 		),
 	)
-	fmt.Println("  3. Run it: " + styles.Faint.Render("pam run <query-name>"))
+	fmt.Println("  3. Run it: " + styles.Faint.Render("pam run <run-name>"))
 	fmt.Println()
 
 	fmt.Println(styles.Title.Render("Common Commands"))
 	fmt.Println(
-		"  pam run <query>      " + styles.Faint.Render(
+		"  pam run <run>      " + styles.Faint.Render(
 			"Execute a saved query",
 		),
 	)

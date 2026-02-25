@@ -112,3 +112,7 @@ func (oc *OracleConnection) BuildDropColumnSQL(
 ) string {
 	return "-- Oracle driver not available: binary built without CGO"
 }
+
+func (oc *OracleConnection) GetPlaceholder(paramIndex int) string {
+	return fmt.Sprintf(":%d", paramIndex)
+}

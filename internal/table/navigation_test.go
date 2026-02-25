@@ -212,7 +212,7 @@ func TestFormatAndCompactJSON(t *testing.T) {
 		t.Errorf("Expected formatted JSON to contain newlines")
 	}
 
-	// Compactar novamente
+	// Compact again
 	var jsonData interface{}
 	if err := json.Unmarshal([]byte(formatted), &jsonData); err != nil {
 		t.Fatalf("Failed to parse formatted JSON: %v", err)
@@ -223,7 +223,7 @@ func TestFormatAndCompactJSON(t *testing.T) {
 		t.Fatalf("Failed to compact JSON: %v", err)
 	}
 
-	// Verify that compacted version has no extra spaces
+	// Verify that compacted has no extra spaces
 	compactedStr := string(compacted)
 	if contains(compactedStr, "\n") {
 		t.Errorf("Compacted JSON should not contain newlines")

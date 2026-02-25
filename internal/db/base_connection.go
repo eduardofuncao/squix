@@ -27,7 +27,7 @@ func (b *BaseConnection) Close() error {
 	return errors.New("Close() not implemented for base connection")
 }
 func (b *BaseConnection) Query(name string, args ...any) (any, error) {
-	return struct{}{}, errors.New("Close() not implemented for base connection")
+	return struct{}{}, errors.New("Query() not implemented for base connection")
 }
 func (b *BaseConnection) ExecQuery(sql string, args ...any) (*sql.Rows, error) {
 	return nil, errors.New("ExecQuery() not implemented for base connection")
@@ -49,6 +49,42 @@ func (b *BaseConnection) GetColumnDetails(
 ) ([]ColumnInfo, error) {
 	return nil, errors.New(
 		"GetColumnDetails() not implemented for base connection",
+	)
+}
+
+func (b *BaseConnection) GetInfoSQL(infoType string) string {
+	return ""
+}
+
+func (b *BaseConnection) GetTables() ([]string, error) {
+	return nil, errors.New("GetTables() not implemented for base connection")
+}
+
+func (b *BaseConnection) GetViews() ([]string, error) {
+	return nil, errors.New("GetViews() not implemented for base connection")
+}
+
+func (b *BaseConnection) GetForeignKeys(
+	tableName string,
+) ([]ForeignKey, error) {
+	return nil, errors.New(
+		"GetForeignKeys() not implemented for base connection",
+	)
+}
+
+func (b *BaseConnection) GetForeignKeysReferencingTable(
+	tableName string,
+) ([]ForeignKey, error) {
+	return []ForeignKey{}, errors.New(
+		"GetForeignKeysReferencingTable() not implemented for base connection",
+	)
+}
+
+func (b *BaseConnection) GetUniqueConstraints(
+	tableName string,
+) ([]string, error) {
+	return nil, errors.New(
+		"GetUniqueConstraints() not implemented for base connection",
 	)
 }
 
@@ -146,6 +182,23 @@ func (b *BaseConnection) BuildUpdateStatement(
 		columnName,
 		escapedValue,
 	)
+}
+
+func (b *BaseConnection) BuildDeleteStatement(
+	tableName, primaryKeyCol, pkValue string,
+) string {
+	escapedPkValue := strings.ReplaceAll(pkValue, "'", "''")
+
+	return fmt.Sprintf(
+		"DELETE FROM %s\nWHERE %s = '%s';",
+		tableName,
+		primaryKeyCol,
+		escapedPkValue,
+	)
+}
+
+func (b *BaseConnection) GetPlaceholder(paramIndex int) string {
+	return "?"
 }
 
 func (b *BaseConnection) ApplyRowLimit(sql string, limit int) string {

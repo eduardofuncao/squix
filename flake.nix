@@ -17,7 +17,7 @@
       {
         packages.default = pkgs.buildGoModule {
           pname = "pam";
-          version = "0.1.0-beta";
+          version = "0.2.0-beta";
 
           src = ./.;
 

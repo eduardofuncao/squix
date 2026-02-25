@@ -104,7 +104,6 @@ func (p *PostgresConnection) GetTableMetadata(
 		AND n.nspname = $2
 		AND i.indisprimary
 		ORDER BY a.attnum
-		LIMIT 1
 	`
 
 	rows, err := p.db.Query(pkQuery, tableName, currentSchema)
@@ -117,10 +116,10 @@ func (p *PostgresConnection) GetTableMetadata(
 		TableName: tableName,
 	}
 
-	if rows.Next() {
+	for rows.Next() {
 		var pkColumn string
 		if err := rows.Scan(&pkColumn); err == nil {
-			metadata.PrimaryKey = pkColumn
+			metadata.PrimaryKeys = append(metadata.PrimaryKeys, pkColumn)
 		}
 	}
 
@@ -149,6 +148,12 @@ func (p *PostgresConnection) GetTableMetadata(
 				metadata.ColumnTypes = append(metadata.ColumnTypes, colType)
 			}
 		}
+	}
+
+	// Fetch foreign keys
+	fks, err := p.GetForeignKeys(tableName)
+	if err == nil {
+		metadata.ForeignKeys = fks
 	}
 
 	return metadata, nil
@@ -280,6 +285,241 @@ func (p *PostgresConnection) GetInfoSQL(infoType string) string {
 	}
 }
 
+func (p *PostgresConnection) GetTables() ([]string, error) {
+	if p.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT current_schema()`
+	row := p.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if p.Schema != "" {
+			currentSchema = p.Schema
+		} else {
+			currentSchema = "public"
+		}
+	}
+
+	query := `
+		SELECT table_name
+		FROM information_schema.tables
+		WHERE table_schema = $1
+		  AND table_type = 'BASE TABLE'
+		ORDER BY table_name
+	`
+
+	rows, err := p.db.Query(query, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query tables: %w", err)
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err == nil {
+			tables = append(tables, tableName)
+		}
+	}
+
+	return tables, nil
+}
+
+func (p *PostgresConnection) GetViews() ([]string, error) {
+	if p.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT current_schema()`
+	row := p.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if p.Schema != "" {
+			currentSchema = p.Schema
+		} else {
+			currentSchema = "public"
+		}
+	}
+
+	query := `
+		SELECT table_name
+		FROM information_schema.views
+		WHERE table_schema = $1
+		ORDER BY table_name
+	`
+
+	rows, err := p.db.Query(query, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query views: %w", err)
+	}
+	defer rows.Close()
+
+	var views []string
+	for rows.Next() {
+		var viewName string
+		if err := rows.Scan(&viewName); err == nil {
+			views = append(views, viewName)
+		}
+	}
+
+	return views, nil
+}
+
+func (p *PostgresConnection) GetForeignKeys(tableName string) ([]ForeignKey, error) {
+	if p.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT current_schema()`
+	row := p.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if p.Schema != "" {
+			currentSchema = p.Schema
+		} else {
+			currentSchema = "public"
+		}
+	}
+
+	query := `
+		SELECT
+			kcu.column_name,
+			ccu.table_name AS foreign_table_name,
+			ccu.column_name AS foreign_column_name
+		FROM information_schema.table_constraints AS tc
+		JOIN information_schema.key_column_usage AS kcu
+			ON tc.constraint_name = kcu.constraint_name
+			AND tc.table_schema = kcu.table_schema
+		JOIN information_schema.constraint_column_usage AS ccu
+			ON ccu.constraint_name = tc.constraint_name
+			AND ccu.table_schema = tc.table_schema
+		WHERE tc.constraint_type = 'FOREIGN KEY'
+		  AND tc.table_name = $1
+		  AND tc.table_schema = $2
+		ORDER BY kcu.column_name
+	`
+
+	rows, err := p.db.Query(query, tableName, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query foreign keys: %w", err)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		if err := rows.Scan(&fk.Column, &fk.ReferencedTable, &fk.ReferencedColumn); err == nil {
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (p *PostgresConnection) GetForeignKeysReferencingTable(tableName string) ([]ForeignKey, error) {
+	if p.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT current_schema()`
+	row := p.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if p.Schema != "" {
+			currentSchema = p.Schema
+		} else {
+			currentSchema = "public"
+		}
+	}
+
+	// Find all foreign keys that reference this table (reverse direction)
+	query := `
+		SELECT
+			kcu.column_name,
+			tc.table_name AS foreign_table_name,
+			ccu.column_name AS foreign_column_name
+		FROM information_schema.table_constraints AS tc
+		JOIN information_schema.key_column_usage AS kcu
+			ON tc.constraint_name = kcu.constraint_name
+			AND tc.table_schema = kcu.table_schema
+		JOIN information_schema.constraint_column_usage AS ccu
+			ON ccu.constraint_name = tc.constraint_name
+			AND ccu.table_schema = tc.table_schema
+		WHERE tc.constraint_type = 'FOREIGN KEY'
+		  AND ccu.table_name = $1
+		  AND tc.table_schema = $2
+		ORDER BY tc.table_name, kcu.column_name
+	`
+
+	rows, err := p.db.Query(query, tableName, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query referencing foreign keys: %w", err)
+	}
+	defer rows.Close()
+
+	var foreignKeys []ForeignKey
+	for rows.Next() {
+		var fk ForeignKey
+		// Note: We swap the meaning here
+		// fk.Column = the FK column in the other table
+		// fk.ReferencedTable = the other table (that has the FK)
+		// fk.ReferencedColumn = the PK column in this table being referenced
+		var otherColumn string
+		if err := rows.Scan(&otherColumn, &fk.ReferencedTable, &fk.ReferencedColumn); err == nil {
+			fk.Column = otherColumn
+			foreignKeys = append(foreignKeys, fk)
+		}
+	}
+
+	return foreignKeys, nil
+}
+
+func (p *PostgresConnection) GetUniqueConstraints(tableName string) ([]string, error) {
+	if p.db == nil {
+		return nil, fmt.Errorf("database is not open")
+	}
+
+	var currentSchema string
+	schemaQuery := `SELECT current_schema()`
+	row := p.db.QueryRow(schemaQuery)
+	if err := row.Scan(&currentSchema); err != nil {
+		if p.Schema != "" {
+			currentSchema = p.Schema
+		} else {
+			currentSchema = "public"
+		}
+	}
+
+	query := `
+		SELECT kcu.column_name
+		FROM information_schema.table_constraints AS tc
+		JOIN information_schema.key_column_usage AS kcu
+			ON tc.constraint_name = kcu.constraint_name
+			AND tc.table_schema = kcu.table_schema
+		WHERE tc.constraint_type = 'UNIQUE'
+		  AND tc.table_name = $1
+		  AND tc.table_schema = $2
+		ORDER BY kcu.column_name
+	`
+
+	rows, err := p.db.Query(query, tableName, currentSchema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query unique constraints: %w", err)
+	}
+	defer rows.Close()
+
+	var uniqueColumns []string
+	for rows.Next() {
+		var column string
+		if err := rows.Scan(&column); err == nil {
+			uniqueColumns = append(uniqueColumns, column)
+		}
+	}
+
+	return uniqueColumns, nil
+}
+
 func (p *PostgresConnection) BuildUpdateStatement(
 	tableName, columnName, currentValue, pkColumn, pkValue string,
 ) string {
@@ -314,4 +554,8 @@ func (c *PostgresConnection) BuildDeleteStatement(
 		primaryKeyCol,
 		pkValue,
 	)
+}
+
+func (p *PostgresConnection) GetPlaceholder(paramIndex int) string {
+	return fmt.Sprintf("$%d", paramIndex)
 }

@@ -8,10 +8,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		return m.handleKeyPress(msg)
+	case exportCompleteMsg:
+		return m.handleExportComplete(msg)
+	case clearExportStatusMsg:
+		return m.handleClearExportStatus(), nil
 	case blinkMsg:
 		m.blinkCopiedCell = false
 		m.blinkUpdatedCell = false
 		m.blinkDeletedRow = false
+		m.statusMessage = ""
 	case editorCompleteMsg:
 		return m.handleEditorComplete(msg)
 	case deleteCompleteMsg:
@@ -20,6 +25,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleQueryEditComplete(msg)
 	case detailViewEditCompleteMsg:
 		return m.handleDetailViewEditComplete(msg)
+	case saveQueryCompleteMsg:
+		return m.handleSaveQueryComplete(msg)
 	case tea.WindowSizeMsg:
 		return m.handleWindowResize(msg), nil
 	}
@@ -28,7 +35,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	// If in detail view mode, handle specific keys
+	// Handle export format selection
+	if m.exportWaiting.active {
+		return m.executeExportForFormat(msg.String())
+	}
+
+	// If in detailed view mode, handle specific keys
 	if m.detailViewMode {
 		switch msg.String() {
 		case "q", "esc":
@@ -37,11 +49,13 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			// Close detail view and return to table
 			return m.closeDetailView(), nil
 		case "e":
-			// Edit cell content
+			// Edit the cell content
 			if m.tableName != "" && m.primaryKeyCol != "" {
 				return m.editFromDetailView()
 			}
 			return m, nil
+		case "y":
+			return m.copySelection()
 		case "up", "k":
 			return m.scrollDetailViewUp(), nil
 		case "down", "j":
@@ -85,6 +99,8 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case "y":
 		return m.copySelection()
+	case "x":
+		return m.startExportFormatSelection()
 
 	case "enter":
 		// If this is a tables list, select the table
@@ -104,8 +120,8 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.deleteRow()
 	case "e":
 		return m.editAndRerunQuery()
-	case "f":
-		return m.toggleSort()
+	case "s":
+		return m.saveQuery()
 	}
 
 	return m, nil
@@ -115,8 +131,10 @@ func (m Model) handleWindowResize(msg tea.WindowSizeMsg) Model {
 	m.width = msg.Width
 	m.height = msg.Height
 
-	// Calculate dynamic column widths based on content and available space
-	m.calculateColumnWidths()
+	m.visibleCols = (m.width - 2) / (m.cellWidth + 1)
+	if m.visibleCols > m.numCols() {
+		m.visibleCols = m.numCols()
+	}
 
 	// Calculate dynamic header height
 	headerLines := m.calculateHeaderLines()

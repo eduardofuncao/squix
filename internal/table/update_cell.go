@@ -8,6 +8,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/eduardofuncao/pam/internal/styles"
 )
 
 func (m Model) updateCell() (tea.Model, tea.Cmd) {
@@ -37,9 +38,34 @@ func (m Model) updateCell() (tea.Model, tea.Cmd) {
 	}
 	tmpFile.Close()
 
+	// Get file modification time before editor
+	beforeModTime, err := os.Stat(tmpPath)
+	if err != nil {
+		os.Remove(tmpPath)
+		return m, nil
+	}
+
 	cmd := buildEditorCommand(editorCmd, tmpPath, updateStmt, CursorAtUpdateValue)
 
 	return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
+		// Check if file was modified
+		afterModTime, statErr := os.Stat(tmpPath)
+		if statErr != nil {
+			os.Remove(tmpPath)
+			return nil
+		}
+
+		// If file wasn't modified, user cancelled (exited without saving)
+		if afterModTime.ModTime().Equal(beforeModTime.ModTime()) || afterModTime.ModTime().Before(beforeModTime.ModTime()) {
+			os.Remove(tmpPath)
+			// Return a message that will show "cancelled" status
+			return editorCompleteMsg{
+				sql:       "",
+				colIndex:  m.selectedCol,
+				cancelled: true,
+			}
+		}
+
 		editedSQL, readErr := os.ReadFile(tmpPath)
 		os.Remove(tmpPath)
 
@@ -47,18 +73,28 @@ func (m Model) updateCell() (tea.Model, tea.Cmd) {
 			return nil
 		}
 		return editorCompleteMsg{
-			sql:      string(editedSQL),
-			colIndex: m.selectedCol,
+			sql:       string(editedSQL),
+			colIndex:  m.selectedCol,
+			cancelled: false,
 		}
 	})
 }
 
 type editorCompleteMsg struct {
-	sql      string
-	colIndex int
+	sql       string
+	colIndex  int
+	cancelled bool
 }
 
 func (m Model) handleEditorComplete(msg editorCompleteMsg) (tea.Model, tea.Cmd) {
+	// If user cancelled (exited without saving)
+	if msg.cancelled {
+		m.statusMessage = styles.Error.Render("✗ Update canceled")
+		return m, tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
+			return blinkMsg{}
+		})
+	}
+
 	if err := validateUpdateStatement(msg.sql); err != nil {
 		printError("Update validation failed:  %v", err)
 		return m, nil
@@ -96,6 +132,8 @@ func (m Model) buildUpdateStatement() string {
 	currentValue := m.data[m.selectedRow][m.selectedCol]
 
 	pkValue := ""
+	var multipleMatches bool
+
 	if m.primaryKeyCol != "" {
 		for i, col := range m.columns {
 			if col == m.primaryKeyCol {
@@ -105,13 +143,76 @@ func (m Model) buildUpdateStatement() string {
 		}
 	}
 
-	return m.dbConnection.BuildUpdateStatement(
+	// If PK not found in result set, try to fetch it
+	if m.primaryKeyCol != "" && pkValue == "" {
+		pkValue, multipleMatches = m.fetchPrimaryKeyValue()
+	}
+
+	stmt := m.dbConnection.BuildUpdateStatement(
 		m.tableName,
 		columnName,
 		currentValue,
 		m.primaryKeyCol,
 		pkValue,
 	)
+
+	if multipleMatches && pkValue != "" {
+		stmt = fmt.Sprintf("-- Warning: Multiple rows matched the WHERE clause, using PK from first match\n%s", stmt)
+	}
+
+	return stmt
+}
+
+func (m Model) fetchPrimaryKeyValue() (string, bool) {
+	if m.primaryKeyCol == "" || m.tableName == "" {
+		return "", false
+	}
+
+	// Build WHERE clause from all columns in current row
+	var whereConditions []string
+	for i, col := range m.columns {
+		val := m.data[m.selectedRow][i]
+		whereConditions = append(whereConditions, fmt.Sprintf("%s = '%s'", col, escapeSQLValue(val)))
+	}
+
+	if len(whereConditions) == 0 {
+		return "", false
+	}
+
+	whereClause := strings.Join(whereConditions, " AND ")
+
+	// Query for PK value
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s", m.primaryKeyCol, m.tableName, whereClause)
+
+	rows, err := m.dbConnection.ExecQuery(query)
+	if err != nil {
+		return "", false
+	}
+	defer rows.Close()
+
+	// Collect all PK values to check for multiple matches
+	var pkValues []string
+	for rows.Next() {
+		var pkVal string
+		if err := rows.Scan(&pkVal); err != nil {
+			continue
+		}
+		pkValues = append(pkValues, pkVal)
+	}
+
+	if len(pkValues) == 0 {
+		return "", false
+	}
+
+	if len(pkValues) > 1 {
+		return pkValues[0], true
+	}
+
+	return pkValues[0], false
+}
+
+func escapeSQLValue(val string) string {
+	return strings.ReplaceAll(val, "'", "''")
 }
 
 func (m Model) executeUpdate(sql string) error {
@@ -197,47 +298,47 @@ func (m Model) cleanSQLForDisplay(sql string) string {
 	return cleanSQL
 }
 
-  func (m Model) extractNewValue(sql string, columnName string) string {
-      var result strings.Builder
-      for line := range strings.SplitSeq(sql, "\n") {
-          trimmed := strings.TrimSpace(line)
-          if !strings.HasPrefix(trimmed, "--") && trimmed != "" {
-              result.WriteString(trimmed)
-              result.WriteString(" ")
-          }
-      }
-      cleanSQL := strings.TrimSpace(result.String())
+func (m Model) extractNewValue(sql string, columnName string) string {
+	var result strings.Builder
+	for line := range strings.SplitSeq(sql, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if !strings.HasPrefix(trimmed, "--") && trimmed != "" {
+			result.WriteString(trimmed)
+			result.WriteString(" ")
+		}
+	}
+	cleanSQL := strings.TrimSpace(result.String())
 
-      // First try standard SQL: SET column_name = 'value'
-      setPattern := fmt.Sprintf(`SET\s+%s\s*=\s*('([^']*)'|"([^"]*)"|([^,\s;]+))`, regexp.QuoteMeta(columnName))
-      setRe := regexp.MustCompile(`(?i)` + setPattern)
+	// First try standard SQL: SET column_name = 'value'
+	setPattern := fmt.Sprintf(`SET\s+%s\s*=\s*('([^']*)'|"([^"]*)"|([^,\s;]+))`, regexp.QuoteMeta(columnName))
+	setRe := regexp.MustCompile(`(?i)` + setPattern)
 
-      matches := setRe.FindStringSubmatch(cleanSQL)
-      if len(matches) > 0 {
-          if matches[2] != "" {
-              return matches[2]
-          } else if matches[3] != "" {
-              return matches[3]
-          } else if matches[4] != "" {
-              return matches[4]
-          }
-      }
+	matches := setRe.FindStringSubmatch(cleanSQL)
+	if len(matches) > 0 {
+		if matches[2] != "" {
+			return matches[2]
+		} else if matches[3] != "" {
+			return matches[3]
+		} else if matches[4] != "" {
+			return matches[4]
+		}
+	}
 
-      // Try ClickHouse: UPDATE column_name = 'value' (no SET keyword)
-      updatePattern := fmt.Sprintf(`UPDATE\s+%s\s*=\s*('([^']*)'|"([^"]*)"|([^,\s;]+))`,
-  regexp.QuoteMeta(columnName))
-      updateRe := regexp.MustCompile(`(?i)` + updatePattern)
+	// Try ClickHouse: UPDATE column_name = 'value' (no SET keyword)
+	updatePattern := fmt.Sprintf(`UPDATE\s+%s\s*=\s*('([^']*)'|"([^"]*)"|([^,\s;]+))`,
+		regexp.QuoteMeta(columnName))
+	updateRe := regexp.MustCompile(`(?i)` + updatePattern)
 
-      matches = updateRe.FindStringSubmatch(cleanSQL)
-      if len(matches) > 0 {
-          if matches[2] != "" {
-              return matches[2]
-          } else if matches[3] != "" {
-              return matches[3]
-          } else if matches[4] != "" {
-              return matches[4]
-          }
-      }
+	matches = updateRe.FindStringSubmatch(cleanSQL)
+	if len(matches) > 0 {
+		if matches[2] != "" {
+			return matches[2]
+		} else if matches[3] != "" {
+			return matches[3]
+		} else if matches[4] != "" {
+			return matches[4]
+		}
+	}
 
-      return "<unknown>"
-  }
+	return "<unknown>"
+}

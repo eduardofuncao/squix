@@ -9,9 +9,14 @@ type DatabaseConnection interface {
 	Query(queryName string, args ...any) (any, error)
 	ExecQuery(sql string, args ...any) (*sql.Rows, error)
 	Exec(sql string, args ...any) error
+	GetInfoSQL(infoType string) string
+	GetTables() ([]string, error)
+	GetViews() ([]string, error)
 	GetTableMetadata(tableName string) (*TableMetadata, error)
 	GetColumnDetails(tableName string) ([]ColumnInfo, error)
-	GetInfoSQL(infoType string) string
+	GetForeignKeys(tableName string) ([]ForeignKey, error)
+	GetForeignKeysReferencingTable(tableName string) ([]ForeignKey, error)
+	GetUniqueConstraints(tableName string) ([]string, error)
 	BuildUpdateStatement(
 		tableName, columnName, currentValue, pkColumn, pkValue string,
 	) string
@@ -29,6 +34,7 @@ type DatabaseConnection interface {
 	BuildRenameColumnSQL(tableName, oldName, newName string) string
 	BuildDropColumnSQL(tableName, columnName string) string
 	ApplyRowLimit(sql string, limit int) string
+	GetPlaceholder(paramIndex int) string
 
 	GetName() string
 	GetDbType() string
