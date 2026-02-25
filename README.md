@@ -5,13 +5,11 @@
 <img width="auto" height="36" alt="image" src="https://github.com/user-attachments/assets/c128f28f-dd10-4213-9915-dedafe7ae831" />
 
 </h1>
-<img width="351" height="119" alt="image" src="https://github.com/user-attachments/assets/c64c2f2c-1fd1-49f1-98ba-7df0591e0422" />
+<img width="360" height="131" alt="image" src="https://github.com/user-attachments/assets/9428a75b-ffa4-4961-919b-e5ccf192ef26" />
 
+### *"Squix, the database squirrel, has a natural eye for SQL Queries."*
 
-
-### *"Squixy, the database squirrel, has been doing a fantastic job."*
-
-> **Bear Grylls:** "Here in the wild database forest, survival comes down to one thing: preparation. And Squixy? He's extraordinary. Watch this - he's gathered queries, cached them with incredible precision. When other animals are scrambling to write SQL from scratch, Squixy's already got the answer. He's so efficient he'll make you squint, but he can squeeze results out of anything. A true survivor."
+> **Bear Grylls:** "Here in the wild database forest, survival comes down to one thing: preparation. And Squix? He's extraordinary. Watch this - he's gathered queries, cached them with incredible precision. When other animals are scrambling to write SQL from scratch, Squix's already got the answer. He's so efficient he'll make you squint, but he can squeeze results out of anything. A true survivor."
 
 ---
 
@@ -465,7 +463,7 @@ squix edit queries
 | `run` | Create and run a new query | `squix run` |
 | `run --edit` | Edit query before running | `squix run users --edit` |
 | `run --last`, `-l` | Re-run last executed query | `squix run --last` |
-| `run --param` | run with named params | `squix run --name Squixy` |
+| `run --param` | run with named params | `squix run --name Squix` |
 
 
 ### Database Exploration
@@ -578,7 +576,7 @@ Press `y` to copy the selection as plain text, or `x` to export the selected dat
 
 ### v0.2.0 - Walnut
 - [x] Program colors configuration option
-- [x] Query parameter with prompt and defaults (e.g., `WHERE first_name = :name|Squixy`)
+- [x] Query parameter with prompt and defaults (e.g., `WHERE first_name = :name|Squix`)
 - [x] CSV/JSON export for multiple cells
 - [x] Display column types correctly for join queries
 - [x] `squix explore` and `squix explain`
@@ -626,9 +624,9 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 **Made with 🐿️ by [@eduardofuncao](https://github.com/eduardofuncao)**
 
-> *"I don't think it would be the worst thing if it didn't work out...  Wait, can I say that?"* - Squixy the Squirrel (definitely NOT about Squix's SQL Stash)
+> *"I don't think it would be the worst thing if it didn't work out...  Wait, can I say that?"* - Squix the Squirrel (definitely NOT about Squix's SQL Stash)
 
-<img width="320" height="224" alt="Squixy mascot" src="https://github.com/user-attachments/assets/f995ce07-3742-4e98-b737-bbdbf982012e" />
+<img width="320" height="224" alt="Squix mascot" src="https://github.com/user-attachments/assets/f995ce07-3742-4e98-b737-bbdbf982012e" />
 
 
 </div>
