@@ -7,9 +7,9 @@
 </h1>
 <img width="360" height="131" alt="image" src="https://github.com/user-attachments/assets/9428a75b-ffa4-4961-919b-e5ccf192ef26" />
 
-### *"Squix, the database squirrel, has a natural eye for SQL Queries."*
+### **SQL Query Stashing for Terminal Squirrels**
 
-> **Bear Grylls:** "Here in the wild database forest, survival comes down to one thing: preparation. And Squix? He's extraordinary. Watch this - he's gathered queries, cached them with incredible precision. When other animals are scrambling to write SQL from scratch, Squix's already got the answer. He's so efficient he'll make you squint, but he can squeeze results out of anything. A true survivor."
+> **Bear Grylls:** "Out here in the wild database ecosystem, efficiency means survival. See that squirrel? That’s Squix, or _Sequillis termius_. He doesn’t panic-write queries under pressure. He prepares. He caches. He optimizes. While others are wrestling with joins in the dark, Squix already has his results. Extraordinary creature."
 
 ---
 
@@ -32,8 +32,7 @@
     Demo
 </h2>
 
-
-![squix-demo](https://github.com/user-attachments/assets/b62bec1d-2255-4d02-9b7f-1c99afbeb664)
+![squixdemo2](https://github.com/user-attachments/assets/ee9653cf-6aaa-4be9-a898-37153ab0c898)
 
 ### Highlights
 
@@ -346,13 +345,13 @@ squix run 2
 squix run emp_by_salary --edit
 ```
 
-<img width="1166" height="687" alt="image" src="https://github.com/user-attachments/assets/6f05c2dc-aa48-49ca-ab68-fdf3cfcc4eae" />
+<img width="1188" height="714" alt="image" src="https://github.com/user-attachments/assets/016c7a61-ace4-49cc-9375-564ee6089899" />
 
 ### TUI Table Viewer
 
 Navigate query results with Vim-style keybindings, update cells in-place, delete rows and copy data
 
-<img width="1155" height="689" alt="image" src="https://github.com/user-attachments/assets/839bb77d-b358-43d0-98cd-0dc8102a9ac0" />
+<img width="1173" height="709" alt="image" src="https://github.com/user-attachments/assets/3959011b-532f-4374-a86d-a39217cd39f0" />
 
 **Key Features:**
 - Syntax-highlighted SQL display
@@ -375,7 +374,7 @@ Display current connection and check if it is reachable
 squix status
 ```
 <div align=center>
-  <img width="425" height="503" alt="image" src="https://github.com/user-attachments/assets/e291de99-3c03-4e2a-b559-dcbbb89dc232" />
+  <img width="523" height="582" alt="image" src="https://github.com/user-attachments/assets/4046f6cd-376e-45c0-bcfd-20484e34470b" />
 </div>
 
 ### Database Exploration
@@ -394,7 +393,7 @@ squix explain employees
 squix explain employees --depth 2    # Show relationships 2 levels deep
 ```
 
-<img width="855" height="171" alt="image" src="https://github.com/user-attachments/assets/e824e87d-d3b3-4a1a-9850-cc041cf94216" />
+<img width="860" height="139" alt="image" src="https://github.com/user-attachments/assets/4cea0f4d-d3b9-4173-8b42-6ee6b289cc7b" />
 
 **Note:** The `squix explain` command is currently a work in progress and may change in future versions.
 
@@ -412,7 +411,7 @@ Squix uses your `$EDITOR` environment variable for editing queries and UPDATE/DE
 </div>
 
 ```bash
-# Set your preferred editor
+# Set your preferred editor (example in bash)
 export EDITOR=vim
 export EDITOR=nano
 export EDITOR=code
@@ -485,8 +484,9 @@ squix edit queries
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `edit config` | Edit main configuration file | `squix edit config` |
-| `edit queries` | Edit all queries for current connection | `squix edit queries` |
+| `config` | Edit main configuration file | `squix config` |
+| `edit` | Edit all queries for current connection | `squix edit` |
+| `edit <name\|id>` | Edit a single named query | `squix edit 3` |
 | `help [command]` | Show help information | `squix help run` |
 
 ---
@@ -574,14 +574,14 @@ Press `y` to copy the selection as plain text, or `x` to export the selected dat
 - [x] Row limit configuration option
 - [x] Info command, list all tables/views in current connection
 
-### v0.2.0 - Walnut
+### v0.2.0 - Walnut 🧱
 - [x] Program colors configuration option
 - [x] Query parameter with prompt and defaults (e.g., `WHERE first_name = :name|Squix`)
 - [x] CSV/JSON export for multiple cells
 - [x] Display column types correctly for join queries
 - [x] `squix explore` and `squix explain`
 
-### v0.3.0 - Hazelnut
+### v0.3.0 - Hazelnut 🪴
 - [ ] Shell autocomplete (bash, fish, zsh)
 - [ ] Encryption on connection username/password in config file
 - [ ] Dynamic column width
@@ -628,5 +628,6 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 <img width="320" height="224" alt="Squix mascot" src="https://github.com/user-attachments/assets/f995ce07-3742-4e98-b737-bbdbf982012e" />
 
+Previously Pam's Database Drawer, thanks to [u/marrsd](https://www.reddit.com/user/marrsd/) for suggesting the new name!
 
 </div>
