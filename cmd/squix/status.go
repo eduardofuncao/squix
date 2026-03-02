@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/spinner"
@@ -42,12 +43,19 @@ func (a *App) handleStatus() {
 
 	go spinner.CircleWait(done)
 
-	isReachable := <-reachable
-	close(done)
+	var isReachable bool
+	select {
+	case isReachable = <-reachable:
+		close(done)
+	case <-time.After(5 * time.Second):
+		close(done)
+		isReachable = false
+	}
 
-	fmt.Print("\r\033[2K") // Clear current line
-	fmt.Print("\033[1A")   // Move up one line
-	fmt.Print("\r\033[2K") // Clear that line too
+	// Clear spinner lines
+	fmt.Print("\r\033[2K")
+	fmt.Print("\033[1A")
+	fmt.Print("\r\033[2K")
 
 	circleIcon := "●"
 	if !isReachable {
@@ -59,7 +67,6 @@ func (a *App) handleStatus() {
 		statusText = "unreachable"
 	}
 
-	// Print final output
 	fmt.Printf("%s Using %s\n", styles.Success.Render(circleIcon), styles.Title.Render(connInfo))
 	fmt.Printf("  %d saved queries, %s\n", queryCount, styles.Faint.Render(statusText))
 }
