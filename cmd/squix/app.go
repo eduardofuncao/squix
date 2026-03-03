@@ -81,41 +81,41 @@ func (a *App) printUsage() {
 	fmt.Println(styles.Title.Render("Quick Start"))
 	fmt.Println(
 		"  1. Create a connection: " + styles.Faint.Render(
-			"pam init --name mydb --type postgres --conn \"postgres://localhost/db\"",
+			"squix init --name mydb --type postgres --conn \"postgres://localhost/db\"",
 		),
 	)
 	fmt.Println(
 		"  2. Add a query: " + styles.Faint.Render(
-			"pam add <run-name> <sql>",
+			"squix add <run-name> <sql>",
 		),
 	)
-	fmt.Println("  3. Run it: " + styles.Faint.Render("pam run <run-name>"))
+	fmt.Println("  3. Run it: " + styles.Faint.Render("squix run <run-name>"))
 	fmt.Println()
 
 	fmt.Println(styles.Title.Render("Common Commands"))
 	fmt.Println(
-		"  pam run <run>      " + styles.Faint.Render(
+		"  squix run <run>      " + styles.Faint.Render(
 			"Execute a saved query",
 		),
 	)
 	fmt.Println(
-		"  pam tables           " + styles.Faint.Render("List database tables"),
+		"  squix tables           " + styles.Faint.Render("List database tables"),
 	)
 	fmt.Println(
-		"  pam tables <table>   " + styles.Faint.Render(
+		"  squix tables <table>   " + styles.Faint.Render(
 			"Query a table directly",
 		),
 	)
 	fmt.Println(
-		"  pam list queries     " + styles.Faint.Render("List saved queries"),
+		"  squix list queries     " + styles.Faint.Render("List saved queries"),
 	)
 	fmt.Println(
-		"  pam ls               " + styles.Faint.Render(
+		"  squix ls               " + styles.Faint.Render(
 			"List database connections",
 		),
 	)
 	fmt.Println(
-		"  pam disconnect       " + styles.Faint.Render(
+		"  squix disconnect       " + styles.Faint.Render(
 			"Disconnect from current database",
 		),
 	)
@@ -123,10 +123,10 @@ func (a *App) printUsage() {
 
 	fmt.Println(styles.Title.Render("Help"))
 	fmt.Println(
-		"  pam help             " + styles.Faint.Render("Show all commands"),
+		"  squix help             " + styles.Faint.Render("Show all commands"),
 	)
 	fmt.Println(
-		"  pam help <command>   " + styles.Faint.Render("Show command details"),
+		"  squix help <command>   " + styles.Faint.Render("Show command details"),
 	)
 	fmt.Println()
 }
@@ -137,7 +137,7 @@ func (a *App) printVersion() {
 }
 
 func (a *App) handleListConnections() {
-	// Set os.Args to simulate "pam list connections"
+	// Set os.Args to simulate "squix list connections"
 	originalArgs := os.Args
 	os.Args = []string{os.Args[0], "list", "connections"}
 	a.handleList()

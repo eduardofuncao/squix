@@ -89,7 +89,7 @@ echo "  ✓ macOS ARM64 (without CGO - Oracle/SQLite unavailable)"
 echo ""
 echo "Note: macOS binaries will show errors if Oracle/SQLite are used."
 echo "For full macOS support with CGO, build on a Mac with:"
-echo "  CGO_ENABLED=1 go build -o pam ./cmd/squix"
+echo "  CGO_ENABLED=1 go build -o squix ./cmd/squix"
 echo ""
 
 # Create source code archives
