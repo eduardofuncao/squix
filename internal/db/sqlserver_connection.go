@@ -308,8 +308,7 @@ func (s *SQLServerConnection) GetInfoSQL(infoType string) string {
 			s.NAME as owner
 		FROM sys.tables t
 		INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
-		WHERE s.NAME = %s
-		ORDER BY s.NAME, t.NAME`, schema)
+		WHERE s.NAME = %s`, schema)
 	case "views":
 		return fmt.Sprintf(`SELECT
 			s.NAME as [schema],
@@ -317,8 +316,7 @@ func (s *SQLServerConnection) GetInfoSQL(infoType string) string {
 			s.NAME as owner
 		FROM sys.views v
 		INNER JOIN sys.schemas s ON v.schema_id = s.schema_id
-		WHERE s.NAME = %s
-		ORDER BY s.NAME, v.NAME`, schema)
+		WHERE s.NAME = %s`, schema)
 	default:
 		return ""
 	}
