@@ -230,6 +230,23 @@ Customize the terminal UI colors with built-in schemes:
 
 Each scheme uses a 7-color palette: Primary (titles, headers), Success (success messages), Error (errors), Normal (table data), Muted (borders, help text), Highlight (selected backgrounds), Accent (keywords, strings).
 
+### UI Visibility `ui_visibility`
+
+Control which UI components are displayed in the table view:
+
+```yaml
+ui_visibility:
+  query_name: true          # Show query name header
+  query_sql: true           # Show SQL query display
+  type_display: true        # Show column type indicators
+  key_icons: true           # Show primary key (⚿) and foreign key (⚭) icons
+  footer_cell_content: true # Show current cell preview in footer
+  footer_stats: true        # Show row/col count and position in footer
+  footer_keymaps: true      # Show keybindings help in footer
+```
+
+**Tip:** Press `?` in the table view to toggle the keymaps help on/off.
+
 ---
 
 <h2>
@@ -524,6 +541,7 @@ When viewing query results in the TUI, you have full Vim-style navigation and ed
 | `D` | Delete current row (requires WHERE clause) |
 | `e` | Edit and re-run query |
 | `s` | Save current query |
+| `?` | Toggle keybindings help in footer |
 | `q`, `Ctrl+c`, `Esc` | Quit table view |
 
 ### Detail View Mode
