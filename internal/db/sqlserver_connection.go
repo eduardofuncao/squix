@@ -302,7 +302,7 @@ func (s *SQLServerConnection) GetInfoSQL(infoType string) string {
 
 	switch infoType {
 	case "tables":
-		return fmt.Sprintf(`SELECT
+		return fmt.Sprintf(`SELECT TOP 100 PERCENT
 			s.NAME as [schema],
 			t.NAME as name,
 			s.NAME as owner
@@ -311,7 +311,7 @@ func (s *SQLServerConnection) GetInfoSQL(infoType string) string {
 		WHERE s.NAME = %s
 		ORDER BY s.NAME, t.NAME`, schema)
 	case "views":
-		return fmt.Sprintf(`SELECT
+		return fmt.Sprintf(`SELECT TOP 100 PERCENT
 			s.NAME as [schema],
 			v.NAME as name,
 			s.NAME as owner
