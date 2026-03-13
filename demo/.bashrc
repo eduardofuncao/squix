@@ -1,0 +1,43 @@
+# Squix Demo Welcome Message
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[0;33m'
+MAGENTA='\033[0;35m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+echo "${GREEN}                                                gg${NC}"
+echo "${GREEN}                                                ""${NC}"
+echo "${GREEN}   n_n   __        ,g,      ,gggg,gg gg      gg  gg     ,gg,   ,gg${NC}"
+echo "${GREEN}   o o  /  \      ,8'8,    dP\"  \"Y8I I8      8I  88    d8\"\"8b,dP\"${NC}"
+echo "${GREEN}   |.| |  @|     ,8'  Yb  i8'    ,8I I8,    ,8I  88   dP   ,88\"${NC}"
+echo "${GREEN}   \_/\\|  _/    ,8'_   8),d8,   ,d8b,d8b,  ,d8b_,88,,dP  ,dP\"Y8,${NC}"
+echo "${GREEN}  /     \\       P' \"YY8P8P\"Y8888P\"888P'\"Y88P\"'Y8P\"\"Y8\"  dP\"   \"Y8${NC}"
+echo "${GREEN} /|  /  |                         I8${NC}"
+echo "${GREEN}   \\__|_/                         I8'${NC}"
+echo "${GREEN}  _/ _/                           I8${NC}"
+echo "${GREEN}                                  I8${NC}"
+echo "${GREEN}                                  I8${NC}"
+echo "${GREEN}                                  I8${NC}"
+echo ""
+echo "${CYAN}                   Welcome to Squix's Live Demo!${NC}"
+echo "${CYAN}             =========================================${NC}"
+echo "${YELLOW}              The SQL explorer for Terminal Squirrels${NC}"
+echo ""
+echo "${BOLD}Demo presentation${NC} ${MAGENTA}(powered by presenterm)${NC}"
+echo "${MAGENTA}=================${NC}"
+echo "- Type ${BOLD}'demo'${NC} to start the interactive tutorial"
+echo "- Inside the presentation, press ${BOLD}Ctrl+E${NC} to execute queries"
+echo ""
+echo "${BOLD}Quick Start${NC}"
+echo "${MAGENTA}===========${NC}"
+echo "- Try ${BOLD}'squix explore'${NC} or ${BOLD}'squix explain squirrels'${NC} to see what the demo database looks like"
+echo "- Add queries with ${BOLD}'squix add sqr \"select * from squirrels\"'${NC}, then run them with ${BOLD}'squix run sqr'${NC}"
+echo "- Check added queries with ${BOLD}'squix list'${NC}"
+echo ""
+
+# Custom prompt: scrat@squix:~/tree$
+export PS1='\[\e[32m\]scrat\[\e[0m\]@\[\e[33m\]squix\[\e[0m\]:\[\e[36m\]~/tree\[\e[0m\]\$ '
+
+# Demo alias
+alias demo='presenterm ~/tree/squix-tutorial.md'

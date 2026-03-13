@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# Nix
+.nix-shell.sh
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Documentation
+*.md
+LICENSE
+
+# Build artifacts
+dist/
+target/
+*.o
+*.a
+
+# Workspace (mounted as volume)
+workspace/
+
+# Other
+*.log
+.env
+.DS_Store

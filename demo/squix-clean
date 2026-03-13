@@ -1,0 +1,6 @@
+#!/bin/bash
+# Wrapper for squix that replaces unicode symbols with ASCII
+# Run: squix-clean [squix arguments]
+
+# Run squix and filter output
+squix "$@" | sed -e 's/◆/*/g' -e 's/◀/</g' -e 's/▶/>/g' -e 's/α/a/g' -e 's/№/#/g'

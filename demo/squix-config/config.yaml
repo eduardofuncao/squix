@@ -1,0 +1,54 @@
+current_connection: squirrels
+color_scheme: default
+default_row_limit: 1000
+default_column_width: 15
+connections:
+  squirrels:
+    name: squirrels
+    db_type: sqlite
+    conn_string: /root/tree/squirrels.db
+    queries:
+      all-squirrels:
+        id: 1
+        name: all-squirrels
+        sql: SELECT * FROM squirrels
+      young-squirrels:
+        id: 2
+        name: young-squirrels
+        sql: SELECT name, age_years FROM squirrels WHERE age_years < 3
+      recent-sightings:
+        id: 3
+        name: recent-sightings
+        sql: SELECT s.name, sp.date, sp.behavior FROM squirrels s JOIN sightings sp ON s.id = sp.squirrel_id ORDER BY sp.date DESC
+      behavior-stats:
+        id: 4
+        name: behavior-stats
+        sql: SELECT behavior, COUNT(*) as count FROM sightings GROUP BY behavior ORDER BY count DESC
+      favorite-foods:
+        id: 5
+        name: favorite-foods
+        sql: SELECT favorite_food, COUNT(*) as count FROM squirrels GROUP BY favorite_food
+      foraging-sightings:
+        id: 6
+        name: foraging-sightings
+        sql: SELECT s.name, sp.date, sp.notes FROM squirrels s JOIN sightings sp ON s.id = sp.squirrel_id WHERE sp.behavior = 'foraging'
+      park-squirrels:
+        id: 7
+        name: park-squirrels
+        sql: SELECT park_location, COUNT(*) as count FROM squirrels GROUP BY park_location ORDER BY count DESC
+      healthy-squirrels:
+        id: 8
+        name: healthy-squirrels
+        sql: SELECT name, health_status, weight_kg FROM squirrels WHERE health_status = 'Healthy'
+      cache-locations:
+        id: 9
+        name: cache-locations
+        sql: SELECT * FROM squirrel_cache_locations
+      predators-list:
+        id: 10
+        name: predators-list
+        sql: SELECT * FROM predators
+    last_query:
+      name: all-squirrels
+      id: 1
+      sql: SELECT * FROM squirrels

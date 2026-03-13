@@ -1,0 +1,11 @@
+services:
+  gotty:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount workspace for presentations and files
+      - ./workspace:/root/tree
+    environment:
+      - EDITOR=vim
+    restart: unless-stopped
