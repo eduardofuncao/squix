@@ -39,6 +39,7 @@ RUN ln -s /usr/local/bin/squix /home/scrat/bin/squix && \
     ln -s /usr/bin/ls /home/scrat/bin/ls && \
     ln -s /usr/bin/vim /home/scrat/bin/vim && \
     ln -s /usr/bin/cat /home/scrat/bin/cat && \
+    ln -s /bin/bash /home/scrat/bin/bash && \
     chown -R scrat:scrat /home/scrat/bin
 
 # Create cron job for hourly database reset (using sqlite3 backup to avoid cp command issues)

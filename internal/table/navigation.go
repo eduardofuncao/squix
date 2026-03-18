@@ -211,7 +211,15 @@ func (m Model) copySelection() (Model, tea.Cmd) {
 	}
 
 	content := result.String()
-	clipboard.WriteAll(content)
+	err := clipboard.WriteAll(content)
+	if err != nil {
+		homeDir, _ := os.UserHomeDir()
+		fallbackPath := homeDir + "/tree/squix-export.txt"
+		if writeErr := os.WriteFile(fallbackPath, []byte(content), 0644); writeErr != nil {
+			// Both clipboard and file write failed
+			return m, nil
+		}
+	}
 
 	m.visualMode = false
 	m.visualLineMode = false

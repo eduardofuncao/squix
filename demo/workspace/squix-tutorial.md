@@ -27,11 +27,11 @@ SQL explorer for terminal squirrels
 
 # Squirrels hate leaving the terminal
 
-In a nutshell, squix remembers your database connections and queries for you, allowing you to run repetitve and hard-to-remember queries from the comfort of your terminal
+In a nutshell, `squix` remembers your database connections and queries for you, allowing you to run and explore repetitve and hard-to-remember queries from the comfort of your terminal
 
 <!-- pause -->
 
-To save a db connection, use the init command (we won't actually run it this time because the connection is already setup in the live demo)
+To save a db connection, use the `init` command (we won't actually run it this time because the connection is already setup in the live demo)
 ```bash
 squix init squirrels /home/scrat/tree/squirrels.db
 ```
@@ -41,8 +41,9 @@ Here we connected to a sample sqlite databse and gave it the name "squirrels". Y
 
 <!-- pause -->
 
-This will also set this connection up as your *active connection*. Check it out with (run commands from this presentation with CTRL+E): 
+This will also set this connection up as your *active connection*. Check it out with: 
 ```bash +exec +pty
+# run commands from this presentation with CTRL+E
 squix status
 ```
 
@@ -97,13 +98,19 @@ You can run queries by name or id with `squix run <query-name/id>`
 <!-- pause -->
 Inside the table results, you can:
 
-## Navigate, copy and export content
+## Navigate through the results
 - navigate with `hjkl` (or arrow keys) 
+- `g/G` to jump to first and last rows
+- `0/$` to jump to first and last colum
+- `CTRL+U/CTRL+D` to scroll up and down
+- `q` to quit
+
+<!-- pause -->
+## Copy and export (currently not working in the live demo due to web implementation limitations)
 - copy cell's contents with `y`, or start a selection with `v` to copy a larger area
 - export selections as html, markdown tables, json or csv with `x`
 
 <!-- pause -->
-
 ## Update and Delete stuff
 All of the following keymaps will open a query to update/delete your date in your $EDITOR of choice (or vim as a fallback). Save and quit (:wq in vim) to apply changes, or just quit (:q in vim) to cancel the operation
 - update a single cell with `u`
@@ -112,13 +119,7 @@ All of the following keymaps will open a query to update/delete your date in you
 
 <!-- pause -->
 
-### Other vim-like commands also work for naviation
-- g/G to jump to first and last rows
-- 0/$ to jump to first and last colum
-- CTRL+U/CTRL+D to scroll up and down
-- q to quit
-
-Run your first squix query (this will suspend the presentation until the squix command finishes; navigate and explore the results as you like)
+Run your first squix query (this will suspend the presentation until the squix command finishes; navigate and explore the results as you like and exit with `q`)
 
 ```bash +exec +acquire_terminal
 squix run show_all
@@ -138,8 +139,15 @@ You can use the `edit` and `remove` commands
 ## Edit
 run `squix edit` with no arguments to open all your saved queries from the active connection. You can also use `squix edit <query-name/id>` to target a specific query for editing. This will also use your $EDITOR:
 
+Try putting a `ORDER BY age_years` clause at the end of the select statement
 ```bash +acquire_terminal
 squix edit show_all
+```
+
+<!-- pause -->
+And list it again to show the modification
+```bash +exec
+squix list show_all
 ```
 
 ## Remove
@@ -159,4 +167,4 @@ If you liked it so far, please consider giving it a star and installing it from 
 
 <!-- newlines: 8 -->
 <!-- alignment: center -->
-made with 🐿️ by @eduardofuncao
+made with 🐿️  by @eduardofuncao

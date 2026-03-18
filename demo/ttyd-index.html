@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Squix Live Demo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css"/>
+  <script defer src="https://analytics.eduardofuncao.com/script.js" data-website-id="a504a27f-80dc-4de1-9efb-5e6933fc31b2"></script>
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; background: #1a1a1a; }
+    #terminal { width: 100%; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+  <script>
+    const term = new Terminal({
+      cursorBlink: true,
+      fontSize: 14,
+      fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+      theme: {
+        background: '#1a1a1a',
+        foreground: '#f0f0f0',
+        cursor: '#f0f0f0'
+      }
+    });
+    term.open(document.getElementById('terminal'));
+
+    const ws = new WebSocket((window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws');
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    ws.onopen = () => {
+      ws.send(new Uint8Array([1, 0, 0, 0, 14, 0, 0, 0, 0]));
+    };
+
+    ws.onmessage = (e) => {
+      term.write(decoder.decode(e.data));
+    };
+
+    term.onData((data) => {
+      ws.send(encoder.encode(data));
+    };
+
+    ws.onclose = () => {
+      term.write('\r\nConnection closed. Refresh to reconnect.');
+    };
+  </script>
+</body>
+</html>

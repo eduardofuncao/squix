@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -80,6 +81,7 @@ type exportCompleteMsg struct {
 	cells      int
 	formatName string
 	err        error
+	useFile    bool
 }
 
 func (m Model) startExportFormatSelection() (Model, tea.Cmd) {
@@ -167,14 +169,22 @@ func (m Model) executeExportForFormat(key string) (Model, tea.Cmd) {
 			return exportCompleteMsg{err: err}
 		}
 
-		if err := clipboard.WriteAll(content); err != nil {
-			return exportCompleteMsg{err: err}
+		err = clipboard.WriteAll(content)
+		useFile := err != nil
+
+		if useFile {
+			homeDir, _ := os.UserHomeDir()
+			fallbackPath := homeDir + "/tree/squix-export.txt"
+			if writeErr := os.WriteFile(fallbackPath, []byte(content), 0644); writeErr != nil {
+				return exportCompleteMsg{err: fmt.Errorf("clipboard failed (%v), file write failed (%v)", err, writeErr)}
+			}
 		}
 
 		return exportCompleteMsg{
 			format:     format,
 			cells:      cellCount,
 			formatName: formatName,
+			useFile:    useFile,
 		}
 	}
 }
@@ -376,6 +386,10 @@ func FormatMarkdown(headers []string, rows [][]string) (string, error) {
 func (m Model) handleExportComplete(msg exportCompleteMsg) (tea.Model, tea.Cmd) {
 	if msg.err != nil {
 		m.exportStatus = fmt.Sprintf("Export failed: %v", msg.err)
+	} else if msg.useFile {
+		homeDir, _ := os.UserHomeDir()
+		m.exportStatus = fmt.Sprintf("Saved to %s/tree/squix-export.txt", homeDir)
+		m.blinkCopiedCell = true
 	} else {
 		cellText := "cells"
 		if msg.cells == 1 {
