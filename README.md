@@ -14,7 +14,7 @@
 ---
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![go badge](https://img.shields.io/badge/Go-1.21+-00ADD8?%20logo=go&logoColor=white)
+![go badge](https://img.shields.io/badge/Go-1.25+-00ADD8?%20logo=go&logoColor=white)
 
 **A minimal CLI tool for managing and executing SQL queries across multiple databases. Written in Go, made beautiful with BubbleTea**
 
@@ -33,6 +33,8 @@
 </h2>
 
 ![squixdemo2](https://github.com/user-attachments/assets/ee9653cf-6aaa-4be9-a898-37153ab0c898)
+
+> Try out the [live demo](https://squix.live.eduardofuncao.com) (no install required!)
 
 ### Highlights
 
