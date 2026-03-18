@@ -2,11 +2,19 @@ current_connection: squirrels
 color_scheme: default
 default_row_limit: 1000
 default_column_width: 15
+ui_visibility:
+  query_name: true
+  query_sql: true
+  type_display: true
+  key_icons: false
+  footer_cell_content: true
+  footer_stats: true
+  footer_keymaps: true
 connections:
   squirrels:
     name: squirrels
     db_type: sqlite
-    conn_string: /root/tree/squirrels.db
+    conn_string: /home/scrat/tree/squirrels.db
     queries:
       all-squirrels:
         id: 1

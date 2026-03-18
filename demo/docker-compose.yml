@@ -1,11 +1,16 @@
+networks:
+  default:
+    name: sqlserver_default
+    external: true
+
 services:
-  gotty:
+  ttyd:
     build: .
     ports:
       - "8080:8080"
     volumes:
       # Mount workspace for presentations and files
-      - ./workspace:/root/tree
+      - ./workspace:/home/scrat/tree
     environment:
       - EDITOR=vim
     restart: unless-stopped

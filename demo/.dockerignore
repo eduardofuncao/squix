@@ -21,8 +21,9 @@ target/
 *.o
 *.a
 
-# Workspace (mounted as volume)
-workspace/
+# Note: workspace/ is copied to /root/tree-templates in Dockerfile
+# and mounted as volume at runtime
+
 
 # Other
 *.log

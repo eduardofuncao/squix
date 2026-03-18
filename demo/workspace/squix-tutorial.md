@@ -1,325 +1,162 @@
 ---
-title: "Learning Squix"
-author: "Squix Demo"
+theme:
+  name: catppuccin-frappe
+  override:
+    footer:
+      style: template
+      left: '🐿️'
+      center: 'squix'
+      right: "{current_slide} / {total_slides}"
+      height: 5
+    palette:
+      classes:
+        noice:
+          foreground: red
 ---
 
-# Welcome to Squix! 🐿️
+<!-- no_footer -->
+<!-- newlines: 8 -->
+Squix's SQL Stash
+---
+![](squix-mascot.png)
 
-**Squix's SQL Stash**
-
-A query manager for your databases
-
-<!-- end_slide -->
-
-# What is Squix?
-
-Squix is a powerful **query manager** that helps you:
-
-- 🔗 **Connect** to multiple databases
-- 🔍 **Explore** database schemas
-- 💾 **Save** queries for quick access
-- 🚀 **Run** queries with simple commands
-- 📋 **Organize** queries into runbooks
-- 🌳 **Visualize** table relationships
-
-Perfect for:
-- Data analysis
-- Database exploration
-- Query documentation
-- Team collaboration
+<!-- alignment: center -->
+SQL explorer for terminal squirrels
 
 <!-- end_slide -->
 
-# Our Dataset: Squirrels! 🐿️
+# Squirrels hate leaving the terminal
 
-We have a SQLite database with squirrel tracking data:
+In a nutshell, squix remembers your database connections and queries for you, allowing you to run repetitve and hard-to-remember queries from the comfort of your terminal
 
-**squirrels** table: 10 squirrels
-- Name, species, age, favorite food, location
+<!-- pause -->
 
-**sightings** table: 20 observations
-- Date, behavior, notes
+To save a db connection, use the init command (we won't actually run it this time because the connection is already setup in the live demo)
+```bash
+squix init squirrels /home/scrat/tree/squirrels.db
+```
 
-Let's explore it with Squix!
+Here we connected to a sample sqlite databse and gave it the name "squirrels". You can connect to a number of other database types like postgres, oracle, mysql, sqlserver, etc -> [more info here](https://github.com/eduardofuncao/squix?tab=readme-ov-file#--------database-support)
+
+
+<!-- pause -->
+
+This will also set this connection up as your *active connection*. Check it out with (run commands from this presentation with CTRL+E): 
+```bash +exec +pty
+squix status
+```
+
+> [!tip]
+> use `squix list connections` to list your saved db connections, and `squix use <conn-name>` to set an active connection 
 
 <!-- end_slide -->
 
-# Step 1: Initialize Connection
+# Understand your new home layout
 
-First, tell Squix about our database:
-
+To explore your database, **squix** has some nice QOL features, such as the explore command, which will list all tables and views available in your current connection
 ```bash +exec
-squix init --name squirrels --type sqlite --conn "/workspace/squirrels.db"
-```
-This creates a connection named "squirrels" to our SQLite database.
-
-<!-- end_slide -->
-
-# Step 2: Discover Tables
-
-See what tables are available:
-
-```bash +exec +pty
-squix tables
-```
-
-Lists all tables in the current database!
-
-<!-- end_slide -->
-
-# Step 3: Quick Table Preview
-
-Query any table instantly:
-
-```bash +exec +pty
-squix tables squirrels
-```
-
-No need to type SELECT * - Squix does it for you!
-
-<!-- end_slide -->
-
-# Step 4: Explore Schema
-
-Get an overview of your database:
-
-```bash +exec +pty
 squix explore
 ```
 
-Shows all tables and views in a clean format.
+<!-- pause -->
 
-<!-- end_slide -->
-
-# Step 5: Quick Query
-
-Or run raw SQL when needed:
-
-```bash +exec +pty
-squix query "SELECT * FROM squirrels LIMIT 5"
+Or the explain command, which will show foreign key relationships from a target table
+```bash +exec
+squix explain squirrels
 ```
 
-See the first 5 squirrels!
+see also `squix help tables` for another options to navigate your database schema
 
 <!-- end_slide -->
 
-# Step 6: List Connections
+# Build your SQL stash
 
-Managing multiple databases? Check your connections:
-
-```bash +exec +pty
-squix list connections
-```
-
-Shows all configured database connections.
-
-<!-- end_slide -->
-
-# Step 7: Connection Info
-
-Get details about the active connection:
-
-```bash +exec +pty
-squix info
-```
-
-Shows tables, views, and metadata.
-
-<!-- end_slide -->
-
-# Step 8: Create a Saved Query
-
-Save a query for reuse:
+Adding saved queries is another way to claim your spot as a certified terminal squirrel. Add them with the `squix add` command
 
 ```bash +exec
-squix add "all-squirrels" "SELECT * FROM squirrels"
+squix add show_all "select * from squirrels"
 ```
 
-Now you can run `squix run all-squirrels` anytime!
+<!-- pause -->
 
-<!-- end_slide -->
-
-# Step 9: Run a Saved Query
-
-Execute your saved query:
-
-```bash +exec +pty
-squix run "all-squirrels"
-```
-
-Much faster than typing the full SQL every time!
-
-<!-- end_slide -->
-
-# Step 10: Edit Saved Queries
-
-Need to modify a query? Open in your editor:
+The queries are saved per connection, and can be listed with `squix list` or filtered with
 
 ```bash +exec
-squix edit queries
+squix list show
 ```
 
-Opens the queries file in vim for easy editing.
+which will use "show" as a search term on the queries names and SQL
+
 
 <!-- end_slide -->
 
-# Step 11: Filter Query
+# Enjoy the fruits of your labour
 
-Let's save a filtered query:
+You can run queries by name or id with `squix run <query-name/id>`
 
-```bash +exec
-squix add "young-squirrels" "SELECT name, age_years FROM squirrels WHERE age_years < 3"
+<!-- pause -->
+Inside the table results, you can:
+
+## Navigate, copy and export content
+- navigate with `hjkl` (or arrow keys) 
+- copy cell's contents with `y`, or start a selection with `v` to copy a larger area
+- export selections as html, markdown tables, json or csv with `x`
+
+<!-- pause -->
+
+## Update and Delete stuff
+All of the following keymaps will open a query to update/delete your date in your $EDITOR of choice (or vim as a fallback). Save and quit (:wq in vim) to apply changes, or just quit (:q in vim) to cancel the operation
+- update a single cell with `u`
+- delete a row with D (uppercase!)
+- rerun or change your query with `e`
+
+<!-- pause -->
+
+### Other vim-like commands also work for naviation
+- g/G to jump to first and last rows
+- 0/$ to jump to first and last colum
+- CTRL+U/CTRL+D to scroll up and down
+- q to quit
+
+Run your first squix query (this will suspend the presentation until the squix command finishes; navigate and explore the results as you like)
+
+```bash +exec +acquire_terminal
+squix run show_all
 ```
 
-```bash +exec +pty
-squix run "young-squirrels"
-```
+Alternatively, you can just run squix with inline queries (eg `squix run "select * from squirrels where name like 'A%'"`). This can be useful for quick testing, before adding queries to your stash)
+
+
+
 
 <!-- end_slide -->
 
-# Step 12: Complex JOIN Query
+# When things don't go as planned
 
-Let's join squirrels with their sightings:
+You can use the `edit` and `remove` commands
 
-```bash +exec
-squix add "recent-sightings" "SELECT s.name, sp.date, sp.behavior FROM squirrels s JOIN sightings sp ON s.id = sp.squirrel_id ORDER BY sp.date DESC"
+## Edit
+run `squix edit` with no arguments to open all your saved queries from the active connection. You can also use `squix edit <query-name/id>` to target a specific query for editing. This will also use your $EDITOR:
+
+```bash +acquire_terminal
+squix edit show_all
 ```
 
-```bash +exec +pty
-squix run "recent-sightings"
-```
+## Remove
+Remove saved queries with `squix remove <query-name>`, or remove all connection data with `squix remove --connection <conn-name>`
+
 
 <!-- end_slide -->
+<!-- newlines: 8 -->
 
-# Step 13: Table Relationships
+## Thanks for checking out squix 
 
-Visualize how tables connect:
+Now you can end this presentation with `q` or `CTRL+C` and go back to the interactive terminal. Use `squix explore` or `squix explain` to understand the demo database, `add` and `run` queries to try *squix* out. 
 
-```bash +exec +pty
-squix explain squirrels --depth 1
-```
+If you get stuck, use the help command `squix help` for general info or `squix help <command>` for command specific info
 
-Shows foreign key relationships in a tree view!
+If you liked it so far, please consider giving it a star and installing it from [](https://github.com/eduardofuncao/squix)
 
-<!-- end_slide -->
-
-# Step 14: Statistics Query
-
-Find the most common behaviors:
-
-```bash +exec
-squix add "behavior-stats" "SELECT behavior, COUNT(*) as count FROM sightings GROUP BY behavior ORDER BY count DESC"
-```
-
-```bash +exec +pty
-squix run "behavior-stats"
-```
-
-<!-- end_slide -->
-
-# Step 15: List Saved Queries
-
-See all your saved queries:
-
-```bash +exec
-squix list queries
-```
-
-Shows all the queries you've created!
-
-<!-- end_slide -->
-
-# Step 16: Favorite Foods
-
-What do squirrels love to eat?
-
-```bash +exec
-squix add "favorite-foods" "SELECT favorite_food, COUNT(*) as count FROM squirrels GROUP BY favorite_food"
-```
-
-```bash +exec +pty
-squix run "favorite-foods"
-```
-
-<!-- end_slide -->
-
-# Step 17: Remove Query
-
-Clean up queries you don't need:
-
-```bash +exec
-squix remove "young-squirrels"
-```
-
-```bash +exec
-squix list queries
-```
-
-<!-- end_slide -->
-
-# Summary: Key Commands
-
-| Command | Description |
-|---------|-------------|
-| `squix init` | Create database connection |
-| `squix switch` | Switch active connection |
-| `squix tables` | List all tables |
-| `squix tables <name>` | Quick SELECT * FROM table |
-| `squix explore` | Explore database schema |
-| `squix explain` | Show table relationships |
-| `squix add <name> <sql>` | Save a query |
-| `squix run <name>` | Execute saved query |
-| `squix edit queries` | Edit saved queries |
-| `squix remove <name>` | Delete a query |
-| `squix list queries` | List all saved queries |
-| `squix list connections` | List all connections |
-| `squix info` | Show connection details |
-
-<!-- end_slide -->
-
-# Next Steps
-
-🔧 **More Features:**
-- Query parameters and templates
-- Export results to CSV/JSON
-- Multiple database types (Postgres, MySQL, SQL Server, Oracle)
-- Runbooks for organizing queries
-
-📚 **Learn More:**
-```bash +exec
-squix help
-```
-
-<!-- end_slide -->
-
-# Try It Yourself!
-
-Now it's your turn to explore:
-```bash +exec
-# List all squirrels in Central Park
-squix add "central-park" "SELECT * FROM squirrels WHERE park_location LIKE '%Central Park%'"
-
-# Find foraging behaviors
-squix add "foraging" "SELECT s.name, sp.date FROM squirrels s JOIN sightings sp ON s.id = sp.squirrel_id WHERE sp.behavior = 'foraging'"
-
-# Run them!
-squix run "central-park"
-squix run "foraging"
-
-# Explore the schema
-squix explore sightings
-```
-
-<!-- end_slide -->
-
-# Questions?
-
-🐿️ Happy querying with Squix!
-
-```bash +exec
-squix help
-```
-
-Type `demo` anytime to restart this presentation!
-
-<!-- end_slide -->
+<!-- newlines: 8 -->
+<!-- alignment: center -->
+made with 🐿️ by @eduardofuncao
