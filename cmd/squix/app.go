@@ -61,13 +61,17 @@ func (a *App) Run() {
 	case "tables", "t":
 		a.handleTables()
 	case "disconnect", "clear", "unset":
-		a.handleEdit()
+		a.handleDisconnect()
 	case "config":
 		a.handleConfig()
 	case "explain":
 		a.handleExplain()
 	case "help":
 		a.handleHelp()
+	case "__complete":
+		a.handleComplete()
+	case "completion":
+		a.handleCompletion()
 	default:
 		log.Fatalf("Unknown command: %s", command)
 	}
