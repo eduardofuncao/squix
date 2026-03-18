@@ -34,7 +34,7 @@ else
     echo -e "${PRIMARY}              The SQL explorer for Terminal Squirrels${NC}"
     echo ""
 fi
-echo -e "this is a bash shell shell with ${ACCENT}squix${NC} and a sqlite database connection available for testing"
+echo -e "this is a bash shell with ${ACCENT}squix${NC} and a sqlite database connection available for testing"
 echo ""
 echo -e "${PRIMARY}▶ Try the Demo Presentation${NC}"
 echo -e "Run ${ACCENT}demo${NC} to open a live presentation showcasing squix features."
