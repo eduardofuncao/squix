@@ -233,7 +233,7 @@ squix [TAB]              # List all commands
 squix run [TAB]          # List queries from current connection
 squix switch [TAB]       # List connection names
 squix info [TAB]         # List: table, view
-squix list [TAB]         # List: queries, connections + your query names
+squix list [TAB]         # List: queries
 squix edit [TAB]         # List queries to edit
 ```
 

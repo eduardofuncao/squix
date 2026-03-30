@@ -617,6 +617,47 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  squix help run")
 		fmt.Println("  squix help list")
 
+	case "completion":
+		section("Command: completion")
+		fmt.Println(
+			styles.Faint.Render(
+				"Generate shell completion scripts for bash, zsh, or fish.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  squix completion <shell>")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  Outputs completion script to stdout. Completions are dynamic - they",
+		)
+		fmt.Println(
+			"  automatically include your saved queries and connections.",
+		)
+		fmt.Println()
+		section("Installation")
+		fmt.Println(
+			"  Bash (temporary):    " + styles.Faint.Render("source <(squix completion bash)"),
+		)
+		fmt.Println(
+			"  Bash (permanent):    " + styles.Faint.Render("echo 'eval \"$(squix completion bash)\"' >> ~/.bashrc"),
+		)
+		fmt.Println(
+			"  Zsh (temporary):    " + styles.Faint.Render("source <(squix completion zsh)"),
+		)
+		fmt.Println(
+			"  Zsh (permanent):    " + styles.Faint.Render("echo 'eval \"$(squix completion zsh)\"' >> ~/.zshrc"),
+		)
+		fmt.Println(
+			"  Fish:               " + styles.Faint.Render("squix completion fish > ~/.config/fish/completions/squix.fish"),
+		)
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  squix completion bash")
+		fmt.Println("  squix completion zsh")
+		fmt.Println("  squix completion fish")
+
 	default:
 		fmt.Printf("%s %q\n\n", styles.Error.Render("Unknown command"), cmd)
 		a.PrintGeneralHelp()
