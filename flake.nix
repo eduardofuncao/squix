@@ -17,12 +17,12 @@
       {
         packages.default = pkgs.buildGoModule {
           pname = "squix";
-          version = "0.3.0-beta";
+          version = "0.3.1-beta";
 
           src = ./.;
 
           # Run: nix build .#default 2>&1 | grep "got:" to get real hash
-          vendorHash = "sha256-CRvFH9Fn7iGZck6DBTh+2yNRj6J/qqLs6Z1dgfePUYs=";
+          vendorHash = "sha256-0sbop7o+KkqOQOuF7lCB0KY//8+YAtb1WcjqrcpqquY=";
 
 
           # Native dependencies
