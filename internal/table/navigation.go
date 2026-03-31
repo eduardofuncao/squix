@@ -75,6 +75,9 @@ func (m Model) jumpToFirstRow() Model {
 func (m Model) jumpToLastRow() Model {
 	m.selectedRow = m.numRows() - 1
 	m.offsetY = m.numRows() - m.visibleRows
+	if m.offsetY < 0 {
+		m.offsetY = 0
+	}
 	return m
 }
 
