@@ -608,6 +608,17 @@ When viewing query results in the TUI, you have full Vim-style navigation and ed
 | `?` | Toggle keybindings help in footer |
 | `q`, `Ctrl+c`, `Esc` | Quit table view |
 
+### Search
+
+| Key | Action |
+|-----|--------|
+| `/` | Search cell content |
+| `n` | Jump to next cell match |
+| `N` | Jump to previous cell match |
+| `f` | Search column headers |
+| `;` | Jump to next column match |
+| `,` | Jump to previous column match |
+
 ### Detail View Mode
 
 Press `Enter` on any cell to open a detailed view that shows the full cell content. If the content is valid JSON, it will be automatically formatted with proper indentation.

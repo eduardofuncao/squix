@@ -66,8 +66,7 @@ func reloadAllStyles() {
 
 	SearchMatch = lipgloss.NewStyle().
 		Foreground(lipgloss.Color(ActiveScheme.Accent)).
-		Bold(true).
-		Background(lipgloss.Color(ActiveScheme.Highlight))
+		Bold(true)
 
 	TableSelected = lipgloss.NewStyle().
 		Background(lipgloss.Color(ActiveScheme.Highlight)).

@@ -80,7 +80,7 @@ func (m Model) View() string {
 
 	// Display status message if present
 	if m.statusMessage != "" {
-		b.WriteString(m.statusMessage)
+		b.WriteString(styles.SearchMatch.Render(m.statusMessage))
 	}
 
 	return b.String()
@@ -109,7 +109,15 @@ func (m Model) renderHeader() string {
 
 		columnDisplay := pkIcon + fkIcon + typeIcon + m.columns[j]
 		content := formatCell(columnDisplay, m.cellWidth)
-		cells = append(cells, styles.TableHeader.Render(content))
+
+		var headerStyle lipgloss.Style
+		if m.isColumnMatch(j) {
+			headerStyle = styles.SearchMatch
+		} else {
+			headerStyle = styles.TableHeader
+		}
+
+		cells = append(cells, headerStyle.Render(content))
 	}
 
 	return strings.Join(cells, styles.TableBorder.Render("│"))
@@ -129,19 +137,36 @@ func (m Model) renderDataRow(rowIndex int) string {
 }
 
 func (m Model) renderFooter() string {
+	// Show search input when active
+	if m.searchMode {
+		prompt := "/"
+		if m.columnSearchMode {
+			prompt = "f"
+		}
+
+		cursorBefore := m.searchQuery[:m.searchCursor]
+		cursorAfter := ""
+		if m.searchCursor < len(m.searchQuery) {
+			cursorAfter = m.searchQuery[m.searchCursor:]
+		}
+
+		input := styles.SearchMatch.Render(prompt) + " " + cursorBefore + "█" + cursorAfter + "\n" + styles.Faint.Render("Enter: search  Esc: cancel")
+		return "\n" + input
+	}
+
 	// Show export format prompt if active
-  if m.exportWaiting.active {
-      promptText := fmt.Sprintf(
-          "Export as %sSV %sSON %sSV %sTML %sQL %sarkdown",
-          styles.TableHeader.Render("[C]"),
-          styles.TableHeader.Render("[J]"),
-          styles.TableHeader.Render("[T]"),
-          styles.TableHeader.Render("[H]"),
-          styles.TableHeader.Render("[S]"),
-          styles.TableHeader.Render("[M]"),
-      )
-      return "\n" + promptText
-  }
+	if m.exportWaiting.active {
+		promptText := fmt.Sprintf(
+			"Export as %sSV %sSON %sSV %sTML %sQL %sarkdown",
+			styles.TableHeader.Render("[C]"),
+			styles.TableHeader.Render("[J]"),
+			styles.TableHeader.Render("[T]"),
+			styles.TableHeader.Render("[H]"),
+			styles.TableHeader.Render("[S]"),
+			styles.TableHeader.Render("[M]"),
+		)
+		return "\n" + promptText
+	}
 
 	// Show export status if available
 	if m.exportStatus != "" {
@@ -231,6 +256,8 @@ func (m Model) renderFooter() string {
 		save := styles.TableHeader.Render("s") + styles.Faint.Render("ave")
 		yank := styles.TableHeader.Render("y") + styles.Faint.Render("ank")
 		exportKey := styles.Faint.Render("e") + styles.TableHeader.Render("x") + styles.Faint.Render("port")
+		searchKey := styles.TableHeader.Render("/") + styles.Faint.Render("srch")
+		colSearchKey := styles.TableHeader.Render("f") + styles.Faint.Render("col")
 		quit := styles.TableHeader.Render("q") + styles.Faint.Render("uit")
 		hjkl := styles.TableHeader.Render("hjkl") + styles.Faint.Render("←↓↑→")
 
@@ -254,7 +281,7 @@ func (m Model) renderFooter() string {
 				hjkl,
 			)
 		} else {
-			keymapsInfo = fmt.Sprintf("  %s  %s  %s  %s  %s  %s  %s  %s  %s",
+			keymapsInfo = fmt.Sprintf("  %s  %s  %s  %s  %s  %s  %s  %s  %s  %s  %s",
 				updateInfo,
 				delInfo,
 				yank,
@@ -262,6 +289,8 @@ func (m Model) renderFooter() string {
 				edit,
 				save,
 				exportKey,
+				searchKey,
+				colSearchKey,
 				quit,
 				hjkl,
 			)
@@ -286,6 +315,11 @@ func (m Model) getCellStyle(row, col int) lipgloss.Style {
 			return styles.TableCopiedBlink
 		}
 		return styles.TableSelected
+	}
+
+	// Check if this cell is a search match
+	if m.isCellSearchMatch(row, col) {
+		return styles.SearchMatch
 	}
 
 	return styles.TableCell
@@ -518,4 +552,22 @@ func (m Model) renderDetailView() string {
 	b.WriteString(footer)
 
 	return b.String()
+}
+
+func (m Model) isCellSearchMatch(row, col int) bool {
+	for _, match := range m.searchMatches {
+		if match.Row == row && match.Col == col {
+			return true
+		}
+	}
+	return false
+}
+
+func (m Model) isColumnMatch(col int) bool {
+	for _, matchCol := range m.searchColMatches {
+		if matchCol == col {
+			return true
+		}
+	}
+	return false
 }

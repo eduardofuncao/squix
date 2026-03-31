@@ -316,18 +316,11 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  d                     " + styles.Faint.Render("Delete current row (requires WHERE clause)"))
 		fmt.Println("  e                     " + styles.Faint.Render("Open the editor to update and rerun query"))
 		fmt.Println("  s                     " + styles.Faint.Render("Save current query"))
+		fmt.Println("  /                     " + styles.Faint.Render("Search cell content"))
+		fmt.Println("  n / N                 " + styles.Faint.Render("Navigate to next/previous cell match"))
+		fmt.Println("  f                     " + styles.Faint.Render("Search column headers"))
+		fmt.Println("  ; / ,                 " + styles.Faint.Render("Navigate to next/previous column match"))
 		fmt.Println("  Esc /Ctrl+c           " + styles.Faint.Render("Quit the table view"))
-		fmt.Println()
-		fmt.Println(
-			styles.Faint.Render(
-				"Exact keys may vary depending on how the table component is wired,",
-			),
-		)
-		fmt.Println(
-			styles.Faint.Render(
-				"but the basic navigation, search/filtering, and quit commands are available.",
-			),
-		)
 		fmt.Println()
 		section("Examples")
 		fmt.Println("  squix run list_users")
