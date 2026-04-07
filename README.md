@@ -292,7 +292,6 @@ squix init oracle-stg oracle "oracle://myuser:mypassword@localhost:1521/XEPDB1"
 # or connect to a specific schema:
 squix init oracle-stg oracle "oracle://myuser:mypassword@localhost:1521/XEPDB1" schema-name
 ```
-**Connection string format:** `oracle://user:password@host:port/service_name`
 
 ### ClickHouse
 
@@ -649,14 +648,6 @@ Press `y` to copy the selection as plain text, or `x` to export the selected dat
 </h2>
 
 > This project is currently in beta, please report unexpected behavior through the issues tab
-
-### v0.3.2-beta
-- [x] Oracle URL inference in init command
-
-### v0.3.1-beta
-- [x] Search navigation (`n`/`N` for cells, `;`/`,` for columns)
-- [x] Match highlighting with accent color
-- [x] Persistent search results
 
 ### v0.3.0 - Squix 🐿️
 - [x] Edit command overhaul
