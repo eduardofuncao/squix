@@ -21,8 +21,7 @@
           src = ./.;
 
           # Run: nix build .#default 2>&1 | grep "got:" to get real hash
-          vendorHash = "sha256-0sbop7o+KkqOQOuF7lCB0KY//8+YAtb1WcjqrcpqquY=";
-
+          vendorHash = "sha256-2LyaDdj0f69RrzUdAla7QLX5qbvyNJ1nQKy+5BI8dkc=";
 
           # Native dependencies
           buildInputs = with pkgs; [
