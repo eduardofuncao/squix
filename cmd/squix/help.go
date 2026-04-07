@@ -128,10 +128,10 @@ fmt.Println(
 	// Examples
 	fmt.Println(styles.Title.Render("Examples"))
 	fmt.Println(
-		"  squix init dev postgres \"postgres://user:pass@localhost:5432/dbname\"",
+		"  squix init dev \"postgres://user:pass@localhost:5432/dbname\"",
 	)
 	fmt.Println(
-		"  squix init prod sqlserver \"sqlserver://sa:password@localhost:1433?database=mydb\"",
+		"  squix init oracle \"oracle://user:pass@localhost:1521/XEPDB1\"",
 	)
 	fmt.Println("  squix switch dev")
 	fmt.Println("  squix add list_users \"SELECT * FROM users\"")

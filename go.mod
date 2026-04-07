@@ -8,16 +8,15 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/go-sql-driver/mysql v1.9.3
-	github.com/godror/godror v0.49.3
 	github.com/lib/pq v1.10.9
 	github.com/microsoft/go-mssqldb v1.9.5
 	github.com/nakagami/firebirdsql v0.9.15
+	github.com/sijms/go-ora/v2 v2.8.6
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
 	github.com/ClickHouse/ch-go v0.69.0 // indirect
-	github.com/VictoriaMetrics/easyproto v0.1.4 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -28,8 +27,6 @@ require (
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
-	github.com/go-logfmt/logfmt v0.6.0 // indirect
-	github.com/godror/knownpb v0.3.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -59,7 +56,6 @@ require (
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	modernc.org/mathutil v1.4.2-0.20220822142738-b13e5b564332 // indirect
 )

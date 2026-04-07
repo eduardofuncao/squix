@@ -22,6 +22,9 @@ func InferDBType(connString string) string {
 	if strings.HasPrefix(conn, "clickhouse://") {
 		return "clickhouse"
 	}
+	if strings.HasPrefix(conn, "oracle://") {
+		return "oracle"
+	}
 	if strings.HasPrefix(conn, "file://") {
 		return "sqlite"
 	}

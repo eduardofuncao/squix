@@ -118,7 +118,6 @@ outputs = { self, nixpkgs, squix, ... }: {
     system = "x86_64-linux";
     modules = [
       {
-        nixpkgs.config.allowUnfree = true;
         environment.systemPackages = [
           squix.packages.x86_64-linux.default
         ];
@@ -147,7 +146,6 @@ outputs = { self, nixpkgs, squix, ... }: {
     pkgs = nixpkgs.legacyPackages.x86_64-linux;
     modules = [
       {
-        nixpkgs.config.allowUnfree = true;
         home.packages = [
           squix.packages.x86_64-linux.default
         ];
@@ -159,8 +157,6 @@ outputs = { self, nixpkgs, squix, ... }: {
 ```
 
 Then apply: home-manager switch
-
-Note: Oracle support requires `allowUnfree = true` in your Nix configuration.
 </details>
 
 ### Basic Usage
@@ -291,12 +287,12 @@ squix init sqlite-local sqlite file:///home/eduardo/dbeesly/sqlite/mydb.sqlite
 ### Oracle
 
 ```bash
-squix init oracle-stg oracle myuser/mypassword@localhost:1521/XEPDB1
+squix init oracle-stg oracle "oracle://myuser:mypassword@localhost:1521/XEPDB1"
 
 # or connect to a specific schema:
-squix init oracle-stg oracle myuser/mypassword@localhost:1521/XEPDB1 schema-name
+squix init oracle-stg oracle "oracle://myuser:mypassword@localhost:1521/XEPDB1" schema-name
 ```
-> Make sure you have the [Oracle Instant Client](https://www.oracle.com/database/technologies/instant-client/downloads.html) or equivalent installed in your system
+**Connection string format:** `oracle://user:password@host:port/service_name`
 
 ### ClickHouse
 
@@ -653,6 +649,9 @@ Press `y` to copy the selection as plain text, or `x` to export the selected dat
 </h2>
 
 > This project is currently in beta, please report unexpected behavior through the issues tab
+
+### v0.3.2-beta
+- [x] Oracle URL inference in init command
 
 ### v0.3.1-beta
 - [x] Search navigation (`n`/`N` for cells, `;`/`,` for columns)

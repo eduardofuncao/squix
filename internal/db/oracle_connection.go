@@ -1,5 +1,3 @@
-//go:build cgo
-
 package db
 
 import (
@@ -7,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	_ "github.com/godror/godror"
+	_ "github.com/sijms/go-ora/v2"
 )
 
 type OracleConnection struct {
@@ -25,7 +23,7 @@ func NewOracleConnection(name, connStr string) (*OracleConnection, error) {
 }
 
 func (oc *OracleConnection) Open() error {
-	db, err := sql.Open("godror", oc.ConnString)
+	db, err := sql.Open("oracle", oc.ConnString)
 	if err != nil {
 		return err
 	}

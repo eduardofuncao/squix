@@ -30,9 +30,6 @@ func (c *Connection) Open() error {
 	dbType := c.DBType
 	connString := c.ConnString
 
-	if dbType == "oracle" {
-		dbType = "godror"
-	}
 
 	db, err := sql.Open(dbType, connString)
 	if err != nil {

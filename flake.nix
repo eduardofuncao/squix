@@ -11,13 +11,12 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          config.allowUnfree = true;  # For Oracle Instant Client
         };
       in
       {
         packages.default = pkgs.buildGoModule {
           pname = "squix";
-          version = "0.3.1-beta";
+          version = "0.3.2-beta";
 
           src = ./.;
 
@@ -30,7 +29,6 @@
             sqlite.dev        # For go-sqlite3
             duckdb           # For go-duckdb
             arrow-cpp        # DuckDB dependency
-            oracle-instantclient.lib  # For godror
           ];
 
           # Linker flags
@@ -39,9 +37,6 @@
             "-w"
             "-X main.Version=${self.packages.${system}.default.version}"
           ];
-
-          # Oracle library paths
-          propagatedBuildInputs = with pkgs; [ oracle-instantclient.lib ];
 
           meta = with pkgs.lib; {
             description = "Minimal CLI tool for managing SQL queries across multiple databases";
@@ -57,15 +52,10 @@
             sqlite.dev
             duckdb
             arrow-cpp
-            oracle-instantclient.lib
             postgresql
           ];
 
           shellHook = ''
-            export LD_LIBRARY_PATH=${pkgs.oracle-instantclient.lib}/lib:$LD_LIBRARY_PATH
-            export ORACLE_HOME=${pkgs.oracle-instantclient.lib}
-            export CGO_ENABLED=1
-
             echo "========================================="
             echo "Squix development environment ready!"
             echo "========================================="
@@ -74,7 +64,6 @@
             echo "  - Go compiler"
             echo "  - PostgreSQL client (psql)"
             echo "  - SQLite client (sqlite3)"
-            echo "  - Oracle Instant Client"
             echo ""
           '';
         };

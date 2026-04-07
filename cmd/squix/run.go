@@ -322,7 +322,7 @@ func (a *App) processParameters(sql string, conn db.DatabaseConnection, cliValue
 	displaySQL := params.GenerateDisplaySQL(sql, paramValues)
 
 	// For Oracle, use literal substitution instead of prepared statements
-	// This is a workaround for godror prepared statement issues
+	// This is a workaround for Oracle driver prepared statement issues
 	if conn.GetDbType() == "oracle" && len(args) > 0 {
 		finalSQL = substituteOracleLiterals(finalSQL, args)
 		args = []any{}
