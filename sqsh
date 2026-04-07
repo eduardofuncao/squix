@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+squix status
+echo "squix shell — type queries, 'exit' to quit"
+while IFS= read -r -p "squix> " query; do
+  [[ "$query" == "exit" ]] && break
+  [[ -z "$query" ]] && continue
+  squix run "$query"
+done
