@@ -13,8 +13,9 @@
 
 ---
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![go badge](https://img.shields.io/badge/Go-1.25+-00ADD8?%20logo=go&logoColor=white)
+[![MIT License](https://img.shields.io/badge/license-MIT-white.svg)](LICENSE)
+![go badge](https://img.shields.io/badge/g=Go-1.25+-00ADD8?%20logo=go&logoColor=white&label=go)
+[![Matrix](https://img.shields.io/matrix/squix:matrix.org?server_fqdn=matrix.org&label=chat&color=green)](https://matrix.to/#/#squix-sql:matrix.org)
 
 **A minimal CLI tool for managing and executing SQL queries across multiple databases. Written in Go, made beautiful with BubbleTea**
 
