@@ -510,6 +510,33 @@ squix run --last
 squix edit queries
 ```
 
+### Interactive Shell
+
+Run queries in an interactive REPL with persistent connection, history, and multi-line support.
+
+```bash
+squix shell          # or: squix repl
+```
+
+**Example session:**
+```bash
+squix@mydb> select * from users limit 5;
+squix@mydb> list_users --status active
+squix@mydb> --last
+squix@mydb> status
+```
+
+**Meta-commands:**
+
+| Command | Description |
+|---------|-------------|
+| `exit`, `quit`, `\q` | Exit the shell |
+| `help`, `\h` | Show help |
+| `status` | Show connection info |
+| `list`, `ls`, `\l` | List queries or connections |
+
+Multi-line: type SQL without trailing `;` to continue. End with `;` or press Enter on blank line to execute.
+
 ---
 
 <h2>
@@ -540,6 +567,7 @@ squix edit queries
 | `run --edit` | Edit query before running | `squix run users --edit` |
 | `run --last`, `-l` | Re-run last executed query | `squix run --last` |
 | `run --param` | run with named params | `squix run --name Squix` |
+| `shell` | Interactive query REPL (alias: `repl`) | `squix shell` |
 
 
 ### Database Exploration
@@ -656,6 +684,7 @@ Press `y` to copy the selection as plain text, or `x` to export the selected dat
 - [x] Full project rename
 
 ### v0.4.0 - Acorn 🌰
+- [x] Interactive query shell (`squix shell`)
 - [x] Shell autocomplete (bash, fish, zsh)
 - [x] Cell search (`/`) and column header search (`f`)
 - [ ] Encryption on connection username/password in config file
