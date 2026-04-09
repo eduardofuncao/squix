@@ -1,5 +1,3 @@
-//go:build cgo
-
 package db
 
 import (
@@ -7,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 type SQLiteConnection struct {
@@ -25,7 +23,7 @@ func NewSQLiteConnection(name, connStr string) (*SQLiteConnection, error) {
 }
 
 func (s *SQLiteConnection) Open() error {
-	db, err := sql.Open("sqlite3", s.ConnString)
+	db, err := sql.Open("sqlite", s.ConnString)
 	if err != nil {
 		return err
 	}
