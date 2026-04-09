@@ -19,7 +19,7 @@
 
 **A minimal CLI tool for managing and executing SQL queries across multiple databases. Written in Go, made beautiful with BubbleTea**
 
-[Quick Start](#--------quick-start) • [Configuration](docs/configuration.md) • [Commands](docs/commands.md) • [Keybindings](docs/keybindings.md) • [Features](docs/features.md) • [Completion](docs/completion.md) • [Dbeesly](#-dbeesly) • [Roadmap](#--------roadmap) • [Contributing](#contributing)
+[Quick Start](#--------quick-start) • [Configuration](docs/configuration.md) • [Commands](docs/commands.md) • [Keybindings](docs/keybindings.md) • [Features](docs/features.md) • [Completion](docs/completion.md) • [Databases](docs/databases.md) • [Roadmap](#--------roadmap) • [Contributing](#contributing)
 
 > This project is currently in beta, please report unexpected behavior through the issues tab
 
@@ -39,12 +39,16 @@
 
 ### Highlights
 
-- **Query Library** - Save and organize your most-used queries
-- **Runs in the CLI** - Execute queries with minimal overhead
+- **Query Library** - Save and organize your most-used queries, with parameterized support
 - **Multi-Database** - Works with PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse and Firebird
 - **Table view TUI** - Keyboard focused navigation and search with vim-style bindings
 - **In-Place Editing** - Update cells, delete rows and edit your SQL directly from the results table
 - **Export your data** - Export your data as CSV, JSON, SQL, Markdown or HTML tables
+- **Connection Switching** - Manage multiple databases and switch instantly
+- **Database Exploration** - Browse schema, visualize foreign key relationships
+- **Interactive Shell** - REPL with history, multi-line, and meta-commands
+
+See [Features](docs/features.md) for details and examples
 
 ---
 
@@ -238,22 +242,6 @@ See [Shell Completion](docs/completion.md)
 Row limits, column widths, color schemes (`dracula`, `gruvbox`, `catppuccin-mocha`, etc.) and UI visibility options can be set through the config file at `~/.config/squix/config.yaml`.
 
 See [Configuration](docs/configuration.md)
-
----
-
-<h2>
-    <img width="auto" height="24" alt="image" style="vertical-align:middle;" src="https://github.com/user-attachments/assets/c125a9f2-d4b6-4ec3-aef4-f52e1c8f48e8" />
-    Features
-</h2>
-
-- **Query Management**: Save, organize, and execute SQL queries with parameterized support
-- **TUI Table Viewer**: Vim-style navigation, in-place editing, visual selection
-- **Connection Switching**: Manage multiple databases and switch instantly
-- **Database Exploration**: Browse schema, visualize foreign key relationships
-- **Editor Integration**: Uses `$EDITOR` for editing queries and data
-- **Interactive Shell**: REPL with history, multi-line, and meta-commands
-
-See [Features](docs/features.md) for details and examples
 
 ---
 
