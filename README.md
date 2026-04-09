@@ -225,7 +225,7 @@ See [Configuration](docs/configuration.md)
 
 PostgreSQL, MySQL, MariaDB, SQL Server, SQLite, Oracle, ClickHouse, Firebird
 
-See init examples and all commands in [Commands](docs/commands.md)
+See init examples and dbeesly in [Database Support](docs/databases.md)
 
 ---
 
@@ -234,14 +234,6 @@ See init examples and all commands in [Commands](docs/commands.md)
 Dynamic tab completion for bash, zsh, and fish — includes your saved queries and connections.
 
 See [Shell Completion](docs/completion.md)
-
----
-
-## 🐝 Dbeesly
-
-To run containerized test database servers for all supported databases, use the sister project [dbeesly](https://github.com/eduardofuncao/dbeesly)
-
-<img width="879" height="571" alt="image" src="https://github.com/user-attachments/assets/c0a131eb-ea95-4523-86ac-cd00a561a5e0" />
 
 ---
 
