@@ -44,6 +44,8 @@ func (a *App) Run() {
 		a.handleRemove()
 	case "query", "run":
 		a.handleRun()
+	case "shell", "repl":
+		a.handleShell()
 	case "list":
 		a.handleList()
 	case "ls":
@@ -112,6 +114,9 @@ func (a *App) printUsage() {
 	)
 	fmt.Println(
 		"  squix list queries     " + styles.Faint.Render("List saved queries"),
+	)
+	fmt.Println(
+		"  squix shell            " + styles.Faint.Render("Interactive query REPL"),
 	)
 	fmt.Println(
 		"  squix ls               " + styles.Faint.Render(

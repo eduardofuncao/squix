@@ -5,18 +5,13 @@ import (
 	"time"
 
 	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/spinner"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
-func (a *App) handleStatus() {
-	if a.config.CurrentConnection == "" {
-		fmt.Println(styles.Faint.Render("No active connection"))
-		return
-	}
-
+func (a *App) printConnStatus(conn db.DatabaseConnection) {
 	currConn := a.config.Connections[a.config.CurrentConnection]
-
 	connInfo := fmt.Sprintf("%s/%s", currConn.DBType, currConn.Name)
 	if currConn.Schema != "" {
 		connInfo += fmt.Sprintf(" (schema: %s)", currConn.Schema)
@@ -33,10 +28,6 @@ func (a *App) handleStatus() {
 	reachable := make(chan bool)
 
 	go func() {
-		conn := config.FromConnectionYaml(currConn)
-		conn.Open()
-		defer conn.Close()
-
 		err := conn.Ping()
 		reachable <- (err == nil)
 	}()
@@ -58,15 +49,25 @@ func (a *App) handleStatus() {
 	fmt.Print("\r\033[2K")
 
 	circleIcon := "●"
-	if !isReachable {
-		circleIcon = "○"
-	}
-
 	statusText := "reachable"
 	if !isReachable {
+		circleIcon = "○"
 		statusText = "unreachable"
 	}
 
 	fmt.Printf("%s Using %s\n", styles.Success.Render(circleIcon), styles.Title.Render(connInfo))
 	fmt.Printf("  %d saved queries, %s\n", queryCount, styles.Faint.Render(statusText))
+}
+
+func (a *App) handleStatus() {
+	if a.config.CurrentConnection == "" {
+		fmt.Println(styles.Faint.Render("No active connection"))
+		return
+	}
+
+	conn := config.FromConnectionYaml(a.config.Connections[a.config.CurrentConnection])
+	conn.Open()
+	defer conn.Close()
+
+	a.printConnStatus(conn)
 }

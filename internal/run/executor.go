@@ -140,12 +140,15 @@ func Execute(params ExecutionParams) error {
 	}
 	defer params.Connection.Close()
 
+	return ExecuteWithOpenConn(params)
+}
+
+func ExecuteWithOpenConn(params ExecutionParams) error {
 	if IsSelectQuery(params.Query.SQL) {
 		return ExecuteSelect(params.Query.SQL, params.Query.Name, params)
-	} else {
-		ExecuteNonSelect(params)
-		return nil
 	}
+	ExecuteNonSelect(params)
+	return nil
 }
 
 func extractMetadata(conn db.DatabaseConnection, query db.Query) (string, string) {

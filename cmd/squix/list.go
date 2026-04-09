@@ -16,10 +16,9 @@ type listFlags struct {
 	searchTerm string
 }
 
-func parseListFlags() (listFlags, []string) {
+func parseListFlags(args []string) (listFlags, []string) {
 	flags := listFlags{}
 	remainingArgs := []string{}
-	args := os.Args[2:]
 
 	for _, arg := range args {
 		if arg == "--oneline" || arg == "-o" {
@@ -33,22 +32,29 @@ func parseListFlags() (listFlags, []string) {
 }
 
 func (a *App) handleList() {
-	flags, args := parseListFlags()
+	a.handleListWithArgs(os.Args[2:])
+}
+
+func (a *App) handleListWithArgs(args []string) {
+	flags, remaining := parseListFlags(args)
 
 	var objectType string
-	if len(args) == 0 {
-		objectType = "queries" // Default to queries
-	} else if args[0] == "queries" || args[0] == "connections" {
-		objectType = args[0]
-		if len(args) > 1 {
-			flags.searchTerm = args[1]
+	if len(remaining) == 0 {
+		objectType = "queries"
+	} else if remaining[0] == "queries" || remaining[0] == "connections" {
+		objectType = remaining[0]
+		if len(remaining) > 1 {
+			flags.searchTerm = remaining[1]
 		}
 	} else {
-		// First arg is search term, default to queries
 		objectType = "queries"
-		flags.searchTerm = args[0]
+		flags.searchTerm = remaining[0]
 	}
 
+	a.renderList(objectType, flags)
+}
+
+func (a *App) renderList(objectType string, flags listFlags) {
 	switch objectType {
 	case "connections":
 		if len(a.config.Connections) == 0 {
@@ -58,7 +64,7 @@ func (a *App) handleList() {
 		for name, connection := range a.config.Connections {
 			marker := "◆"
 			if name == a.config.CurrentConnection {
-				marker = styles.Success.Render("●") // Active connection
+				marker = styles.Success.Render("●")
 			} else {
 				marker = styles.Faint.Render("◆")
 			}
@@ -75,10 +81,8 @@ func (a *App) handleList() {
 			return
 		}
 
-		// Get sorted list of queries
 		queryList := make([]db.Query, 0, len(conn.Queries))
 		for _, query := range conn.Queries {
-			// If no search term, include all queries
 			if flags.searchTerm == "" {
 				queryList = append(queryList, query)
 				continue
@@ -102,7 +106,6 @@ func (a *App) handleList() {
 			return
 		}
 
-		// Display in oneline format if flag is set
 		if flags.oneline {
 			displayQueriesOneline(queryList)
 			return
@@ -114,7 +117,6 @@ func (a *App) handleList() {
 				displayName = highlightMatches(query.Name, flags.searchTerm)
 			}
 
-			// Extract table name
 			tableName := db.ExtractTableNameFromSQL(query.SQL)
 			if tableName == "" {
 				tableName = "<unknown>"

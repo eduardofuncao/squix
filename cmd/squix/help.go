@@ -68,6 +68,11 @@ func (a *App) PrintGeneralHelp() {
 		),
 	)
 	fmt.Println(
+		"  shell       " + styles.Faint.Render(
+			"Interactive REPL for running queries (alias: repl)",
+		),
+	)
+	fmt.Println(
 		"  tables      " + styles.Faint.Render("List or query database tables"),
 	)
 	fmt.Println(
@@ -137,6 +142,7 @@ fmt.Println(
 	fmt.Println("  squix add list_users \"SELECT * FROM users\"")
 	fmt.Println("  squix run list_users")
 	fmt.Println("  squix run \"select * from users\"")
+	fmt.Println("  squix shell")
 	fmt.Println("  squix list connections")
 	fmt.Println("  squix list queries")
 	fmt.Println("  squix edit config")
@@ -328,6 +334,37 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  squix run 2 --edit")
 		fmt.Println("  squix run --last")
 		fmt.Println("  squix query list_users")
+
+	case "shell", "repl":
+		section("Command: shell")
+		fmt.Println(
+			styles.Faint.Render(
+				"Start an interactive REPL to run queries against the current connection.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  squix shell")
+		fmt.Println()
+		section("Description")
+		fmt.Println("  - Opens REPL to run and list queries from the current active connection")
+		fmt.Println("  - Supports inline SQL, saved queries by name/ID, and all run flags.")
+		fmt.Println("  - Multi-line input: type SQL without trailing ; to continue.")
+		fmt.Println("  - Use up/down arrows to navigate command history.")
+		fmt.Println()
+		section("Meta-commands")
+		fmt.Println("  exit, quit, \\q    Exit the REPL")
+		fmt.Println("  help, \\h          Show help")
+		fmt.Println("  list, ls, \\l      List saved queries or connections")
+		fmt.Println("  status             Show connection info")
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  squix shell")
+		fmt.Println("  > select 1")
+		fmt.Println("  > my-query")
+		fmt.Println("  > my-query 123")
+		fmt.Println("  > --last")
+		fmt.Println("  > exit")
 
 	case "list":
 		section("Command: list")
