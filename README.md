@@ -42,7 +42,7 @@
 - **Query Library** - Save and organize your most-used queries
 - **Runs in the CLI** - Execute queries with minimal overhead
 - **Multi-Database** - Works with PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse and Firebird
-- **Table view TUI** - Keyboard focused navigation with vim-style bindings
+- **Table view TUI** - Keyboard focused navigation and search with vim-style bindings
 - **In-Place Editing** - Update cells, delete rows and edit your SQL directly from the results table
 - **Export your data** - Export your data as CSV, JSON, SQL, Markdown or HTML tables
 
@@ -201,20 +201,13 @@ D          # Delete current row
 # Modify and re-run
 e          # Edit the query and re-run it
 
+# Search around
+/          # Search cell's contents (n/N to cycle through results)
+f          # Search column names (,/; to cycle through results)
+
 # Exit
 q          # Quit back to terminal
 ```
-
----
-
-<h2>
-    <img width="auto" height="24" alt="image" style="vertical-align:middle" src="https://github.com/user-attachments/assets/8f5037c9-e616-4065-adfc-cd598621c887" />
-    Configuration
-</h2>
-
-Row limits, column widths, color schemes (`dracula`, `gruvbox`, `catppuccin-mocha`, etc.) and UI visibility — all in `~/.config/squix/config.yaml`.
-
-See [Configuration](docs/configuration.md)
 
 ---
 
@@ -225,7 +218,7 @@ See [Configuration](docs/configuration.md)
 
 PostgreSQL, MySQL, MariaDB, SQL Server, SQLite, Oracle, ClickHouse, Firebird
 
-See init examples and dbeesly in [Database Support](docs/databases.md)
+See connection init examples in [Database Support](docs/databases.md)
 
 ---
 
@@ -238,16 +231,27 @@ See [Shell Completion](docs/completion.md)
 ---
 
 <h2>
+    <img width="auto" height="24" alt="image" style="vertical-align:middle" src="https://github.com/user-attachments/assets/8f5037c9-e616-4065-adfc-cd598621c887" />
+    Configuration
+</h2>
+
+Row limits, column widths, color schemes (`dracula`, `gruvbox`, `catppuccin-mocha`, etc.) and UI visibility options can be set through the config file at `~/.config/squix/config.yaml`.
+
+See [Configuration](docs/configuration.md)
+
+---
+
+<h2>
     <img width="auto" height="24" alt="image" style="vertical-align:middle;" src="https://github.com/user-attachments/assets/c125a9f2-d4b6-4ec3-aef4-f52e1c8f48e8" />
     Features
 </h2>
 
-- **Query Management** — Save, organize, and execute SQL queries with parameterized support
-- **TUI Table Viewer** — Vim-style navigation, in-place editing, visual selection
-- **Connection Switching** — Manage multiple databases and switch instantly
-- **Database Exploration** — Browse schema, visualize foreign key relationships
-- **Editor Integration** — Uses `$EDITOR` for editing queries and data
-- **Interactive Shell** — REPL with history, multi-line, and meta-commands
+- **Query Management**: Save, organize, and execute SQL queries with parameterized support
+- **TUI Table Viewer**: Vim-style navigation, in-place editing, visual selection
+- **Connection Switching**: Manage multiple databases and switch instantly
+- **Database Exploration**: Browse schema, visualize foreign key relationships
+- **Editor Integration**: Uses `$EDITOR` for editing queries and data
+- **Interactive Shell**: REPL with history, multi-line, and meta-commands
 
 See [Features](docs/features.md) for details and examples
 
@@ -267,7 +271,7 @@ See [Commands](docs/commands.md) for the full command reference and database ini
     TUI Table Navigation
 </h2>
 
-See [Keybindings](docs/keybindings.md) for all navigation, editing, search, and visual mode keybindings
+See [Keybindings](docs/keybindings.md) for all navigation, editing, search, and visual mode keybindings on the results table view
 
 ---
 
@@ -287,10 +291,8 @@ See [Keybindings](docs/keybindings.md) for all navigation, editing, search, and 
 - [x] Interactive query shell (`squix shell`)
 - [x] Shell autocomplete (bash, fish, zsh)
 - [x] Cell search (`/`) and column header search (`f`)
-- [ ] Encryption on connection username/password in config file
-- [ ] Dynamic column width
 - [ ] Duckdb support
-- [ ] Update to bubbletea v2
+- [ ] Option to return results from `squix run` as json, csv, etc. with `--export` flag
 
 ---
 
@@ -315,18 +317,9 @@ Squix wouldn't exist without the inspiration and groundwork laid by these fantas
 - **[DeprecatedLuar/better-curl-saul](https://github.com/DeprecatedLuar/better-curl-saul)** - For demonstrating a simple and genius approach to making a CLI tool
 - **[dbeaver](https://github.com/dbeaver/dbeaver)** - The OG database management tool
 
-
 Built with: 
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - The TUI framework
 - Go standard library and various database drivers
-
----
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
----
 
 <div align="center">
 
