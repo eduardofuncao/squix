@@ -296,6 +296,7 @@ Thanks a lot to all the contributors:
 <a href="https://github.com/eduardofuncao"><img src="https://github.com/eduardofuncao.png" width="40" /></a>
 <a href="https://github.com/udirona"><img src="https://github.com/udirona.png" width="40" /></a>
 <a href="https://github.com/Leosallin"><img src="https://github.com/Leosallin.png" width="40" /></a>
+<a href="https://github.com/qorexdev"><img src="https://github.com/qorexdev.png" width="40" /></a>
 
 ## Acknowledgments
 
