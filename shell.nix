@@ -7,9 +7,6 @@ pkgs.mkShell {
     oracle-instantclient
     postgresql_15
     go
-    sqlite
-    duckdb
-    arrow-cpp 
   ];
 
   hardeningDisable = [ "fortify" ];

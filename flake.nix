@@ -21,14 +21,9 @@
           src = ./.;
 
           # Run: nix build .#default 2>&1 | grep "got:" to get real hash
-          vendorHash = "sha256-2LyaDdj0f69RrzUdAla7QLX5qbvyNJ1nQKy+5BI8dkc=";
+          vendorHash = "sha256-hOmeXm6ym+9gBKwSxLovlry0jLCcfZYpxb/Kzt2DUQg=";
 
-          # Native dependencies
-          buildInputs = with pkgs; [
-            sqlite.dev        # For go-sqlite3
-            duckdb           # For go-duckdb
-            arrow-cpp        # DuckDB dependency
-          ];
+          # Native dependencies (none needed - all drivers are pure Go)
 
           # Linker flags
           ldflags = [
@@ -48,9 +43,6 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             go
-            sqlite.dev
-            duckdb
-            arrow-cpp
             postgresql
           ];
 
