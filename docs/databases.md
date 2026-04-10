@@ -1,4 +1,9 @@
 # Database Support
+To create and save a database connection to be used with other `squix` commands, use the `init` command
+```bash
+init <name> <type> <conn-string> [schema]
+```
+If the <type> is ommited, squix will try to infer the database type from the connection string
 
 ## Init Examples
 

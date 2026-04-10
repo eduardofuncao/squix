@@ -4,8 +4,8 @@
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `create <name> <type> <conn-string> [schema]` | Create new database connection | `squix create mydb postgres "postgresql://..."` |
-| `switch <name>` | Switch to a different connection | `squix switch production` |
+| `init <name> <type> <conn-string> [schema]` | Create new database connection | `squix create mydb postgres "postgresql://..."` |
+| `use/switch <name>` | Switch to a different connection | `squix use production` |
 | `status` | Show current active connection | `squix status` |
 | `list connections` | List all configured connections | `squix list connections` |
 
@@ -33,13 +33,7 @@
 | `explore` | List all tables and views in multi-column format | `squix explore` |
 | `explore <table> [-l N]` | Query a table with optional row limit | `squix explore employees --limit 100` |
 | `explain <table> [-d N] [-c]` | Visualize foreign key relationships | `squix explain employees --depth 2` |
-
-## Info
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `info tables` | List all tables from current schema | `squix info tables` |
-| `info views` | List all views from current schema | `squix info views` |
+| `tables` | List all tables in using the results view, access with Enter| `squix tables` |
 
 ## Configuration
 
@@ -48,5 +42,6 @@
 | `config` | Edit main configuration file | `squix config` |
 | `edit` | Edit all queries for current connection | `squix edit` |
 | `edit <name\|id>` | Edit a single named query | `squix edit 3` |
+| `remove --connection <name>` | Remove a db connection | `squix remove --conection dev4`` |
 | `help [command]` | Show help information | `squix help run` |
 

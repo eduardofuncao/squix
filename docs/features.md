@@ -24,11 +24,11 @@ squix run search_users --name Michael --status active
 squix run search_users Michael active
 
 # List all saved queries
-squix list queries
+squix list
 
 # Search for specific queries
-squix list queries emp    # Finds queries with 'emp' in name or SQL
-squix list queries employees --oneline # displays each query in one line
+squix list emp    # Finds queries with 'emp' in name or SQL
+squix list employees --oneline # displays each query in one line
 
 # Run by name or ID
 squix run daily_report
@@ -60,7 +60,7 @@ Manage multiple database connections and switch between them instantly.
 ```bash
 # List all connections
 squix list connections
-squix switch production
+squix use production
 ```
 Display current connection and check if it is reachable
 ```
@@ -81,6 +81,9 @@ squix explore
 # Query a table directly
 squix explore employees --limit 100
 
+# Open tables in the results view, use Enter to query everything in the table
+squix tables
+
 # Visualize foreign key relationships
 squix explain employees
 squix explain employees --depth 2    # Show relationships 2 levels deep
@@ -89,9 +92,6 @@ squix explain employees --depth 2    # Show relationships 2 levels deep
 <img width="860" height="139" alt="image" src="https://github.com/user-attachments/assets/4cea0f4d-d3b9-4173-8b42-6ee6b289cc7b" />
 
 **Note:** The `squix explain` command is currently a work in progress and may change in future versions.
-
-
-
 
 ---
 
@@ -124,6 +124,9 @@ squix run --last
 
 # Edit all queries at once
 squix edit queries
+
+# Edit a specific query
+squix edit recent_users
 ```
 
 ## Interactive Shell
@@ -139,6 +142,7 @@ squix shell          # or: squix repl
 squix@mydb> select * from users limit 5;
 squix@mydb> list_users --status active
 squix@mydb> --last
+squix@mydb> list user
 squix@mydb> status
 ```
 
