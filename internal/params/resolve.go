@@ -55,6 +55,8 @@ var reservedFlags = map[string]bool{
 	"h":       true,
 	"version": true,
 	"v":       true,
+	"format":  true,
+	"f":       true,
 }
 
 func ValidateParamNames(paramDefs map[string]string) error {

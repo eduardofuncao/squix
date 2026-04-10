@@ -283,7 +283,7 @@ See [Keybindings](docs/keybindings.md) for all navigation, editing, search, and 
 - [x] Shell autocomplete (bash, fish, zsh)
 - [x] Cell search (`/`) and column header search (`f`)
 - [ ] Duckdb support
-- [ ] Option to return results from `squix run` as json, csv, etc. with `--export` flag
+- [x] Option to return results from `squix run` as json, csv, etc. with `--format` flag
 
 ---
 
