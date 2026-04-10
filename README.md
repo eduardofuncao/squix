@@ -226,7 +226,10 @@ See connection init examples in [Database Support](docs/databases.md)
 
 ---
 
-### Shell Completion
+<h2>
+    <img width="auto" height="24" alt="image" src="https://github.com/user-attachments/assets/be97c01c-9140-4503-92df-e1b6f2d7c31a" />
+    Shell Completion
+</h2>
 
 Dynamic tab completion for bash, zsh, and fish — includes your saved queries and connections.
 
@@ -296,7 +299,6 @@ Thanks a lot to all the contributors:
 <a href="https://github.com/eduardofuncao"><img src="https://github.com/eduardofuncao.png" width="40" /></a>
 <a href="https://github.com/udirona"><img src="https://github.com/udirona.png" width="40" /></a>
 <a href="https://github.com/Leosallin"><img src="https://github.com/Leosallin.png" width="40" /></a>
-<a href="https://github.com/qorexdev"><img src="https://github.com/qorexdev.png" width="40" /></a>
 
 ## Acknowledgments
 
