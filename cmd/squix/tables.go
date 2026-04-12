@@ -145,6 +145,66 @@ func (a *App) handleTables() {
 	}
 }
 
+func (a *App) handleReplTables(conn db.DatabaseConnection, args []string) {
+	if len(args) > 0 {
+		tableName := args[0]
+		query := db.Query{
+			Name:      tableName,
+			SQL:       fmt.Sprintf("SELECT * FROM %s", tableName),
+			TableName: tableName,
+			Id:        -1,
+		}
+
+		if metadata, err := conn.GetTableMetadata(tableName); err == nil && metadata != nil {
+			query.PrimaryKeys = metadata.PrimaryKeys
+		}
+
+		if err := run.ExecuteSelect(
+			query.SQL,
+			query.Name,
+			run.ExecutionParams{
+				Query:        query,
+				Connection:   conn,
+				Config:       a.config,
+				SaveCallback: a.saveQueryFromTable,
+				OnRerun: func(editedSQL string) error {
+					editedQuery := db.Query{
+						Name:      tableName,
+						SQL:       editedSQL,
+						TableName: tableName,
+						Id:        -1,
+					}
+					return run.ExecuteSelect(
+						editedSQL,
+						tableName,
+						run.ExecutionParams{
+							Query:      editedQuery,
+							Connection: conn,
+							Config:     a.config,
+						},
+					)
+				},
+			},
+		); err != nil {
+			printError("%v", err)
+		}
+		return
+	}
+
+	// No args — list tables in interactive viewer
+	queryStr := conn.GetInfoSQL("tables")
+	if queryStr == "" {
+		printError("Could not get tables SQL for this database type")
+	}
+
+	nameOnlyQuery := fmt.Sprintf(
+		"SELECT name FROM (%s) AS tables_info ORDER BY name",
+		queryStr,
+	)
+
+	a.showTablesInteractive(conn, nameOnlyQuery)
+}
+
 func (a *App) showTablesInteractive(
 	conn db.DatabaseConnection,
 	queryStr string,

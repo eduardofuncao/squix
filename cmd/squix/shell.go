@@ -133,6 +133,9 @@ func (a *App) executeReplLine(rl *readline.Instance, conn db.DatabaseConnection,
 		case "list", "ls", "\\l":
 			a.handleListWithArgs(tokens[1:])
 			return false
+		case "tables", "\\dt":
+			a.handleReplTables(conn, tokens[1:])
+			return false
 		}
 	}
 
@@ -226,6 +229,7 @@ func shellHelpText() string {
 	sb.WriteString("  help, \\h             Show this help\n")
 	sb.WriteString("  status               Show connection info\n")
 	sb.WriteString("  list, ls, \\l         List saved queries or connections\n")
+	sb.WriteString("  tables, \\dt [name]  List tables or view table data\n")
 	sb.WriteString("\n")
 	sb.WriteString(styles.Title.Render("Query Execution"))
 	sb.WriteString("\n")
