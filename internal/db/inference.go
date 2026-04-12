@@ -25,6 +25,9 @@ func InferDBType(connString string) string {
 	if strings.HasPrefix(conn, "oracle://") {
 		return "oracle"
 	}
+	if strings.HasPrefix(conn, "duckdb://") {
+		return "duckdb"
+	}
 	if strings.HasPrefix(conn, "file://") {
 		return "sqlite"
 	}
@@ -34,6 +37,11 @@ func InferDBType(connString string) string {
 	   strings.HasSuffix(conn, ".sqlite") ||
 	   strings.HasSuffix(conn, ".sqlite3") {
 		return "sqlite"
+	}
+
+	// DuckDB file pattern detection
+	if strings.HasSuffix(conn, ".duckdb") {
+		return "duckdb"
 	}
 
 	return ""
@@ -49,5 +57,6 @@ func GetSupportedDBTypes() []string {
 		"clickhouse",
 		"oracle",
 		"firebird",
+		"duckdb",
 	}
 }

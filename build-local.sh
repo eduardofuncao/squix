@@ -24,7 +24,7 @@ build_platform() {
     echo ""
     echo "Building $platform..."
 
-    CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
+    CGO_ENABLED=1 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
 
     echo "✓ Built $platform successfully"
 }
