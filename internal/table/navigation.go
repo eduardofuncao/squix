@@ -102,11 +102,35 @@ func (m Model) pageDown() Model {
 }
 
 func (m Model) toggleVisualMode() (Model, tea.Cmd) {
-	m.visualMode = !m.visualMode
-
-	if m.visualMode {
+	if m.visualMode && !m.visualLineMode {
+		// Already in characterwise visual mode → exit
+		m.visualMode = false
+	} else if m.visualLineMode {
+		// In linewise visual mode → switch to characterwise
+		m.visualLineMode = false
+	} else {
+		// Not in visual mode → enter characterwise
+		m.visualMode = true
 		m.visualStartRow = m.selectedRow
 		m.visualStartCol = m.selectedCol
+	}
+
+	return m, nil
+}
+
+func (m Model) toggleVisualLineMode() (Model, tea.Cmd) {
+	if m.visualMode && m.visualLineMode {
+		// Already in linewise visual mode → exit
+		m.visualMode = false
+		m.visualLineMode = false
+	} else if m.visualMode {
+		// In characterwise visual mode → switch to linewise
+		m.visualLineMode = true
+	} else {
+		// Not in visual mode → enter linewise
+		m.visualMode = true
+		m.visualLineMode = true
+		m.visualStartRow = m.selectedRow
 	}
 
 	return m, nil
@@ -120,8 +144,14 @@ func (m Model) getSelectionBounds() (minRow, maxRow, minCol, maxCol int) {
 	// Multi-cell selection
 	minRow = min(m.visualStartRow, m.selectedRow)
 	maxRow = max(m.visualStartRow, m.selectedRow)
-	minCol = min(m.visualStartCol, m.selectedCol)
-	maxCol = max(m.visualStartCol, m.selectedCol)
+
+	if m.visualLineMode {
+		minCol = 0
+		maxCol = m.numCols() - 1
+	} else {
+		minCol = min(m.visualStartCol, m.selectedCol)
+		maxCol = max(m.visualStartCol, m.selectedCol)
+	}
 
 	return
 }
@@ -184,6 +214,7 @@ func (m Model) copySelection() (Model, tea.Cmd) {
 	clipboard.WriteAll(content)
 
 	m.visualMode = false
+	m.visualLineMode = false
 	m.blinkCopiedCell = true
 
 	return m, func() tea.Msg {

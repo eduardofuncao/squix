@@ -14,7 +14,6 @@ func Wait(done chan struct{}) {
 		for _, s := range spinnerStages {
 			select {
 			case <-done:
-				fmt.Print("\r")
 				return
 			default:
 				fmt.Printf("\r%s %.2fs", s, passed.Seconds())
@@ -32,7 +31,6 @@ func CircleWait(done chan struct{}) {
 		for _, s := range stages {
 			select {
 			case <-done:
-				fmt.Print("\r")
 				return
 			default:
 				fmt.Printf("\r%s Checking...", styles.Success.Render(s))
@@ -50,7 +48,6 @@ func CircleWaitWithTimer(done chan struct{}) {
 		for _, s := range stages {
 			select {
 			case <-done:
-				fmt.Print("\r")
 				return
 			default:
 				fmt.Printf("\r%s %.2fs", styles.Success.Render(s), passed.Seconds())

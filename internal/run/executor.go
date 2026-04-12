@@ -56,6 +56,7 @@ func ExecuteSelect(sql, queryName string, params ExecutionParams) error {
 	}
 	if err != nil {
 		done <- struct{}{}
+		fmt.Print("\r\033[2K")
 		return fmt.Errorf("query execution failed: %w", err)
 	}
 
@@ -63,13 +64,13 @@ func ExecuteSelect(sql, queryName string, params ExecutionParams) error {
 	columns, columnTypes, data, err := db.FormatTableDataWithTypes(rows.(*stdlib.Rows))
 	if err != nil {
 		done <- struct{}{}
+		fmt.Print("\r\033[2K")
 		return fmt.Errorf("formatting failed: %w", err)
 	}
 
 	done <- struct{}{}
+	fmt.Print("\r\033[2K")
 	elapsed := time.Since(start)
-
-	// Check for empty results
 	if len(data) == 0 {
 		fmt.Println("No results found")
 		return nil
@@ -122,6 +123,7 @@ func ExecuteNonSelect(params ExecutionParams) {
 		err = params.Connection.Exec(params.Query.SQL)
 	}
 	done <- struct{}{}
+	fmt.Print("\r\033[2K")
 	elapsed := time.Since(start)
 
 	if err != nil {
