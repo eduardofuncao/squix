@@ -14,8 +14,8 @@ func CreateConnection(name, dbType, connString string) (DatabaseConnection, erro
 		return NewSQLiteConnection(name, connString)
 	case "sqlserver", "mssql":
 		return NewSQLServerConnection(name, connString)
-	// case "duckdb":
-	// 	return NewDuckDBConnection(name, connString)
+	case "duckdb":
+		return NewDuckDBConnection(name, connString)
 	case "clickhouse":
 		return NewClickHouseConnection(name, connString)
 	case "godror", "oracle":

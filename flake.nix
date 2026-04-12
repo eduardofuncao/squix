@@ -21,7 +21,9 @@
           src = ./.;
 
           # Run: nix build .#default 2>&1 | grep "got:" to get real hash
-          vendorHash = "sha256-fLSnn+MekmCZQJh7NCJmHdUXOK5QnRsvUfvyXZr5QyQ=";
+          vendorHash = "sha256-JRmNajvCb57dMo8eggOD1m4N01p2RSK8r49pmBB56Z0=";
+
+          enableCGO = true;
 
           # Native dependencies (none needed - all drivers are pure Go)
 

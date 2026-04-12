@@ -6,6 +6,8 @@ set -e
 APP_NAME="squix"
 VERSION=${1:-"dev"}
 BUILD_DIR="./dist"
+NATIVE_OS=$(go env GOOS)
+NATIVE_ARCH=$(go env GOARCH)
 
 echo "Building $APP_NAME version $VERSION"
 echo "=================================="
@@ -14,7 +16,10 @@ echo "=================================="
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-# Function to build with native Go cross-compilation
+FULL_DRIVERS=()
+LIMITED_DRIVERS=()
+
+# Build with appropriate CGO setting based on target arch
 build_platform() {
     local platform=$1
     local goos=$2
@@ -24,7 +29,13 @@ build_platform() {
     echo ""
     echo "Building $platform..."
 
-    CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
+    if [ "$goos" = "$NATIVE_OS" ] && [ "$goarch" = "$NATIVE_ARCH" ]; then
+        CGO_ENABLED=1 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
+        FULL_DRIVERS+=("$platform")
+    else
+        CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
+        LIMITED_DRIVERS+=("$platform")
+    fi
 
     echo "✓ Built $platform successfully"
 }
@@ -49,14 +60,11 @@ echo "=================================="
 echo "Build complete!"
 echo "=================================="
 echo ""
-echo "Platforms built:"
-echo "  ✓ Linux AMD64"
-echo "  ✓ Linux ARM64"
-echo "  ✓ Windows AMD64"
-echo "  ✓ macOS AMD64 (with Oracle support)"
-echo "  ✓ macOS ARM64 (with Oracle support)"
+echo "Full driver support (CGO_ENABLED=1):"
+for p in "${FULL_DRIVERS[@]}"; do echo "  ✓ $p"; done
 echo ""
-echo "All platforms support all database drivers."
+echo "Limited driver support - no DuckDB (CGO_ENABLED=0):"
+for p in "${LIMITED_DRIVERS[@]}"; do echo "  ✓ $p"; done
 echo ""
 
 # Create source code archives
