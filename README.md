@@ -268,7 +268,7 @@ See [Keybindings](docs/keybindings.md) for all navigation, editing, search, and 
 
 ## For Robots
 
-Squix ships a `skill.md` file in the repo root — a concise reference for AI coding agents (Claude Code, Copilot, etc.) to use squix non-interactively. It covers safe commands, format flags, parameterized queries, and which commands to avoid (TUI/editor). Point your agent at it if you want it to run SQL queries as part of your workflow.
+Squix ships a `SKILL.md` file in the repo root — a concise reference for AI coding agents (Claude Code, Copilot, etc.) to use squix non-interactively. It covers safe commands, format flags, parameterized queries, and which commands to avoid (TUI/editor). Point your agent at it if you want it to run SQL queries as part of your workflow.
 
 ---
 
