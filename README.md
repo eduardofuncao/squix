@@ -278,7 +278,11 @@ See [Keybindings](docs/keybindings.md) for all navigation, editing, search, and 
 
 ---
 
-## For Robots
+
+<h2>
+  <img width="auto" height="24" alt="image" src="https://github.com/user-attachments/assets/ebbabd15-87c4-47e5-b881-968b03e1d85d" />
+    For Robots
+</h2>
 
 Squix ships a `SKILL.md` file in the repo root, a simple reference for AI
 coding agents (Claude Code, Copilot, etc.) to use squix non-interactively. It
@@ -309,8 +313,11 @@ as part of your workflow.
 - [x] Duckdb support
 
 ---
-
-## Sponsor
+ 
+<h2>
+    <img width="auto" height="24" alt="image" src="https://github.com/user-attachments/assets/cd243b3c-c39f-4e3f-9003-14ef6d713169" />
+    Sponsor
+</h2>
 
 If Squix saves you time, consider supporting its development through [GitHub
 Sponsors](https://github.com/sponsors/eduardofuncao). I work on Squix in my
@@ -323,7 +330,10 @@ Any amount is greatly appreciated ❤
 
 ---
 
-## Contributing
+<h2>
+    <img width="auto" height="24" alt="image" src="https://github.com/user-attachments/assets/20aad60b-adc7-4a4d-971b-cb37f8a0cbbf" />
+    Contributing & Acknowledments
+</h2>
 
 We welcome contributions! Get started with detailed instructions from [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -335,8 +345,6 @@ Thanks a lot to all the contributors:
 <a href="https://github.com/eduardofuncao"><img src="https://github.com/eduardofuncao.png" width="40" /></a>
 <a href="https://github.com/udirona"><img src="https://github.com/udirona.png" width="40" /></a>
 <a href="https://github.com/Leosallin"><img src="https://github.com/Leosallin.png" width="40" /></a>
-
-## Acknowledgments
 
 Squix wouldn't exist without the inspiration and groundwork laid by these fantastic projects:
 
