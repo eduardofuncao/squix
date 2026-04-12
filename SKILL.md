@@ -8,7 +8,7 @@ It stores named queries in `~/.config/squix/config.yaml`.
 
 ## Critical Rules
 
-1. **Always use `-f` with `squix run`** — without it, opens an interactive TUI
+1. **Always use `-f` with `squix run` for SELECT queries** — without it, SELECT results open an interactive TUI; non-SELECT queries print a status message either way
 2. **No inline connection flag** — must `squix switch <name>` before queries
 3. **Check connection first** — run `squix status` to verify reachability
 
@@ -74,7 +74,7 @@ echo y | squix remove -c mydb  # Delete connection (needs confirmation)
 
 ## Commands to Avoid (Interactive)
 
-- `squix run <query>` without `-f` — opens TUI
+- `squix run <query>` without `-f` on a SELECT — opens TUI
 - `squix shell` — interactive REPL
 - `squix edit` — opens `$EDITOR`
 - `squix explore <table>` — opens TUI
