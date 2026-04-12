@@ -157,16 +157,19 @@ func (a *App) showTablesInteractive(
 		rows, err := conn.ExecQuery(queryStr)
 		if err != nil {
 			done <- struct{}{}
+			fmt.Print("\r\033[2K")
 			printError("Could not retrieve tables: %v", err)
 		}
 
 		columns, data, err := db.FormatTableData(rows)
 		if err != nil {
 			done <- struct{}{}
+			fmt.Print("\r\033[2K")
 			printError("Could not format table data: %v", err)
 		}
 
 		done <- struct{}{}
+		fmt.Print("\r\033[2K")
 		elapsed := time.Since(start)
 
 		if len(data) == 0 {
