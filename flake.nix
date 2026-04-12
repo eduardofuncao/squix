@@ -16,7 +16,7 @@
       {
         packages.default = pkgs.buildGoModule {
           pname = "squix";
-          version = "0.3.2-beta";
+          version = "0.4.0-beta";
 
           src = ./.;
 
