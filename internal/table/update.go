@@ -104,6 +104,8 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case "v":
 		return m.toggleVisualMode()
+	case "V":
+		return m.toggleVisualLineMode()
 
 	case "y":
 		return m.copySelection()

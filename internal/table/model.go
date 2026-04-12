@@ -31,6 +31,7 @@ type Model struct {
 	elapsed           time.Duration
 	blinkCopiedCell   bool
 	visualMode        bool
+	visualLineMode    bool
 	visualStartRow    int
 	visualStartCol    int
 	dbConnection      db.DatabaseConnection
