@@ -39,7 +39,7 @@ squix init sqlite-local sqlite file:///home/eduardo/dbeesly/sqlite/mydb.sqlite
 
 ### DuckDB
 
-> Requires building with `-tags duckdb` (CGO dependency).
+> Requires CGO (included by default; excluded by building with `CGO_ENABLED=0`).
 
 ```bash
 squix init duckdb-local duckdb /path/to/mydb.db
@@ -52,7 +52,7 @@ squix init duckdb-local duckdb employees.json
 squix init duckdb-local duckdb employees.csv
 ```
 
-The data will be available to query as a view, with the same name as the file
+For json and csv, the data will be available to query as a view, with the same name as the file
 (eg. `squix run "select * from employees" from the employees.json file`)
 
 ### Oracle

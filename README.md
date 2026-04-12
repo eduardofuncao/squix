@@ -83,11 +83,10 @@ go build -o squix ./cmd/squix
 ```
 The squix binary will be available in the root project directory
 
-DuckDB requires CGO and is excluded from the default build. Use the `duckdb` build tag:
+DuckDB requires CGO and is included in the default build. To build without DuckDB:
 ```bash
-go build -tags duckdb -o squix ./cmd/squix
+CGO_ENABLED=0 go build -o squix ./cmd/squix
 ```
-Without the tag, DuckDB connections will return an error at runtime.
 </details>
 
 

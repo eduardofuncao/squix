@@ -1,4 +1,4 @@
-//go:build !duckdb
+//go:build !cgo
 
 package db
 
@@ -9,7 +9,7 @@ type DuckDBConnection struct {
 }
 
 func NewDuckDBConnection(name, connStr string) (*DuckDBConnection, error) {
-	return nil, fmt.Errorf("duckdb driver not available: build with -tags duckdb to enable")
+	return nil, fmt.Errorf("duckdb driver not available: build with CGO_ENABLED=1 to enable")
 }
 
 func (d *DuckDBConnection) GetUniqueConstraints(tableName string) ([]string, error) {

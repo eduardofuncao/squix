@@ -222,7 +222,7 @@ func (a *App) PrintCommandHelp() {
 			"  squix init staging mysql \"user:pass@tcp(127.0.0.1:3306)/dbname\"",
 		)
 		fmt.Println()
-		fmt.Println("  # DuckDB (requires -tags duckdb build)")
+		fmt.Println("  # DuckDB (included by default, requires CGO)")
 		fmt.Println("  squix init local duckdb /path/to/mydb.db")
 
 	case "switch", "use":

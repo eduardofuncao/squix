@@ -30,7 +30,7 @@ build_platform() {
     echo "Building $platform..."
 
     if [ "$goos" = "$NATIVE_OS" ] && [ "$goarch" = "$NATIVE_ARCH" ]; then
-        CGO_ENABLED=1 GOOS=$goos GOARCH=$goarch go build -tags duckdb -ldflags='-s -w' -o "$output" ./cmd/squix
+        CGO_ENABLED=1 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
         FULL_DRIVERS+=("$platform")
     else
         CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix

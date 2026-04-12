@@ -1,4 +1,4 @@
-//go:build duckdb
+//go:build cgo
 
 package db
 
