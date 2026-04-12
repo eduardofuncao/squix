@@ -20,7 +20,7 @@
 
 **A minimal CLI tool for managing and executing SQL queries across multiple databases. Written in Go, made beautiful with BubbleTea**
 
-[Quick Start](#--------quick-start) • [Configuration](docs/configuration.md) • [Commands](docs/commands.md) • [Keybindings](docs/keybindings.md) • [Features](docs/features.md) • [Completion](docs/completion.md) • [Databases](docs/databases.md) • [Roadmap](#--------roadmap) • [Contributing](#contributing)
+[Quick Start](#--------quick-start) • [Configuration](docs/configuration.md) • [Commands](docs/commands.md) • [Keybindings](docs/keybindings.md) • [Features](docs/features.md) • [Completion](docs/completion.md) • [Databases](docs/databases.md) • [Roadmap](#--------roadmap) • [Contributing](CONTRIBUTING.md)
 
 > This project is currently in beta, please report unexpected behavior through the issues tab
 
@@ -243,7 +243,7 @@ See connection init examples in [Database Support](docs/databases.md)
     Shell Completion
 </h2>
 
-Dynamic tab completion for bash, zsh, and fish — includes your saved queries and connections.
+Dynamic tab completion for bash, zsh, and fish that includes your saved queries and connections.
 
 See [Shell Completion](docs/completion.md)
 
