@@ -37,6 +37,24 @@ squix init sqlserver-docker sqlserver "sqlserver://sa:MyStrongPass123@localhost:
 squix init sqlite-local sqlite file:///home/eduardo/dbeesly/sqlite/mydb.sqlite
 ```
 
+### DuckDB
+
+> Requires building with `-tags duckdb` (CGO dependency).
+
+```bash
+squix init duckdb-local duckdb /path/to/mydb.db
+```
+
+DuckDB can also query CSV and JSON files directly:
+
+```bash
+squix init duckdb-local duckdb employees.json
+squix init duckdb-local duckdb employees.csv
+```
+
+The data will be available to query as a view, with the same name as the file
+(eg. `squix run "select * from employees" from the employees.json file`)
+
 ### Oracle
 
 ```bash

@@ -16,6 +16,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-white.svg)](LICENSE)
 ![go badge](https://img.shields.io/badge/g=Go-1.25+-00ADD8?%20logo=go&logoColor=white&label=go)
 [![Matrix](https://img.shields.io/matrix/squix:matrix.org?server_fqdn=matrix.org&label=chat&color=green)](https://matrix.to/#/#squix-sql:matrix.org)
+[![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-pink.svg)](https://github.com/sponsors/eduardofuncao)
 
 **A minimal CLI tool for managing and executing SQL queries across multiple databases. Written in Go, made beautiful with BubbleTea**
 
@@ -40,7 +41,7 @@
 ### Highlights
 
 - **Query Library** - Save and organize your most-used queries, with parameterized support
-- **Multi-Database** - Works with PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse and Firebird
+- **Multi-Database** - Works with PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse, Firebird and DuckDB
 - **Table view TUI** - Keyboard focused navigation and search with vim-style bindings
 - **In-Place Editing** - Update cells, delete rows and edit your SQL directly from the results table
 - **Export your data** - Export your data as CSV, JSON, SQL, Markdown or HTML tables
@@ -81,7 +82,14 @@ git clone https://github.com/eduardofuncao/squix
 go build -o squix ./cmd/squix
 ```
 The squix binary will be available in the root project directory
+
+DuckDB requires CGO and is excluded from the default build. Use the `duckdb` build tag:
+```bash
+go build -tags duckdb -o squix ./cmd/squix
+```
+Without the tag, DuckDB connections will return an error at runtime.
 </details>
+
 
 <details>
 <summary>Nix / NixOS (Flake)</summary>
@@ -164,6 +172,11 @@ outputs = { self, nixpkgs, squix, ... }: {
 Then apply: home-manager switch
 </details>
 
+<details>
+<summary>Arch (AUR) - Unofficial</summary>
+There's also an unofficial AUR package for squix available at: [squix-bin](https://aur.archlinux.org/packages/squix-bin)
+</details>
+
 ### Basic Usage
 
 ```bash
@@ -220,7 +233,7 @@ q          # Quit back to terminal
     Database Support
 </h2>
 
-PostgreSQL, MySQL, MariaDB, SQL Server, SQLite, Oracle, ClickHouse, Firebird
+PostgreSQL, MySQL, MariaDB, SQL Server, SQLite, Oracle, ClickHouse, Firebird, DuckDB
 
 See connection init examples in [Database Support](docs/databases.md)
 
@@ -268,7 +281,11 @@ See [Keybindings](docs/keybindings.md) for all navigation, editing, search, and 
 
 ## For Robots
 
-Squix ships a `SKILL.md` file in the repo root — a concise reference for AI coding agents (Claude Code, Copilot, etc.) to use squix non-interactively. It covers safe commands, format flags, parameterized queries, and which commands to avoid (TUI/editor). Point your agent at it if you want it to run SQL queries as part of your workflow.
+Squix ships a `SKILL.md` file in the repo root, a simple reference for AI
+coding agents (Claude Code, Copilot, etc.) to use squix non-interactively. It
+covers safe commands, format flags, parameterized queries, and which commands
+to avoid (TUI/editor). Point your agent at it if you want it to run SQL queries
+as part of your workflow.
 
 ---
 
@@ -290,7 +307,20 @@ Squix ships a `SKILL.md` file in the repo root — a concise reference for AI co
 - [x] Cell search (`/`) and column header search (`f`)
 - [x] Add skill file for ai agents and non interactive query results
 - [x] Option to return results from `squix run` as json, csv, etc. with `--format` flag
-- [ ] Duckdb support
+- [x] Duckdb support
+
+---
+
+## Sponsor
+
+If Squix saves you time, consider supporting its development through [GitHub
+Sponsors](https://github.com/sponsors/eduardofuncao). I work on Squix in my
+spare time and your support helps me dedicate more hours to it, keep the [live
+demo](https://squix.live.eduardofuncao.com) running, build a proper
+docs/landing site, and cover GitHub Actions minutes for cross-platform builds,
+instead of relying on local builds. 
+
+Any amount is greatly appreciated ❤
 
 ---
 
