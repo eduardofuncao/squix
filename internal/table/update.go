@@ -109,6 +109,8 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.copySelection()
 	case "x":
 		return m.startExportFormatSelection()
+	case "X":
+		return m.startExportAllFormatSelection()
 
 	case "enter":
 		// If this is a tables list, select the table

@@ -71,7 +71,8 @@ func FormatExport(headers []string, rows [][]string, format string, opts FormatO
 }
 
 type exportWaitingFormatState struct {
-	active bool
+	active  bool
+	allRows bool
 }
 
 type exportCompleteMsg struct {
@@ -83,6 +84,11 @@ type exportCompleteMsg struct {
 
 func (m Model) startExportFormatSelection() (Model, tea.Cmd) {
 	m.exportWaiting = exportWaitingFormatState{active: true}
+	return m, nil
+}
+
+func (m Model) startExportAllFormatSelection() (Model, tea.Cmd) {
+	m.exportWaiting = exportWaitingFormatState{active: true, allRows: true}
 	return m, nil
 }
 
@@ -124,25 +130,36 @@ func (m Model) executeExportForFormat(key string) (Model, tea.Cmd) {
 		return m, nil
 	}
 
+	allRows := m.exportWaiting.allRows
 	m = m.cancelExportFormatSelection()
 
-	minRow, maxRow, minCol, maxCol := m.getSelectionBounds()
+	var headers []string
+	var rows [][]string
+	var cellCount int
 
-	headers := make([]string, 0)
-	for col := minCol; col <= maxCol; col++ {
-		headers = append(headers, m.columns[col])
-	}
+	if allRows {
+		headers = m.columns
+		rows = m.data
+		cellCount = m.numRows() * m.numCols()
+	} else {
+		minRow, maxRow, minCol, maxCol := m.getSelectionBounds()
 
-	rows := make([][]string, 0)
-	for row := minRow; row <= maxRow; row++ {
-		dataRow := make([]string, 0)
+		headers = make([]string, 0)
 		for col := minCol; col <= maxCol; col++ {
-			dataRow = append(dataRow, m.data[row][col])
+			headers = append(headers, m.columns[col])
 		}
-		rows = append(rows, dataRow)
-	}
 
-	cellCount := (maxRow - minRow + 1) * (maxCol - minCol + 1)
+		rows = make([][]string, 0)
+		for row := minRow; row <= maxRow; row++ {
+			dataRow := make([]string, 0)
+			for col := minCol; col <= maxCol; col++ {
+				dataRow = append(dataRow, m.data[row][col])
+			}
+			rows = append(rows, dataRow)
+		}
+
+		cellCount = (maxRow - minRow + 1) * (maxCol - minCol + 1)
+	}
 
 	return m, func() tea.Msg {
 		content, err := m.formatExportContent(headers, rows, format)
