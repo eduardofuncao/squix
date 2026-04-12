@@ -10,6 +10,7 @@
 !LICENSE
 !README.md
 !CONTRIBUTING.md
+!SKILL.md
 
 !shell.nix
 !flake.nix
