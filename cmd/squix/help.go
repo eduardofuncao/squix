@@ -289,7 +289,7 @@ func (a *App) PrintCommandHelp() {
 		)
 		fmt.Println()
 		section("Usage")
-		fmt.Println("  squix run <query-name-or-id> [--edit | -e] [--last | -l]")
+		fmt.Println("  squix run <query-name-or-id> [--edit | -e] [--last | -l] [--format | -f <fmt>]")
 		fmt.Println("  squix run                      " + styles.Faint.Render("# Opens the editor to build sql query"))
 		fmt.Println()
 		section("Description")
@@ -302,6 +302,8 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  - With '--edit' or '-e', squix opens the query in your $EDITOR before")
 		fmt.Println("    running it and saves any changes back to the configuration.")
 		fmt.Println("  - With '--last' or '-l', runs the last used query")
+		fmt.Println("  - With '--format' or '-f', prints results to stdout instead of opening")
+		fmt.Println("    the table UI. Formats: csv, json, tsv, html, sql, markdown")
 		fmt.Println()
 		section("Interactive table view")
 		fmt.Println(
@@ -333,6 +335,8 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  squix run \"select * from orders\"")
 		fmt.Println("  squix run 2 --edit")
 		fmt.Println("  squix run --last")
+		fmt.Println("  squix run list_users -f json")
+		fmt.Println("  squix run \"SELECT * FROM users\" --format csv > users.csv")
 		fmt.Println("  squix query list_users")
 
 	case "shell", "repl":

@@ -59,6 +59,13 @@ func (a *App) runFromArgs(args []string, conn db.DatabaseConnection) error {
 
 	positionalArgs := params.MapPositionalArgs(resolved.Query.SQL, positionalArgsSlice)
 
+	// If --format is set, use export executor
+	if flags.ExportFormat != "" {
+		return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, func(p run.ExecutionParams) error {
+			return run.ExecuteExport(p, flags.ExportFormat)
+		}, true)
+	}
+
 	return a.executeQueryWithParams(resolved.Query, conn, paramFlags, positionalArgs)
 }
 
@@ -67,7 +74,7 @@ func parseRunFlagsFrom(args []string) run.Flags {
 
 	for i, arg := range args {
 		// Skip parameter flags and their values
-		if strings.HasPrefix(arg, "--") && arg != "--edit" && arg != "-e" && arg != "--last" && arg != "-l" {
+		if strings.HasPrefix(arg, "--") && arg != "--edit" && arg != "-e" && arg != "--last" && arg != "-l" && arg != "--format" {
 			// This is a parameter flag, skip it and its value
 			if i+1 < len(args) && !strings.HasPrefix(args[i+1], "--") {
 				continue
@@ -79,8 +86,12 @@ func parseRunFlagsFrom(args []string) run.Flags {
 			flags.EditMode = true
 		case "--last", "-l":
 			flags.LastQuery = true
+		case "--format", "-f":
+			if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+				flags.ExportFormat = args[i+1]
+			}
 		default:
-			if !strings.HasPrefix(arg, "--") && flags.Selector == "" {
+			if !strings.HasPrefix(arg, "--") && !strings.HasPrefix(arg, "-") && flags.Selector == "" {
 				flags.Selector = arg
 			}
 		}
@@ -95,9 +106,17 @@ func parseParameterFlagsFrom(args []string) map[string]string {
 	for i < len(args) {
 		arg := args[i]
 
-		// Skip known flags
+		// Skip known flags (and their values for --format/-f)
 		if arg == "--edit" || arg == "-e" || arg == "--last" || arg == "-l" {
 			i++
+			continue
+		}
+		if arg == "--format" || arg == "-f" {
+			i++
+			// Skip the format value too
+			if i < len(args) && !strings.HasPrefix(args[i], "-") {
+				i++
+			}
 			continue
 		}
 
@@ -145,6 +164,14 @@ func parsePositionalArgsFrom(args []string, selector string) []string {
 		}
 		if arg == "-e" || arg == "-l" {
 			i++
+			continue
+		}
+		if arg == "-f" {
+			i++
+			// Skip the format value too
+			if i < len(args) && !strings.HasPrefix(args[i], "-") {
+				i++
+			}
 			continue
 		}
 
@@ -200,8 +227,8 @@ func (a *App) saveIfNeeded(resolved run.ResolvedQuery) {
 
 type executorFunc func(run.ExecutionParams) error
 
-func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseConnection, paramFlags, positionalArgs map[string]string, executor executorFunc) error {
-	sql, args, displaySQL, err := a.processParameters(query.SQL, conn, paramFlags, positionalArgs)
+func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseConnection, paramFlags, positionalArgs map[string]string, executor executorFunc, noInteractive bool) error {
+	sql, args, displaySQL, err := a.processParameters(query.SQL, conn, paramFlags, positionalArgs, noInteractive)
 	if err != nil {
 		return err
 	}
@@ -220,7 +247,7 @@ func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseCon
 
 		if strings.Contains(editedSQL, ":") {
 			var procErr error
-			finalSQL, finalArgs, finalDisplaySQL, procErr = a.processParameters(editedSQL, conn, paramFlags, positionalArgs)
+			finalSQL, finalArgs, finalDisplaySQL, procErr = a.processParameters(editedSQL, conn, paramFlags, positionalArgs, noInteractive)
 			if procErr != nil {
 				return procErr
 			}
@@ -258,11 +285,11 @@ func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseCon
 }
 
 func (a *App) executeQueryWithParams(query db.Query, conn db.DatabaseConnection, paramFlags, positionalArgs map[string]string) error {
-	return a.executeQueryWithParamsInternal(query, conn, paramFlags, positionalArgs, run.Execute)
+	return a.executeQueryWithParamsInternal(query, conn, paramFlags, positionalArgs, run.Execute, false)
 }
 
 // processParameters handles parameter extraction, validation, and substitution
-func (a *App) processParameters(sql string, conn db.DatabaseConnection, cliValues, positionals map[string]string) (string, []any, string, error) {
+func (a *App) processParameters(sql string, conn db.DatabaseConnection, cliValues, positionals map[string]string, noInteractive bool) (string, []any, string, error) {
 	// Extract parameter definitions from SQL
 	paramDefs := params.ExtractParameters(sql)
 
@@ -291,6 +318,9 @@ func (a *App) processParameters(sql string, conn db.DatabaseConnection, cliValue
 	// Check for missing required parameters
 	missing := params.GetMissingRequired(paramDefs, paramValues)
 	if len(missing) > 0 {
+		if noInteractive {
+			return "", nil, "", fmt.Errorf("missing required parameters: %s (provide values via --param or positional args)", strings.Join(missing, ", "))
+		}
 		// Launch interactive TUI
 		collectedValues, err := params.CollectParameters(sql, missing, paramDefs)
 		if err != nil {

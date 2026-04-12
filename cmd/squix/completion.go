@@ -66,7 +66,15 @@ func getCompletions(args []string, cfg *config.Config) []string {
 
 	switch command {
 	case "run", "query":
-		return getCurrentConnectionQueries(cfg)
+		// Check if completing after --format/-f
+		for i, arg := range args {
+			if (arg == "--format" || arg == "-f") && i == len(args)-1 {
+				return []string{"csv", "json", "tsv", "html", "sql", "markdown"}
+			}
+		}
+		result := getCurrentConnectionQueries(cfg)
+		result = append(result, "--format", "-f")
+		return result
 	case "switch", "use":
 		return getAllConnections(cfg)
 	case "list", "ls":

@@ -22,6 +22,54 @@ const (
 	exportMarkdown exportFormat = "markdown"
 )
 
+// FormatOptions provides metadata for export formats that need it (HTML, SQL).
+type FormatOptions struct {
+	QueryName string
+	DbType    string
+	DbName    string
+	TableName string
+}
+
+// ParseFormat validates and normalizes a format string.
+func ParseFormat(s string) (string, error) {
+	switch strings.ToLower(s) {
+	case "csv":
+		return "csv", nil
+	case "json":
+		return "json", nil
+	case "tsv":
+		return "tsv", nil
+	case "html":
+		return "html", nil
+	case "sql":
+		return "sql", nil
+	case "markdown", "md":
+		return "markdown", nil
+	default:
+		return "", fmt.Errorf("unsupported format: %s (supported: csv, json, tsv, html, sql, markdown)", s)
+	}
+}
+
+// FormatExport dispatches to the correct standalone format function.
+func FormatExport(headers []string, rows [][]string, format string, opts FormatOptions) (string, error) {
+	switch strings.ToLower(format) {
+	case "csv":
+		return FormatCSV(headers, rows)
+	case "json":
+		return FormatJSON(headers, rows)
+	case "tsv":
+		return FormatTSV(headers, rows)
+	case "html":
+		return FormatHTML(headers, rows, opts)
+	case "sql":
+		return FormatSQL(headers, rows, opts)
+	case "markdown", "md":
+		return FormatMarkdown(headers, rows)
+	default:
+		return FormatCSV(headers, rows)
+	}
+}
+
 type exportWaitingFormatState struct {
 	active bool
 }
@@ -115,25 +163,18 @@ func (m Model) executeExportForFormat(key string) (Model, tea.Cmd) {
 }
 
 func (m Model) formatExportContent(headers []string, rows [][]string, format exportFormat) (string, error) {
-	switch format {
-	case exportCSV:
-		return m.formatCSV(headers, rows)
-	case exportJSON:
-		return m.formatJSON(headers, rows)
-	case exportTSV:
-		return m.formatTSV(headers, rows)
-	case exportHTML:
-		return m.formatHTML(headers, rows)
-	case exportSQL:
-		return m.formatSQL(headers, rows)
-	case exportMarkdown:
-		return m.formatMarkdown(headers, rows)
-	default:
-		return m.formatCSV(headers, rows)
+	opts := FormatOptions{
+		QueryName: m.currentQuery.Name,
+		DbType:    m.dbConnection.GetDbType(),
+		DbName:    m.dbConnection.GetName(),
+		TableName: m.tableName,
 	}
+	return FormatExport(headers, rows, string(format), opts)
 }
 
-func (m Model) formatCSV(headers []string, rows [][]string) (string, error) {
+// --- Standalone format functions ---
+
+func FormatCSV(headers []string, rows [][]string) (string, error) {
 	var buf strings.Builder
 	writer := csv.NewWriter(&buf)
 
@@ -155,7 +196,7 @@ func (m Model) formatCSV(headers []string, rows [][]string) (string, error) {
 	return buf.String(), nil
 }
 
-func (m Model) formatJSON(headers []string, rows [][]string) (string, error) {
+func FormatJSON(headers []string, rows [][]string) (string, error) {
 	objects := make([]map[string]string, 0, len(rows))
 
 	for _, row := range rows {
@@ -176,7 +217,7 @@ func (m Model) formatJSON(headers []string, rows [][]string) (string, error) {
 	return string(data), nil
 }
 
-func (m Model) formatTSV(headers []string, rows [][]string) (string, error) {
+func FormatTSV(headers []string, rows [][]string) (string, error) {
 	var buf strings.Builder
 
 	buf.WriteString(strings.Join(headers, "\t") + "\n")
@@ -187,7 +228,7 @@ func (m Model) formatTSV(headers []string, rows [][]string) (string, error) {
 	return buf.String(), nil
 }
 
-func (m Model) formatHTML(headers []string, rows [][]string) (string, error) {
+func FormatHTML(headers []string, rows [][]string, opts FormatOptions) (string, error) {
 	var buf strings.Builder
 
 	// HTML document structure
@@ -206,14 +247,10 @@ func (m Model) formatHTML(headers []string, rows [][]string) (string, error) {
 	buf.WriteString("<body>\n")
 
 	// Table title with query name and database info
-	if m.currentQuery.Name != "" {
-		title := escapeHTML(m.currentQuery.Name)
-		if m.dbConnection != nil {
-			dbName := m.dbConnection.GetName()
-			dbType := m.dbConnection.GetDbType()
-			if dbName != "" || dbType != "" {
-				title = fmt.Sprintf("%s (%s/%s)", escapeHTML(m.currentQuery.Name), escapeHTML(dbName), escapeHTML(dbType))
-			}
+	if opts.QueryName != "" {
+		title := escapeHTML(opts.QueryName)
+		if opts.DbName != "" || opts.DbType != "" {
+			title = fmt.Sprintf("%s (%s/%s)", escapeHTML(opts.QueryName), escapeHTML(opts.DbName), escapeHTML(opts.DbType))
 		}
 		buf.WriteString(fmt.Sprintf("<h3>%s</h3>\n", title))
 	}
@@ -259,15 +296,15 @@ func escapeHTML(s string) string {
 	return s
 }
 
-func (m Model) formatSQL(headers []string, rows [][]string) (string, error) {
-	if m.tableName == "" {
+func FormatSQL(headers []string, rows [][]string, opts FormatOptions) (string, error) {
+	if opts.TableName == "" {
 		return "", fmt.Errorf("no table name available for SQL export")
 	}
 
 	var buf strings.Builder
 
 	for _, row := range rows {
-		buf.WriteString(fmt.Sprintf("INSERT INTO %s (", m.tableName))
+		buf.WriteString(fmt.Sprintf("INSERT INTO %s (", opts.TableName))
 
 		columns := make([]string, 0, len(headers))
 		for _, header := range headers {
@@ -293,7 +330,7 @@ func (m Model) formatSQL(headers []string, rows [][]string) (string, error) {
 	return buf.String(), nil
 }
 
-func (m Model) formatMarkdown(headers []string, rows [][]string) (string, error) {
+func FormatMarkdown(headers []string, rows [][]string) (string, error) {
 	var buf strings.Builder
 
 	buf.WriteString("|")

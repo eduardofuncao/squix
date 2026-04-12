@@ -206,7 +206,14 @@ func (a *App) runFromArgsOpenConn(args []string, conn db.DatabaseConnection) err
 	positionalArgsSlice := parsePositionalArgsFrom(args, flags.Selector)
 	positionalArgs := params.MapPositionalArgs(resolved.Query.SQL, positionalArgsSlice)
 
-	return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, run.ExecuteWithOpenConn)
+	// If --format is set, use export executor
+	if flags.ExportFormat != "" {
+		return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, func(p run.ExecutionParams) error {
+			return run.ExecuteExportWithOpenConn(p, flags.ExportFormat)
+		}, true)
+	}
+
+	return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, run.ExecuteWithOpenConn, false)
 }
 
 func shellHelpText() string {
