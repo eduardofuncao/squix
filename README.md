@@ -173,7 +173,9 @@ Then apply: home-manager switch
 
 <details>
 <summary>Arch (AUR) - Unofficial</summary>
+  
 There's also an unofficial AUR package for squix available at: [squix-bin](https://aur.archlinux.org/packages/squix-bin)
+  
 </details>
 
 ### Basic Usage
