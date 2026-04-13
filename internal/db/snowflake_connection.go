@@ -21,17 +21,11 @@ func NewSnowflakeConnection(name, connStr string) (*SnowflakeConnection, error) 
 		ConnString: connStr,
 	}
 
-	// Extract database from URL path and schema from query params.
-	// Do not modify the conn string — pass it unchanged to sql.Open so that
-	// auth params (authenticator, privateKeyFile, privateKey, etc.) are preserved.
+	// Only extract schema from the explicit ?schema= query param.
+	// The URL path is the database name — gosnowflake handles that via the DSN.
+	// Do not modify the conn string so auth params are passed through unchanged.
 	parsedURL, err := url.Parse(connStr)
 	if err == nil {
-		if parsedURL.Path != "" && parsedURL.Path != "/" {
-			database := strings.TrimPrefix(parsedURL.Path, "/")
-			if database != "" && bc.Schema == "" {
-				bc.Schema = database
-			}
-		}
 		if schema := parsedURL.Query().Get("schema"); schema != "" {
 			bc.Schema = schema
 		}
