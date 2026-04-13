@@ -1,12 +1,16 @@
 package db
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"database/sql"
+	"encoding/pem"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
-	_ "github.com/snowflakedb/gosnowflake"
+	"github.com/snowflakedb/gosnowflake"
 )
 
 type SnowflakeConnection struct {
@@ -25,9 +29,6 @@ func NewSnowflakeConnection(name, connStr string) (*SnowflakeConnection, error) 
 
 	conn := &SnowflakeConnection{BaseConnection: bc}
 
-	// Extract session params from query string.
-	// URL path is the database — gosnowflake handles that via DSN.
-	// Don't modify the conn string so auth params pass through unchanged.
 	parsedURL, err := url.Parse(connStr)
 	if err == nil {
 		q := parsedURL.Query()
@@ -42,11 +43,17 @@ func NewSnowflakeConnection(name, connStr string) (*SnowflakeConnection, error) 
 }
 
 func (s *SnowflakeConnection) Open() error {
-	db, err := sql.Open("snowflake", s.ConnString)
+	db, err := s.openDB()
 	if err != nil {
 		return err
 	}
 	s.db = db
+
+	// Force connection so auth errors surface before session commands.
+	if err = s.db.Ping(); err != nil {
+		s.db.Close()
+		return fmt.Errorf("failed to connect to snowflake: %w", err)
+	}
 
 	if s.warehouse != "" {
 		if _, err = s.db.Exec(fmt.Sprintf("USE WAREHOUSE %s", s.warehouse)); err != nil {
@@ -70,6 +77,81 @@ func (s *SnowflakeConnection) Open() error {
 	}
 
 	return nil
+}
+
+// openDB constructs a *sql.DB. If the DSN specifies privateKeyFile, the key
+// is loaded and parsed here so gosnowflake gets a *rsa.PrivateKey directly —
+// relying on the driver to read the file from the DSN string is unreliable.
+func (s *SnowflakeConnection) openDB() (*sql.DB, error) {
+	parsedURL, err := url.Parse(s.ConnString)
+	if err != nil {
+		return sql.Open("snowflake", s.ConnString)
+	}
+
+	q := parsedURL.Query()
+	keyFile := q.Get("privateKeyFile")
+	if keyFile == "" {
+		// No key file — pass DSN through as-is (password or inline privateKey).
+		return sql.Open("snowflake", s.ConnString)
+	}
+
+	// Load and parse the private key ourselves for reliable keypair auth.
+	privateKey, err := loadRSAPrivateKey(keyFile, q.Get("privateKeyPassphrase"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load private key from '%s': %w", keyFile, err)
+	}
+
+	cfg := &gosnowflake.Config{
+		Account:       parsedURL.Host,
+		User:          parsedURL.User.Username(),
+		Database:      strings.TrimPrefix(parsedURL.Path, "/"),
+		Schema:        q.Get("schema"),
+		Warehouse:     q.Get("warehouse"),
+		Role:          q.Get("role"),
+		Authenticator: gosnowflake.AuthTypeJwt,
+		PrivateKey:    privateKey,
+	}
+
+	dsn, err := gosnowflake.DSN(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build snowflake DSN: %w", err)
+	}
+
+	return sql.Open("snowflake", dsn)
+}
+
+func loadRSAPrivateKey(path, passphrase string) (*rsa.PrivateKey, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, fmt.Errorf("no PEM block found in %s", path)
+	}
+
+	var keyBytes []byte
+	if x509.IsEncryptedPEMBlock(block) { //nolint:staticcheck
+		keyBytes, err = x509.DecryptPEMBlock(block, []byte(passphrase)) //nolint:staticcheck
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt private key: %w", err)
+		}
+	} else {
+		keyBytes = block.Bytes
+	}
+
+	key, err := x509.ParsePKCS8PrivateKey(keyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse PKCS8 private key: %w", err)
+	}
+
+	rsaKey, ok := key.(*rsa.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("private key is not RSA")
+	}
+
+	return rsaKey, nil
 }
 
 func (s *SnowflakeConnection) Ping() error {
