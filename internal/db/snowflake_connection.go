@@ -11,7 +11,9 @@ import (
 
 type SnowflakeConnection struct {
 	*BaseConnection
-	db *sql.DB
+	db        *sql.DB
+	warehouse string
+	role      string
 }
 
 func NewSnowflakeConnection(name, connStr string) (*SnowflakeConnection, error) {
@@ -21,17 +23,22 @@ func NewSnowflakeConnection(name, connStr string) (*SnowflakeConnection, error) 
 		ConnString: connStr,
 	}
 
-	// Only extract schema from the explicit ?schema= query param.
-	// The URL path is the database name — gosnowflake handles that via the DSN.
-	// Do not modify the conn string so auth params are passed through unchanged.
+	conn := &SnowflakeConnection{BaseConnection: bc}
+
+	// Extract session params from query string.
+	// URL path is the database — gosnowflake handles that via DSN.
+	// Don't modify the conn string so auth params pass through unchanged.
 	parsedURL, err := url.Parse(connStr)
 	if err == nil {
-		if schema := parsedURL.Query().Get("schema"); schema != "" {
+		q := parsedURL.Query()
+		if schema := q.Get("schema"); schema != "" {
 			bc.Schema = schema
 		}
+		conn.warehouse = q.Get("warehouse")
+		conn.role = q.Get("role")
 	}
 
-	return &SnowflakeConnection{BaseConnection: bc}, nil
+	return conn, nil
 }
 
 func (s *SnowflakeConnection) Open() error {
@@ -41,9 +48,22 @@ func (s *SnowflakeConnection) Open() error {
 	}
 	s.db = db
 
+	if s.warehouse != "" {
+		if _, err = s.db.Exec(fmt.Sprintf("USE WAREHOUSE %s", s.warehouse)); err != nil {
+			s.db.Close()
+			return fmt.Errorf("failed to set warehouse to '%s': %w", s.warehouse, err)
+		}
+	}
+
+	if s.role != "" {
+		if _, err = s.db.Exec(fmt.Sprintf("USE ROLE %s", s.role)); err != nil {
+			s.db.Close()
+			return fmt.Errorf("failed to set role to '%s': %w", s.role, err)
+		}
+	}
+
 	if s.Schema != "" {
-		_, err = s.db.Exec(fmt.Sprintf("ALTER SESSION SET SCHEMA = '%s'", s.Schema))
-		if err != nil {
+		if _, err = s.db.Exec(fmt.Sprintf("USE SCHEMA %s", s.Schema)); err != nil {
 			s.db.Close()
 			return fmt.Errorf("failed to set schema to '%s': %w", s.Schema, err)
 		}
