@@ -28,6 +28,9 @@ func InferDBType(connString string) string {
 	if strings.HasPrefix(conn, "duckdb://") {
 		return "duckdb"
 	}
+	if strings.HasPrefix(conn, "snowflake://") {
+		return "snowflake"
+	}
 	if strings.HasPrefix(conn, "file://") {
 		return "sqlite"
 	}
@@ -58,5 +61,6 @@ func GetSupportedDBTypes() []string {
 		"oracle",
 		"firebird",
 		"duckdb",
+		"snowflake",
 	}
 }

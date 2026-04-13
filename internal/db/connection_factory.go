@@ -22,6 +22,8 @@ func CreateConnection(name, dbType, connString string) (DatabaseConnection, erro
 		return NewOracleConnection(name, connString)
 	case "firebird", "interbase":
 		return NewFirebirdConnection(name, connString)
+	case "snowflake":
+		return NewSnowflakeConnection(name, connString)
 	default:
 		return nil, fmt.Errorf("driver not implemented for %s", dbType)
 	}
