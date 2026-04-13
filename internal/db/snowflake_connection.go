@@ -489,5 +489,6 @@ func (s *SnowflakeConnection) ApplyRowLimit(sql string, limit int) string {
 		return sql
 	}
 
-	return fmt.Sprintf("%s\nLIMIT %d", strings.TrimRight(sql, ";"), limit)
+	trimmed := strings.TrimSpace(strings.TrimRight(strings.TrimSpace(sql), ";"))
+	return fmt.Sprintf("%s\nLIMIT %d", trimmed, limit)
 }
