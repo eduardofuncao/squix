@@ -2,15 +2,14 @@ package db
 
 import (
 	"crypto/rsa"
-	"crypto/x509"
 	"database/sql"
-	"encoding/pem"
 	"fmt"
 	"net/url"
 	"os"
 	"strings"
 
 	"github.com/snowflakedb/gosnowflake"
+	"golang.org/x/crypto/ssh"
 )
 
 type SnowflakeConnection struct {
@@ -126,24 +125,14 @@ func loadRSAPrivateKey(path, passphrase string) (*rsa.PrivateKey, error) {
 		return nil, err
 	}
 
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return nil, fmt.Errorf("no PEM block found in %s", path)
-	}
-
-	var keyBytes []byte
-	if x509.IsEncryptedPEMBlock(block) { //nolint:staticcheck
-		keyBytes, err = x509.DecryptPEMBlock(block, []byte(passphrase)) //nolint:staticcheck
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt private key: %w", err)
-		}
+	var key any
+	if passphrase != "" {
+		key, err = ssh.ParseRawPrivateKeyWithPassphrase(data, []byte(passphrase))
 	} else {
-		keyBytes = block.Bytes
+		key, err = ssh.ParseRawPrivateKey(data)
 	}
-
-	key, err := x509.ParsePKCS8PrivateKey(keyBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse PKCS8 private key: %w", err)
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 
 	rsaKey, ok := key.(*rsa.PrivateKey)
