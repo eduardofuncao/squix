@@ -21,7 +21,7 @@
           src = ./.;
 
           # Run: nix build .#default 2>&1 | grep "got:" to get real hash
-          vendorHash = "sha256-JRmNajvCb57dMo8eggOD1m4N01p2RSK8r49pmBB56Z0=";
+          vendorHash = "sha256-apQ69fcZy8Rai6OA1iAKgju65ZEne4HA78ELJHOgmSs=";
 
           enableCGO = true;
 
