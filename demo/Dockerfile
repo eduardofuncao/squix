@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     cron \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy local squix binary with table alignment fix
+# Copy local squix binary (v0.4.0)
 COPY squix /usr/local/bin/squix
 RUN chmod +x /usr/local/bin/squix
 

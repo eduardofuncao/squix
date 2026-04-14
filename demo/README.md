@@ -23,7 +23,7 @@ docker run -d --rm --name demo-gotty \
 ## What's Included
 
 - **GoTTY v1.6.0**: Web terminal access
-- **Squix v0.3.0-beta**: SQL query manager
+- **Squix v0.4.0**: SQL query manager
 - **Presenterm v0.16.1**: Terminal presentation tool
 - **Vim**: Text editor
 - **SQLite3**: Database
