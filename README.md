@@ -63,6 +63,15 @@ Go to [the releases page](https://github.com/eduardofuncao/squix/releases) and f
 
 
 <details>
+<summary>Homebrew (macOS / Linux)</summary>
+
+```bash
+brew tap eduardofuncao/squix
+brew install squix
+```
+</details>
+
+<details>
 <summary>Go install</summary>
 
 Use go to install `squix` directly
