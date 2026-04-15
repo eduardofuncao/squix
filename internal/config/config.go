@@ -73,6 +73,12 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
+	for _, conn := range cfg.Connections {
+        if conn != nil {
+            conn.ConnString = os.ExpandEnv(conn.ConnString)
+        }
+    }
+
 	if cfg.DefaultColumnWidth == 0 {
 		cfg.DefaultColumnWidth = 15
 	}
