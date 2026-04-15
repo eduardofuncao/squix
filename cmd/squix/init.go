@@ -48,6 +48,9 @@ func (a *App) handleInit() {
 		printError("Missing required parameters: name, db-type, and connection-string are required")
 	}
 
+	rawConnString := connString
+	connString = os.ExpandEnv(connString)
+
 	conn, err := db.CreateConnection(name, dbType, connString)
 	if err != nil {
 		printError("Could not create connection interface: %s/%s, %s", dbType, name, err)
@@ -70,7 +73,9 @@ func (a *App) handleInit() {
 	}
 
 	a.config.CurrentConnection = conn.GetName()
-	a.config.Connections[a.config.CurrentConnection] = config.ToConnectionYAML(conn)
+	yaml := config.ToConnectionYAML(conn)
+	yaml.ConnString = rawConnString
+	a.config.Connections[a.config.CurrentConnection] = yaml
 	err = a.config.Save()
 	if err != nil {
 		printError("Could not save configuration file: %v", err)

@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"github.com/eduardofuncao/squix/internal/db"
 )
@@ -27,7 +28,7 @@ func ToConnectionYAML(conn db.DatabaseConnection) *ConnectionYAML {
 }
 
 func FromConnectionYaml(yc *ConnectionYAML) db.DatabaseConnection {
-	conn, err := db.CreateConnection(yc.Name, yc.DBType, yc.ConnString)
+	conn, err := db.CreateConnection(yc.Name, yc.DBType, os.ExpandEnv(yc.ConnString))
 	if err != nil {
 		log.Fatalf("could not create connection from yaml for: %s/%s", yc.DBType, yc.Name)
 	}
