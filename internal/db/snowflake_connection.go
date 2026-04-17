@@ -3,13 +3,14 @@ package db
 import (
 	"crypto/rsa"
 	"database/sql"
+	"encoding/pem"
 	"fmt"
 	"net/url"
 	"os"
 	"strings"
 
 	"github.com/snowflakedb/gosnowflake"
-	"golang.org/x/crypto/ssh"
+	"github.com/youmark/pkcs8"
 )
 
 type SnowflakeConnection struct {
@@ -78,9 +79,7 @@ func (s *SnowflakeConnection) Open() error {
 	return nil
 }
 
-// openDB constructs a *sql.DB. If the DSN specifies privateKeyFile, the key
-// is loaded and parsed here so gosnowflake gets a *rsa.PrivateKey directly —
-// relying on the driver to read the file from the DSN string is unreliable.
+// openDB parses privateKeyFile from the DSN manually; gosnowflake key-file reading is unreliable.
 func (s *SnowflakeConnection) openDB() (*sql.DB, error) {
 	parsedURL, err := url.Parse(s.ConnString)
 	if err != nil {
@@ -90,11 +89,9 @@ func (s *SnowflakeConnection) openDB() (*sql.DB, error) {
 	q := parsedURL.Query()
 	keyFile := q.Get("privateKeyFile")
 	if keyFile == "" {
-		// No key file — pass DSN through as-is (password or inline privateKey).
 		return sql.Open("snowflake", s.ConnString)
 	}
 
-	// Load and parse the private key ourselves for reliable keypair auth.
 	privateKey, err := loadRSAPrivateKey(keyFile, q.Get("privateKeyPassphrase"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load private key from '%s': %w", keyFile, err)
@@ -125,19 +122,14 @@ func loadRSAPrivateKey(path, passphrase string) (*rsa.PrivateKey, error) {
 		return nil, err
 	}
 
-	var key any
-	if passphrase != "" {
-		key, err = ssh.ParseRawPrivateKeyWithPassphrase(data, []byte(passphrase))
-	} else {
-		key, err = ssh.ParseRawPrivateKey(data)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse private key: %w", err)
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return nil, fmt.Errorf("no PEM block found in %s", path)
 	}
 
-	rsaKey, ok := key.(*rsa.PrivateKey)
-	if !ok {
-		return nil, fmt.Errorf("private key is not RSA")
+	rsaKey, err := pkcs8.ParsePKCS8PrivateKeyRSA(block.Bytes, []byte(passphrase))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 
 	return rsaKey, nil
@@ -183,7 +175,6 @@ func (s *SnowflakeConnection) GetTableMetadata(tableName string) (*TableMetadata
 		TableName: tableName,
 	}
 
-	// Primary keys via INFORMATION_SCHEMA
 	pkQuery := `
 		SELECT kcu.COLUMN_NAME
 		FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
@@ -206,7 +197,6 @@ func (s *SnowflakeConnection) GetTableMetadata(tableName string) (*TableMetadata
 		}
 	}
 
-	// Columns via INFORMATION_SCHEMA
 	colQuery := `
 		SELECT COLUMN_NAME, DATA_TYPE
 		FROM INFORMATION_SCHEMA.COLUMNS
