@@ -211,3 +211,79 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-homebrew-tap:
+    name: Update Homebrew Tap
+    needs: create-release
+    runs-on: ubuntu-latest
+    # Skip pre-releases — only publish stable versions to the tap
+    if: ${{ !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'rc') }}
+    steps:
+      - name: Checkout tap repo
+        uses: actions/checkout@v4
+        with:
+          repository: eduardofuncao/homebrew-squix
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-squix
+
+      - name: Download checksums
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          curl -fsSL "https://github.com/eduardofuncao/squix/releases/download/${TAG}/checksums.txt" -o checksums.txt
+
+      - name: Generate and push formula
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          VERSION=${TAG#v}
+
+          SHA_DARWIN_ARM64=$(grep "darwin_arm64.tar.gz" checksums.txt | awk '{print $1}')
+          SHA_DARWIN_AMD64=$(grep "darwin_amd64.tar.gz" checksums.txt | awk '{print $1}')
+          SHA_LINUX_ARM64=$(grep "linux_arm64.tar.gz"  checksums.txt | awk '{print $1}')
+          SHA_LINUX_AMD64=$(grep "linux_amd64.tar.gz"  checksums.txt | awk '{print $1}')
+
+          mkdir -p homebrew-squix/Formula
+          cat > homebrew-squix/Formula/squix.rb <<FORMULA
+          class Squix < Formula
+            desc "Terminal UI for managing and executing SQL queries across multiple databases"
+            homepage "https://github.com/eduardofuncao/squix"
+            license "MIT"
+            version "${VERSION}"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix_${TAG}_darwin_arm64.tar.gz"
+                sha256 "${SHA_DARWIN_ARM64}"
+              else
+                url "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix_${TAG}_darwin_amd64.tar.gz"
+                sha256 "${SHA_DARWIN_AMD64}"
+              end
+            end
+
+            on_linux do
+              if Hardware::CPU.arm?
+                url "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix_${TAG}_linux_arm64.tar.gz"
+                sha256 "${SHA_LINUX_ARM64}"
+              else
+                url "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix_${TAG}_linux_amd64.tar.gz"
+                sha256 "${SHA_LINUX_AMD64}"
+              end
+            end
+
+            def install
+              arch = Hardware::CPU.arm? ? "arm64" : "amd64"
+              os   = OS.mac? ? "darwin" : "linux"
+              bin.install "squix-#{os}-#{arch}" => "squix"
+            end
+
+            test do
+              assert_match "version:", shell_output("#{bin}/squix --version")
+            end
+          end
+          FORMULA
+
+          cd homebrew-squix
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/squix.rb
+          git commit -m "squix ${TAG}"
+          git push
