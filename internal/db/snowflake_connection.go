@@ -166,6 +166,50 @@ func (s *SnowflakeConnection) Exec(sql string, args ...any) error {
 	return err
 }
 
+// scanShowColumns runs after a Snowflake SHOW command and extracts named
+// columns from the result set. SHOW commands return a fixed set of columns
+// whose names are stable but whose position can vary between Snowflake
+// versions, so we locate each wanted column by name via rows.Columns() rather
+// than hardcoding offsets.
+func scanShowColumns(rows *sql.Rows, wantCols []string) ([][]string, error) {
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	indices := make([]int, len(wantCols))
+	for i, want := range wantCols {
+		indices[i] = -1
+		for j, col := range cols {
+			if strings.EqualFold(col, want) {
+				indices[i] = j
+				break
+			}
+		}
+	}
+
+	raw := make([]interface{}, len(cols))
+	ptrs := make([]interface{}, len(cols))
+	for i := range raw {
+		ptrs[i] = &raw[i]
+	}
+
+	var result [][]string
+	for rows.Next() {
+		if err := rows.Scan(ptrs...); err != nil {
+			continue
+		}
+		row := make([]string, len(wantCols))
+		for i, idx := range indices {
+			if idx >= 0 && raw[idx] != nil {
+				row[i] = fmt.Sprintf("%v", raw[idx])
+			}
+		}
+		result = append(result, row)
+	}
+	return result, nil
+}
+
 func (s *SnowflakeConnection) GetTableMetadata(tableName string) (*TableMetadata, error) {
 	if s.db == nil {
 		return nil, fmt.Errorf("database is not open")
@@ -175,24 +219,17 @@ func (s *SnowflakeConnection) GetTableMetadata(tableName string) (*TableMetadata
 		TableName: tableName,
 	}
 
-	pkQuery := `
-		SELECT kcu.COLUMN_NAME
-		FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-		JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-			ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
-			AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
-			AND tc.TABLE_NAME = kcu.TABLE_NAME
-		WHERE tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
-		  AND tc.TABLE_NAME = ?
-		ORDER BY kcu.ORDINAL_POSITION
-	`
-	pkRows, err := s.db.Query(pkQuery, strings.ToUpper(tableName))
+	// INFORMATION_SCHEMA.KEY_COLUMN_USAGE does not exist in Snowflake, so we
+	// cannot use the standard TABLE_CONSTRAINTS JOIN approach. SHOW PRIMARY KEYS
+	// is the Snowflake-native alternative. PKs are worth querying even though
+	// Snowflake doesn't enforce them — they appear in the TUI header (⚿) and
+	// drive UPDATE/DELETE WHERE clause generation.
+	pkRows, err := s.db.Query(fmt.Sprintf("SHOW PRIMARY KEYS IN TABLE %s", strings.ToUpper(tableName)))
 	if err == nil {
 		defer pkRows.Close()
-		for pkRows.Next() {
-			var col string
-			if err := pkRows.Scan(&col); err == nil {
-				metadata.PrimaryKeys = append(metadata.PrimaryKeys, col)
+		if vals, scanErr := scanShowColumns(pkRows, []string{"column_name"}); scanErr == nil {
+			for _, row := range vals {
+				metadata.PrimaryKeys = append(metadata.PrimaryKeys, row[0])
 			}
 		}
 	}
@@ -217,125 +254,37 @@ func (s *SnowflakeConnection) GetTableMetadata(tableName string) (*TableMetadata
 		}
 	}
 
-	fks, err := s.GetForeignKeys(tableName)
-	if err == nil {
-		metadata.ForeignKeys = fks
-	} else {
-		metadata.ForeignKeys = []ForeignKey{}
-	}
+	metadata.ForeignKeys = []ForeignKey{}
 
 	return metadata, nil
 }
 
+// GetForeignKeys returns empty for Snowflake.
+//
+// Snowflake supports FK constraint syntax for documentation purposes only —
+// they are never enforced. In practice, data warehouses almost never declare
+// them, so querying REFERENTIAL_CONSTRAINTS would return nothing useful.
+// INFORMATION_SCHEMA.KEY_COLUMN_USAGE (needed to map constraints to columns)
+// does not exist in Snowflake at all, ruling out the standard SQL approach.
 func (s *SnowflakeConnection) GetForeignKeys(tableName string) ([]ForeignKey, error) {
-	if s.db == nil {
-		return nil, fmt.Errorf("database is not open")
-	}
-
-	query := `
-		SELECT
-			kcu.COLUMN_NAME,
-			ccu.TABLE_NAME  AS REFERENCED_TABLE,
-			ccu.COLUMN_NAME AS REFERENCED_COLUMN
-		FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-		JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-			ON rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
-			AND rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
-		JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
-			ON rc.UNIQUE_CONSTRAINT_NAME = ccu.CONSTRAINT_NAME
-			AND rc.UNIQUE_CONSTRAINT_SCHEMA = ccu.CONSTRAINT_SCHEMA
-		WHERE kcu.TABLE_NAME = ?
-		ORDER BY kcu.COLUMN_NAME
-	`
-
-	rows, err := s.db.Query(query, strings.ToUpper(tableName))
-	if err != nil {
-		// Snowflake FKs are unenforced; metadata may be absent — return empty gracefully
-		return []ForeignKey{}, nil
-	}
-	defer rows.Close()
-
-	var fks []ForeignKey
-	for rows.Next() {
-		var fk ForeignKey
-		if err := rows.Scan(&fk.Column, &fk.ReferencedTable, &fk.ReferencedColumn); err == nil {
-			fks = append(fks, fk)
-		}
-	}
-
-	return fks, nil
+	return []ForeignKey{}, nil
 }
 
+// GetForeignKeysReferencingTable returns empty for Snowflake.
+// See GetForeignKeys for the rationale — same constraints apply here.
 func (s *SnowflakeConnection) GetForeignKeysReferencingTable(tableName string) ([]ForeignKey, error) {
-	if s.db == nil {
-		return nil, fmt.Errorf("database is not open")
-	}
-
-	query := `
-		SELECT
-			kcu.COLUMN_NAME,
-			kcu.TABLE_NAME  AS REFERENCING_TABLE,
-			ccu.COLUMN_NAME AS REFERENCED_COLUMN
-		FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
-		JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-			ON rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
-			AND rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
-		JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
-			ON rc.UNIQUE_CONSTRAINT_NAME = ccu.CONSTRAINT_NAME
-			AND rc.UNIQUE_CONSTRAINT_SCHEMA = ccu.CONSTRAINT_SCHEMA
-		WHERE ccu.TABLE_NAME = ?
-		ORDER BY kcu.TABLE_NAME, kcu.COLUMN_NAME
-	`
-
-	rows, err := s.db.Query(query, strings.ToUpper(tableName))
-	if err != nil {
-		return []ForeignKey{}, nil
-	}
-	defer rows.Close()
-
-	var fks []ForeignKey
-	for rows.Next() {
-		var fk ForeignKey
-		if err := rows.Scan(&fk.Column, &fk.ReferencedTable, &fk.ReferencedColumn); err == nil {
-			fks = append(fks, fk)
-		}
-	}
-
-	return fks, nil
+	return []ForeignKey{}, nil
 }
 
+// GetUniqueConstraints returns empty for Snowflake.
+//
+// Snowflake's UNIQUE constraints are informational only and not enforced.
+// INFORMATION_SCHEMA.KEY_COLUMN_USAGE, which maps constraint names to column
+// names, does not exist in Snowflake, so there is no standard way to retrieve
+// which columns carry a UNIQUE constraint without using SHOW commands whose
+// result schemas are undocumented in the Go driver.
 func (s *SnowflakeConnection) GetUniqueConstraints(tableName string) ([]string, error) {
-	if s.db == nil {
-		return nil, fmt.Errorf("database is not open")
-	}
-
-	query := `
-		SELECT kcu.COLUMN_NAME
-		FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-		JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-			ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
-			AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
-			AND tc.TABLE_NAME = kcu.TABLE_NAME
-		WHERE tc.CONSTRAINT_TYPE = 'UNIQUE'
-		  AND tc.TABLE_NAME = ?
-		ORDER BY kcu.COLUMN_NAME
-	`
-
-	rows, err := s.db.Query(query, strings.ToUpper(tableName))
-	if err != nil {
-		return []string{}, nil
-	}
-	defer rows.Close()
-
-	var cols []string
-	for rows.Next() {
-		var col string
-		if err := rows.Scan(&col); err == nil {
-			cols = append(cols, col)
-		}
-	}
-
-	return cols, nil
+	return []string{}, nil
 }
 
 func (s *SnowflakeConnection) GetInfoSQL(infoType string) string {
