@@ -254,35 +254,58 @@ func (s *SnowflakeConnection) GetTableMetadata(tableName string) (*TableMetadata
 		}
 	}
 
-	metadata.ForeignKeys = []ForeignKey{}
+	if fks, err := s.GetForeignKeys(tableName); err == nil {
+		metadata.ForeignKeys = fks
+	} else {
+		metadata.ForeignKeys = []ForeignKey{}
+	}
 
 	return metadata, nil
 }
 
-// GetForeignKeys returns empty for Snowflake.
-//
-// Snowflake supports FK constraint syntax for documentation purposes only —
-// they are never enforced. In practice, data warehouses almost never declare
-// them, so querying REFERENTIAL_CONSTRAINTS would return nothing useful.
-// INFORMATION_SCHEMA.KEY_COLUMN_USAGE (needed to map constraints to columns)
-// does not exist in Snowflake at all, ruling out the standard SQL approach.
 func (s *SnowflakeConnection) GetForeignKeys(tableName string) ([]ForeignKey, error) {
-	return []ForeignKey{}, nil
+	if s.db == nil {
+		return []ForeignKey{}, nil
+	}
+	rows, err := s.db.Query(fmt.Sprintf("SHOW IMPORTED KEYS IN TABLE %s", strings.ToUpper(tableName)))
+	if err != nil {
+		return []ForeignKey{}, nil
+	}
+	defer rows.Close()
+	vals, err := scanShowColumns(rows, []string{"fk_column_name", "pk_table_name", "pk_column_name"})
+	if err != nil {
+		return []ForeignKey{}, nil
+	}
+	fks := make([]ForeignKey, 0, len(vals))
+	for _, row := range vals {
+		fks = append(fks, ForeignKey{Column: row[0], ReferencedTable: row[1], ReferencedColumn: row[2]})
+	}
+	return fks, nil
 }
 
-// GetForeignKeysReferencingTable returns empty for Snowflake.
-// See GetForeignKeys for the rationale — same constraints apply here.
 func (s *SnowflakeConnection) GetForeignKeysReferencingTable(tableName string) ([]ForeignKey, error) {
-	return []ForeignKey{}, nil
+	if s.db == nil {
+		return []ForeignKey{}, nil
+	}
+	rows, err := s.db.Query(fmt.Sprintf("SHOW EXPORTED KEYS IN TABLE %s", strings.ToUpper(tableName)))
+	if err != nil {
+		return []ForeignKey{}, nil
+	}
+	defer rows.Close()
+	vals, err := scanShowColumns(rows, []string{"fk_column_name", "pk_table_name", "pk_column_name"})
+	if err != nil {
+		return []ForeignKey{}, nil
+	}
+	fks := make([]ForeignKey, 0, len(vals))
+	for _, row := range vals {
+		fks = append(fks, ForeignKey{Column: row[0], ReferencedTable: row[1], ReferencedColumn: row[2]})
+	}
+	return fks, nil
 }
 
-// GetUniqueConstraints returns empty for Snowflake.
-//
-// Snowflake's UNIQUE constraints are informational only and not enforced.
-// INFORMATION_SCHEMA.KEY_COLUMN_USAGE, which maps constraint names to column
-// names, does not exist in Snowflake, so there is no standard way to retrieve
-// which columns carry a UNIQUE constraint without using SHOW commands whose
-// result schemas are undocumented in the Go driver.
+// GetUniqueConstraints returns empty for Snowflake — SHOW UNIQUE KEYS does not
+// exist and Snowflake lacks INFORMATION_SCHEMA.KEY_COLUMN_USAGE, so
+// column-level unique constraint mapping is not possible.
 func (s *SnowflakeConnection) GetUniqueConstraints(tableName string) ([]string, error) {
 	return []string{}, nil
 }
