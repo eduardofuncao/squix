@@ -188,8 +188,8 @@ func scanShowColumns(rows *sql.Rows, wantCols []string) ([][]string, error) {
 		}
 	}
 
-	raw := make([]interface{}, len(cols))
-	ptrs := make([]interface{}, len(cols))
+	raw := make([]any, len(cols))
+	ptrs := make([]any, len(cols))
 	for i := range raw {
 		ptrs[i] = &raw[i]
 	}
