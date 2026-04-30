@@ -314,6 +314,13 @@ as part of your workflow.
 - [x] Option to return results from `squix run` as json, csv, etc. with `--format` flag
 - [x] Duckdb support
 
+### v0.5.0 - Scrat 🧊
+- [ ] Configurable keybinds
+- [ ] Migrate to bubbletea v2
+- [ ] Return more info on exec statements (insert, update, delete, etc.)
+- [ ] Homebrew custom tap and nixpkgs entry
+- [ ] More options to encrypt data in the config file
+
 ---
  
 <h2>
@@ -334,7 +341,7 @@ Any amount is greatly appreciated ❤
 
 <h2>
     <img width="auto" height="24" alt="image" src="https://github.com/user-attachments/assets/20aad60b-adc7-4a4d-971b-cb37f8a0cbbf" />
-    Contributing & Acknowledments
+    Contributing & acknowledgements
 </h2>
 
 We welcome contributions! Get started with detailed instructions from [CONTRIBUTING.md](CONTRIBUTING.md)
