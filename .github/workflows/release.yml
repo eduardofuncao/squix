@@ -51,22 +51,29 @@ jobs:
         include:
           - goos: linux
             goarch: amd64
+            packages: ""
           - goos: linux
             goarch: arm64
             cc: aarch64-linux-gnu-gcc
+            packages: "gcc-aarch64-linux-gnu"
           - goos: windows
             goarch: amd64
             cc: x86_64-w64-mingw32-gcc
             ext: .exe
+            packages: "gcc-mingw-w64-x86-64"
     runs-on: ubuntu-latest
-    container:
-      image: "ghcr.io/goreleaser/goreleaser-cross:v1.26"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - run: git config --global --add safe.directory '*'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install cross-compiler
+        if: matrix.packages != ''
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
 
       - name: Build
         env:
