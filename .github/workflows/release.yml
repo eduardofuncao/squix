@@ -58,9 +58,8 @@ jobs:
             packages: "gcc-aarch64-linux-gnu g++-aarch64-linux-gnu"
           - goos: windows
             goarch: amd64
-            cc: x86_64-w64-mingw32-gcc
             ext: .exe
-            packages: "gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64"
+            cgo: "0"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,7 +76,7 @@ jobs:
 
       - name: Build
         env:
-          CGO_ENABLED: 1
+          CGO_ENABLED: ${{ matrix.cgo || '1' }}
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CC: ${{ matrix.cc }}
