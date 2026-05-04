@@ -124,7 +124,7 @@ jobs:
       - name: Prepare release assets
         run: |
           mkdir -p release
-          find artifacts -type f \( -name '${{ env.APP_NAME }}-*' -o -name '${{ env.APP_NAME }}-*.exe' \) -exec cp {} release/ \()
+          find artifacts -type f \( -name '${{ env.APP_NAME }}-*' -o -name '${{ env.APP_NAME }}-*.exe' \) -exec cp {} release/ \;
           cd release && sha256sum * > checksums.txt
 
       - uses: softprops/action-gh-release@v1
