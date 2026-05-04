@@ -139,7 +139,9 @@ jobs:
       - name: Compute checksums for homebrew
         id: checksums
         run: |
-          TAG="${{ github.ref_name }}"
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "darwin_amd64_sha=$(sha256sum release/${{ env.APP_NAME }}-darwin-amd64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           echo "darwin_arm64_sha=$(sha256sum release/${{ env.APP_NAME }}-darwin-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           echo "linux_amd64_sha=$(sha256sum release/${{ env.APP_NAME }}-linux-amd64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
@@ -153,7 +155,7 @@ jobs:
           event-type: update-formula
           client-payload: |
             {
-              "version": "${{ github.ref_name }}",
+              "version": "${{ steps.checksums.outputs.version }}",
               "darwin_amd64_sha": "${{ steps.checksums.outputs.darwin_amd64_sha }}",
               "darwin_arm64_sha": "${{ steps.checksums.outputs.darwin_arm64_sha }}",
               "linux_amd64_sha": "${{ steps.checksums.outputs.linux_amd64_sha }}",
