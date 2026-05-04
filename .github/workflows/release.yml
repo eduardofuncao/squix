@@ -13,197 +13,95 @@ env:
   GO_VERSION: '1.25'
 
 jobs:
-  build-linux-amd64:
-    name: Build Linux AMD64
-    runs-on: ubuntu-latest
-    container:
-      image: "ghcr.io/goreleaser/goreleaser-cross:v1.22"
+  build-darwin:
+    strategy:
+      matrix:
+        include:
+          - goarch: amd64
+            runner: macos-15-large
+          - goarch: arm64
+            runner: macos-latest
+    runs-on: ${{ matrix.runner }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Fix git ownership
-        run: git config --global --add safe.directory '*'
-
-      - name: Build Linux AMD64
-        env:
-          CGO_ENABLED: 1
-          GOOS: linux
-          GOARCH: amd64
-        run: |
-          mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-linux-amd64 ./cmd/squix
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-amd64
-          path: dist/${{ env.APP_NAME }}-linux-amd64
-
-  build-linux-arm64:
-    name: Build Linux ARM64
-    runs-on: ubuntu-latest
-    container:
-      image: "ghcr.io/goreleaser/goreleaser-cross:v1.22"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fix git ownership
-        run: git config --global --add safe.directory '*'
-
-      - name: Build Linux ARM64
-        env:
-          CGO_ENABLED: 1
-          GOOS: linux
-          GOARCH: arm64
-          CC: aarch64-linux-gnu-gcc
-        run: |
-          mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-linux-arm64 ./cmd/squix
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-arm64
-          path: dist/${{ env.APP_NAME }}-linux-arm64
-
-  build-darwin-amd64:
-    name: Build macOS AMD64
-    runs-on: macos-15-large
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Build macOS AMD64
+      - name: Build
         env:
           CGO_ENABLED: 1
           GOOS: darwin
-          GOARCH: amd64
+          GOARCH: ${{ matrix.goarch }}
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-darwin-amd64 ./cmd/squix
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-darwin-${{ matrix.goarch }} ./cmd/squix
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: darwin-amd64
-          path: dist/${{ env.APP_NAME }}-darwin-amd64
+          name: darwin-${{ matrix.goarch }}
+          path: dist/${{ env.APP_NAME }}-darwin-${{ matrix.goarch }}
 
-  build-darwin-arm64:
-    name: Build macOS ARM64
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Build macOS ARM64
-        env:
-          CGO_ENABLED: 1
-          GOOS: darwin
-          GOARCH: arm64
-        run: |
-          mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-darwin-arm64 ./cmd/squix
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: darwin-arm64
-          path: dist/${{ env.APP_NAME }}-darwin-arm64
-
-  build-windows-amd64:
-    name: Build Windows AMD64
+  build-cross:
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+            cc: aarch64-linux-gnu-gcc
+          - goos: windows
+            goarch: amd64
+            cc: x86_64-w64-mingw32-gcc
+            ext: .exe
     runs-on: ubuntu-latest
     container:
       image: "ghcr.io/goreleaser/goreleaser-cross:v1.22"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Fix git ownership
-        run: git config --global --add safe.directory '*'
+      - run: git config --global --add safe.directory '*'
 
-      - name: Build Windows AMD64
+      - name: Build
         env:
           CGO_ENABLED: 1
-          GOOS: windows
-          GOARCH: amd64
-          CC: x86_64-w64-mingw32-gcc
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CC: ${{ matrix.cc }}
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-windows-amd64.exe ./cmd/squix
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} ./cmd/squix
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: windows-amd64
-          path: dist/${{ env.APP_NAME }}-windows-amd64.exe
+          name: ${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/${{ env.APP_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
 
   create-release:
-    name: Create Release
-    needs: 
-      - build-linux-amd64
-      - build-linux-arm64
-      - build-darwin-amd64
-      - build-darwin-arm64
-      - build-windows-amd64
+    needs:
+      - build-darwin
+      - build-cross
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Create archives
+      - name: Prepare release assets
         run: |
           mkdir -p release
+          find artifacts -type f \( -name '${{ env.APP_NAME }}-*' -o -name '${{ env.APP_NAME }}-*.exe' \) -exec cp {} release/ \)
+          cd release && sha256sum * > checksums.txt
 
-          # Linux AMD64
-          tar -czf release/${{ env.APP_NAME }}_${GITHUB_REF_NAME}_linux_amd64.tar.gz -C artifacts/linux-amd64 .
-
-          # Linux ARM64
-          tar -czf release/${{ env.APP_NAME }}_${GITHUB_REF_NAME}_linux_arm64.tar.gz -C artifacts/linux-arm64 .
-
-          # macOS AMD64
-          tar -czf release/${{ env.APP_NAME }}_${GITHUB_REF_NAME}_darwin_amd64.tar.gz -C artifacts/darwin-amd64 .
-
-          # macOS ARM64
-          tar -czf release/${{ env.APP_NAME }}_${GITHUB_REF_NAME}_darwin_arm64.tar.gz -C artifacts/darwin-arm64 .
-
-          # Windows AMD64
-          cd artifacts/windows-amd64 && zip ../../release/${{ env.APP_NAME }}_${GITHUB_REF_NAME}_windows_amd64.zip * && cd ../..
-
-          # Generate checksums
-          cd release
-          sha256sum * > checksums.txt
-          cd ..
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v1
         with:
           files: release/*
           draft: false

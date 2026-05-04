@@ -1,0 +1,49 @@
+name: Update Homebrew Tap
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  update-tap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download binaries and compute checksums
+        id: checksums
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+
+          curl -sLo darwin-amd64 "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix-darwin-amd64"
+          curl -sLo darwin-arm64 "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix-darwin-arm64"
+          curl -sLo linux-amd64 "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix-linux-amd64"
+          curl -sLo linux-arm64 "https://github.com/eduardofuncao/squix/releases/download/${TAG}/squix-linux-arm64"
+
+          echo "darwin_amd64_sha=$(sha256sum darwin-amd64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "darwin_arm64_sha=$(sha256sum darwin-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "linux_amd64_sha=$(sha256sum linux-amd64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "linux_arm64_sha=$(sha256sum linux-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch to homebrew tap
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          repository: eduardofuncao/homebrew-squix
+          event-type: update-formula
+          client-payload: |
+            {
+              "version": "${{ steps.version.outputs.version }}",
+              "darwin_amd64_sha": "${{ steps.checksums.outputs.darwin_amd64_sha }}",
+              "darwin_arm64_sha": "${{ steps.checksums.outputs.darwin_arm64_sha }}",
+              "linux_amd64_sha": "${{ steps.checksums.outputs.linux_amd64_sha }}",
+              "linux_arm64_sha": "${{ steps.checksums.outputs.linux_arm64_sha }}"
+            }
