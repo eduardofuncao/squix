@@ -45,21 +45,40 @@ jobs:
           name: darwin-${{ matrix.goarch }}
           path: dist/${{ env.APP_NAME }}-darwin-${{ matrix.goarch }}
 
-  build-cross:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build
+        env:
+          CGO_ENABLED: 1
+          GOOS: windows
+          GOARCH: amd64
+        run: |
+          mkdir dist
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-windows-amd64.exe ./cmd/squix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-amd64
+          path: dist/${{ env.APP_NAME }}-windows-amd64.exe
+
+  build-linux:
     strategy:
       matrix:
         include:
-          - goos: linux
-            goarch: amd64
+          - goarch: amd64
             packages: ""
-          - goos: linux
-            goarch: arm64
+          - goarch: arm64
             cc: aarch64-linux-gnu-gcc
             packages: "gcc-aarch64-linux-gnu g++-aarch64-linux-gnu"
-          - goos: windows
-            goarch: amd64
-            ext: .exe
-            cgo: "0"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,23 +95,24 @@ jobs:
 
       - name: Build
         env:
-          CGO_ENABLED: ${{ matrix.cgo || '1' }}
-          GOOS: ${{ matrix.goos }}
+          CGO_ENABLED: 1
+          GOOS: linux
           GOARCH: ${{ matrix.goarch }}
           CC: ${{ matrix.cc }}
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} ./cmd/squix
+          go build -buildvcs=false -ldflags="-s -w" -o dist/${{ env.APP_NAME }}-linux-${{ matrix.goarch }} ./cmd/squix
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/${{ env.APP_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          name: linux-${{ matrix.goarch }}
+          path: dist/${{ env.APP_NAME }}-linux-${{ matrix.goarch }}
 
   create-release:
     needs:
       - build-darwin
-      - build-cross
+      - build-windows
+      - build-linux
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,7 +124,7 @@ jobs:
       - name: Prepare release assets
         run: |
           mkdir -p release
-          find artifacts -type f \( -name '${{ env.APP_NAME }}-*' -o -name '${{ env.APP_NAME }}-*.exe' \) -exec cp {} release/ \)
+          find artifacts -type f \( -name '${{ env.APP_NAME }}-*' -o -name '${{ env.APP_NAME }}-*.exe' \) -exec cp {} release/ \()
           cd release && sha256sum * > checksums.txt
 
       - uses: softprops/action-gh-release@v1
