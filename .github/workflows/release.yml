@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - goarch: amd64
-            runner: macos-15-large
+            runner: macos-15-intel
           - goarch: arm64
             runner: macos-latest
     runs-on: ${{ matrix.runner }}
