@@ -234,7 +234,7 @@ func parseSingleQueryFile(content string) (string, string, error) {
 
 func (a *App) confirmQueryRename(oldName, newName string) bool {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf(styles.Error.Render(fmt.Sprintf("Rename query '%s' → '%s'? [y/N]: ", oldName, newName)))
+	fmt.Print(styles.Error.Render(fmt.Sprintf("Rename query '%s' → '%s'? [y/N]: ", oldName, newName)))
 
 	response, err := reader.ReadString('\n')
 	if err != nil {

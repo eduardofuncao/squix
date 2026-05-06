@@ -55,7 +55,7 @@ func (a *App) handleRemove() {
 func (a *App) removeConnection(connName string) {
 	conn, exists := a.config.Connections[connName]
 	if !exists {
-		printError(fmt.Sprintf("Connection '%s' does not exist", connName))
+		printError("Connection '%s' does not exist", connName)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (a *App) removeConnection(connName string) {
 
 func (a *App) confirmDeletion(connName string, queryCount int) bool {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf(styles.Error.Render(fmt.Sprintf("This will delete connection '%s' and its %d queries. Continue? [y/N]: ", connName, queryCount)))
+	fmt.Print(styles.Error.Render(fmt.Sprintf("This will delete connection '%s' and its %d queries. Continue? [y/N]: ", connName, queryCount)))
 
 	response, err := reader.ReadString('\n')
 	if err != nil {
