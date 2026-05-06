@@ -9,7 +9,7 @@ import (
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
-const Version = "v0.4.0-beta"
+var Version = "dev" // overridden via -ldflags at build time
 
 type App struct {
 	config *config.Config

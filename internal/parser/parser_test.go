@@ -31,8 +31,8 @@ func TestFormatSQLWithLineBreaks(t *testing.T) {
 			contains: []string{"SELECT", "FROM", "WHERE"},
 		},
 		{
-			name:  "multi-keyword",
-			input: "SELECT a FROM t JOIN u ON t.id = u.id WHERE x = 1 GROUP BY a ORDER BY a LIMIT 10",
+			name:     "multi-keyword",
+			input:    "SELECT a FROM t JOIN u ON t.id = u.id WHERE x = 1 GROUP BY a ORDER BY a LIMIT 10",
 			contains: []string{"SELECT", "FROM", "JOIN", "ON", "WHERE", "GROUP BY", "ORDER BY", "LIMIT"},
 		},
 		{

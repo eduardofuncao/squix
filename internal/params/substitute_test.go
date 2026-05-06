@@ -13,7 +13,7 @@ type mockConn struct {
 	placeholder string
 }
 
-func (m *mockConn) GetPlaceholder(idx int) string     { return m.placeholder }
+func (m *mockConn) GetPlaceholder(idx int) string                 { return m.placeholder }
 func (m *mockConn) GetUniqueConstraints(string) ([]string, error) { return nil, nil }
 
 func newMockConn(placeholder string) db.DatabaseConnection {
@@ -24,20 +24,19 @@ func newMockConn(placeholder string) db.DatabaseConnection {
 }
 
 // needed because BaseConnection.Query returns wrong error message
-func (m *mockConn) Query(string, ...any) (any, error)        { return nil, nil }
-func (m *mockConn) ExecQuery(string, ...any) (*sql.Rows, error) { return nil, nil }
-func (m *mockConn) Exec(string, ...any) error                 { return nil }
-func (m *mockConn) Open() error                               { return nil }
-func (m *mockConn) Ping() error                               { return nil }
-func (m *mockConn) Close() error                              { return nil }
+func (m *mockConn) Query(string, ...any) (any, error)                  { return nil, nil }
+func (m *mockConn) ExecQuery(string, ...any) (*sql.Rows, error)        { return nil, nil }
+func (m *mockConn) Exec(string, ...any) error                          { return nil }
+func (m *mockConn) Open() error                                        { return nil }
+func (m *mockConn) Ping() error                                        { return nil }
+func (m *mockConn) Close() error                                       { return nil }
 func (m *mockConn) GetTableMetadata(string) (*db.TableMetadata, error) { return nil, nil }
-func (m *mockConn) GetTables() ([]string, error)              { return nil, nil }
-func (m *mockConn) GetViews() ([]string, error)               { return nil, nil }
-func (m *mockConn) GetForeignKeys(string) ([]db.ForeignKey, error) { return nil, nil }
+func (m *mockConn) GetTables() ([]string, error)                       { return nil, nil }
+func (m *mockConn) GetViews() ([]string, error)                        { return nil, nil }
+func (m *mockConn) GetForeignKeys(string) ([]db.ForeignKey, error)     { return nil, nil }
 func (m *mockConn) GetForeignKeysReferencingTable(string) ([]db.ForeignKey, error) {
 	return nil, nil
 }
-
 
 func TestSubstituteParameters(t *testing.T) {
 	t.Run("no params", func(t *testing.T) {

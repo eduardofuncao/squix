@@ -4,7 +4,7 @@ set -e
 
 # Configuration
 APP_NAME="squix"
-VERSION=${1:-"dev"}
+VERSION=${1:-$(git describe --tags --always --dirty 2>/dev/null || echo dev)}
 BUILD_DIR="./dist"
 NATIVE_OS=$(go env GOOS)
 NATIVE_ARCH=$(go env GOARCH)
@@ -30,10 +30,10 @@ build_platform() {
     echo "Building $platform..."
 
     if [ "$goos" = "$NATIVE_OS" ] && [ "$goarch" = "$NATIVE_ARCH" ]; then
-        CGO_ENABLED=1 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
+        CGO_ENABLED=1 GOOS=$goos GOARCH=$goarch go build -ldflags="-s -w -X main.Version=$VERSION" -o "$output" ./cmd/squix
         FULL_DRIVERS+=("$platform")
     else
-        CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build -ldflags='-s -w' -o "$output" ./cmd/squix
+        CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch go build -ldflags="-s -w -X main.Version=$VERSION" -o "$output" ./cmd/squix
         LIMITED_DRIVERS+=("$platform")
     fi
 

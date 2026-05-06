@@ -16,7 +16,7 @@
       {
         packages.default = pkgs.buildGoModule {
           pname = "squix";
-          version = "0.4.0-beta";
+          version = "0.4.0-beta"; # update when cutting a release
 
           src = ./.;
 
