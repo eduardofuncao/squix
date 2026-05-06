@@ -176,8 +176,9 @@ func (a *App) editQueriesWithEditor(editorCmd string) {
 
 // parseSingleQueryFile parses a file containing a single query
 // Expected format:
-//   -- queryname
-//   SQL query here
+//
+//	-- queryname
+//	SQL query here
 func parseSingleQueryFile(content string) (string, string, error) {
 	lines := strings.Split(strings.TrimSpace(content), "\n")
 	if len(lines) == 0 {

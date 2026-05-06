@@ -7,5 +7,5 @@ import (
 )
 
 func (a *App) handleHistory() {
-	fmt.Println(styles. Faint.Render("To be implemented in future releases...  "))
+	fmt.Println(styles.Faint.Render("To be implemented in future releases...  "))
 }

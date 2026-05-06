@@ -30,7 +30,6 @@ func (c *Connection) Open() error {
 	dbType := c.DBType
 	connString := c.ConnString
 
-
 	db, err := sql.Open(dbType, connString)
 	if err != nil {
 		return fmt.Errorf("open db: %w", err)

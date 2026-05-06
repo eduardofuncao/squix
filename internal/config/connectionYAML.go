@@ -13,7 +13,7 @@ type ConnectionYAML struct {
 	ConnString string              `yaml:"conn_string"`
 	Schema     string              `yaml:"schema,omitempty"`
 	Queries    map[string]db.Query `yaml:"queries"`
-	LastQuery  db.Query               `yaml:"last_query"`
+	LastQuery  db.Query            `yaml:"last_query"`
 }
 
 func ToConnectionYAML(conn db.DatabaseConnection) *ConnectionYAML {

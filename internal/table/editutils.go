@@ -34,8 +34,8 @@ type cursorPositionHint int
 
 const (
 	CursorAtUpdateValue cursorPositionHint = iota // Inside the value in UPDATE SET col = 'value'
-	CursorAtWhereClause                            // Inside the value in WHERE col = 'value'
-	CursorAtEndOfFile                              // At the end of the file
+	CursorAtWhereClause                           // Inside the value in WHERE col = 'value'
+	CursorAtEndOfFile                             // At the end of the file
 )
 
 func findCursorPosition(content string, hint cursorPositionHint) (line int, col int) {

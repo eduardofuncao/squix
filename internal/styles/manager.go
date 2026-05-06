@@ -11,11 +11,11 @@ var ActiveScheme ColorScheme
 
 // Style variables used throughout the application
 var (
-	Title, Success, Error, Faint, Separator lipgloss.Style
-	SQLKeyword, SQLString, SearchMatch lipgloss.Style
-	TableSelected, TableHeader, TableCell, TableBorder lipgloss.Style
-	TableCopiedBlink, TableUpdated, TableDeleted lipgloss.Style
-	TableName, PrimaryKeyLabel lipgloss.Style
+	Title, Success, Error, Faint, Separator                                                        lipgloss.Style
+	SQLKeyword, SQLString, SearchMatch                                                             lipgloss.Style
+	TableSelected, TableHeader, TableCell, TableBorder                                             lipgloss.Style
+	TableCopiedBlink, TableUpdated, TableDeleted                                                   lipgloss.Style
+	TableName, PrimaryKeyLabel                                                                     lipgloss.Style
 	BelongsToStyle, HasManyStyle, HasOneStyle, HasManyToManyStyle, CardinalityStyle, TreeConnector lipgloss.Style
 )
 

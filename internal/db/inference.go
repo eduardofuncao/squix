@@ -37,8 +37,8 @@ func InferDBType(connString string) string {
 
 	// SQLite file pattern detection
 	if strings.HasSuffix(conn, ".db") ||
-	   strings.HasSuffix(conn, ".sqlite") ||
-	   strings.HasSuffix(conn, ".sqlite3") {
+		strings.HasSuffix(conn, ".sqlite") ||
+		strings.HasSuffix(conn, ".sqlite3") {
 		return "sqlite"
 	}
 

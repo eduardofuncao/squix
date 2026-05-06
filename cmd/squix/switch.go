@@ -24,5 +24,5 @@ func (a *App) handleSwitch() {
 		printError("Could not save configuration file: %v", err)
 	}
 
-	fmt. Println(styles.Success.Render("⇄ Switched to: "), styles.Title.Render(fmt.Sprintf("%s/%s", conn.DBType, connName)))
+	fmt.Println(styles.Success.Render("⇄ Switched to: "), styles.Title.Render(fmt.Sprintf("%s/%s", conn.DBType, connName)))
 }

@@ -2,8 +2,8 @@ package table
 
 import (
 	"fmt"
-	"os"
 	"github.com/eduardofuncao/squix/internal/styles"
+	"os"
 )
 
 func printError(format string, args ...any) {

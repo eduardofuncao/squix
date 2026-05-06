@@ -17,14 +17,14 @@ const (
 )
 
 type InitInputModel struct {
-	name           string
-	dbType         string
-	connString     string
-	cursorIndex    int  // Which field is focused
-	nameCursor     int  // Cursor position within name field
-	connCursor     int  // Cursor position within conn-string field
-	dbTypes        []string
-	aborted        bool
+	name        string
+	dbType      string
+	connString  string
+	cursorIndex int // Which field is focused
+	nameCursor  int // Cursor position within name field
+	connCursor  int // Cursor position within conn-string field
+	dbTypes     []string
+	aborted     bool
 }
 
 func NewInitInputModel(name, dbType, connString string) InitInputModel {

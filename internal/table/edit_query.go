@@ -21,7 +21,7 @@ func (m Model) editAndRerunQuery() (tea.Model, tea.Cmd) {
 	}
 	tmpPath := tmpFile.Name()
 
-	if _, err := tmpFile.WriteString(m.currentQuery. SQL); err != nil {
+	if _, err := tmpFile.WriteString(m.currentQuery.SQL); err != nil {
 		tmpFile.Close()
 		os.Remove(tmpPath)
 		return m, nil
@@ -35,9 +35,9 @@ func (m Model) editAndRerunQuery() (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	cmd := buildEditorCommand(editorCmd, tmpPath, m.currentQuery. SQL, CursorAtEndOfFile)
+	cmd := buildEditorCommand(editorCmd, tmpPath, m.currentQuery.SQL, CursorAtEndOfFile)
 
-	return m, tea. ExecProcess(cmd, func(err error) tea.Msg {
+	return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
 		// Check if file was modified
 		afterModTime, statErr := os.Stat(tmpPath)
 		if statErr != nil {
@@ -55,8 +55,8 @@ func (m Model) editAndRerunQuery() (tea.Model, tea.Cmd) {
 			}
 		}
 		editedData, readErr := os.ReadFile(tmpPath)
-		os. Remove(tmpPath)
-		
+		os.Remove(tmpPath)
+
 		if err != nil || readErr != nil {
 			return nil
 		}

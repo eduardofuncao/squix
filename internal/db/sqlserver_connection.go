@@ -1,4 +1,3 @@
-
 package db
 
 import (
@@ -449,7 +448,7 @@ func (s *SQLServerConnection) ApplyRowLimit(sql string, limit int) string {
 		upperTrimmed := strings.ToUpper(trimmed)
 
 		if strings.HasPrefix(upperTrimmed, "SELECT") {
-			restOfSQL := trimmed[6:] // Remove "SELECT" (6 characters)
+			restOfSQL := trimmed[6:]                       // Remove "SELECT" (6 characters)
 			restOfSQL = strings.TrimLeft(restOfSQL, " \t") // Remove any remaining whitespace after SELECT
 
 			return fmt.Sprintf("SELECT TOP %d %s", limit, restOfSQL)

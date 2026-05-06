@@ -91,7 +91,7 @@ func (a *App) PrintGeneralHelp() {
 			"Edit queries in your editor",
 		),
 	)
-fmt.Println(
+	fmt.Println(
 		"  config      " + styles.Faint.Render(
 			"Edit the main configuration file",
 		),

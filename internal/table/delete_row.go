@@ -174,7 +174,7 @@ func (m Model) executeDelete(sql string) error {
 	for line := range strings.SplitSeq(sql, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if !strings.HasPrefix(trimmed, "--") && trimmed != "" {
-			result. WriteString(trimmed)
+			result.WriteString(trimmed)
 			result.WriteString(" ")
 		}
 	}
@@ -186,54 +186,54 @@ func (m Model) executeDelete(sql string) error {
 		return fmt.Errorf("no SQL to execute")
 	}
 
-	return m.dbConnection. Exec(cleanSQL)
+	return m.dbConnection.Exec(cleanSQL)
 }
 
-  func validateDeleteStatement(sql string) error {
-      var result strings.Builder
-      for line := range strings.SplitSeq(sql, "\n") {
-          trimmed := strings.TrimSpace(line)
-          if !strings.HasPrefix(trimmed, "--") && trimmed != "" {
-              result.WriteString(trimmed)
-              result.WriteString(" ")
-          }
-      }
-      cleanSQL := strings.TrimSpace(result.String())
+func validateDeleteStatement(sql string) error {
+	var result strings.Builder
+	for line := range strings.SplitSeq(sql, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if !strings.HasPrefix(trimmed, "--") && trimmed != "" {
+			result.WriteString(trimmed)
+			result.WriteString(" ")
+		}
+	}
+	cleanSQL := strings.TrimSpace(result.String())
 
-      if cleanSQL == "" {
-          return fmt.Errorf("empty SQL statement")
-      }
+	if cleanSQL == "" {
+		return fmt.Errorf("empty SQL statement")
+	}
 
-      upperSQL := strings.ToUpper(cleanSQL)
+	upperSQL := strings.ToUpper(cleanSQL)
 
-      // Check for ClickHouse ALTER TABLE DELETE or standard DELETE FROM
-      isClickHouse := strings.Contains(upperSQL, "ALTER TABLE") && strings.Contains(upperSQL, "DELETE")
-      isStandardDelete := strings.HasPrefix(upperSQL, "DELETE")
+	// Check for ClickHouse ALTER TABLE DELETE or standard DELETE FROM
+	isClickHouse := strings.Contains(upperSQL, "ALTER TABLE") && strings.Contains(upperSQL, "DELETE")
+	isStandardDelete := strings.HasPrefix(upperSQL, "DELETE")
 
-      if !isClickHouse && !isStandardDelete {
-          return fmt.Errorf("not a valid DELETE statement (expected DELETE FROM or ALTER TABLE DELETE)")
-      }
+	if !isClickHouse && !isStandardDelete {
+		return fmt.Errorf("not a valid DELETE statement (expected DELETE FROM or ALTER TABLE DELETE)")
+	}
 
-      // For ClickHouse: ALTER TABLE ... DELETE ...
-      if isClickHouse {
-          // Check for DELETE keyword after ALTER TABLE
-          alterDeleteRegex := regexp.MustCompile(`(?i)ALTER\s+TABLE\s+\S+\s+DELETE`)
-          if !alterDeleteRegex.MatchString(cleanSQL) {
-              return fmt.Errorf("ClickHouse ALTER TABLE DELETE must include DELETE clause")
-          }
-      } else {
-          // For standard SQL: DELETE FROM ...
-          deleteFromRegex := regexp.MustCompile(`(?i)DELETE\s+FROM\s+`)
-          if !deleteFromRegex.MatchString(cleanSQL) {
-              return fmt.Errorf("DELETE statement must include FROM clause")
-          }
-      }
+	// For ClickHouse: ALTER TABLE ... DELETE ...
+	if isClickHouse {
+		// Check for DELETE keyword after ALTER TABLE
+		alterDeleteRegex := regexp.MustCompile(`(?i)ALTER\s+TABLE\s+\S+\s+DELETE`)
+		if !alterDeleteRegex.MatchString(cleanSQL) {
+			return fmt.Errorf("ClickHouse ALTER TABLE DELETE must include DELETE clause")
+		}
+	} else {
+		// For standard SQL: DELETE FROM ...
+		deleteFromRegex := regexp.MustCompile(`(?i)DELETE\s+FROM\s+`)
+		if !deleteFromRegex.MatchString(cleanSQL) {
+			return fmt.Errorf("DELETE statement must include FROM clause")
+		}
+	}
 
-      // Both syntaxes require WHERE clause
-      whereRegex := regexp.MustCompile(`(?i)\bWHERE\b`)
-      if !whereRegex.MatchString(cleanSQL) {
-          return fmt.Errorf("DELETE statement must include a WHERE clause for safety")
-      }
+	// Both syntaxes require WHERE clause
+	whereRegex := regexp.MustCompile(`(?i)\bWHERE\b`)
+	if !whereRegex.MatchString(cleanSQL) {
+		return fmt.Errorf("DELETE statement must include a WHERE clause for safety")
+	}
 
-      return nil
-  }
+	return nil
+}

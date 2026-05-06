@@ -22,7 +22,7 @@ func (a *App) handleAdd() {
 
 	_, ok := a.config.Connections[a.config.CurrentConnection]
 	if !ok {
-		a.config.Connections[a. config.CurrentConnection] = &config.ConnectionYAML{}
+		a.config.Connections[a.config.CurrentConnection] = &config.ConnectionYAML{}
 	}
 	queries := a.config.Connections[a.config.CurrentConnection].Queries
 

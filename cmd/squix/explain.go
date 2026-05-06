@@ -91,11 +91,11 @@ const (
 )
 
 type relationship struct {
-	relType           relationshipType
-	column            string
-	referencedTable   string
-	referencedColumn  string
-	junctionTable     string // For N:N relationships
+	relType          relationshipType
+	column           string
+	referencedTable  string
+	referencedColumn string
+	junctionTable    string // For N:N relationships
 }
 
 func (a *App) buildRelationshipTree(conn db.DatabaseConnection, tableName string, maxDepth, currentDepth int, visited map[string]bool, fkCache map[string][]db.ForeignKey, verbose bool) string {
@@ -131,10 +131,10 @@ func (a *App) buildRelationshipTree(conn db.DatabaseConnection, tableName string
 			}
 
 			relationships = append(relationships, relationship{
-				relType:           relType,
-				column:            fk.Column,
-				referencedTable:   fk.ReferencedTable,
-				referencedColumn:  fk.ReferencedColumn,
+				relType:          relType,
+				column:           fk.Column,
+				referencedTable:  fk.ReferencedTable,
+				referencedColumn: fk.ReferencedColumn,
 			})
 		}
 	}
@@ -156,9 +156,9 @@ func (a *App) buildRelationshipTree(conn db.DatabaseConnection, tableName string
 					seenTables[key] = true
 
 					relationships = append(relationships, relationship{
-						relType:          hasManyToMany,
-						referencedTable:  otherTable,
-						junctionTable:    fk.ReferencedTable,
+						relType:         hasManyToMany,
+						referencedTable: otherTable,
+						junctionTable:   fk.ReferencedTable,
 					})
 				}
 			} else {
