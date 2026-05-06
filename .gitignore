@@ -18,6 +18,8 @@
 
 !build-local.sh
 
+!Makefile
+
 !cmd/
 !internal/
 !docs/
