@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -130,6 +131,30 @@ func (e *TestEnv) RunSquix(args ...string) (stdout, stderr string, exitCode int)
 			exitCode = exitErr.ExitCode()
 		} else {
 			e.t.Logf("RunSquix(%v) exec error: %v (binary=%s)", args, err, binaryPath)
+			exitCode = -1
+		}
+	}
+	return outBuf.String(), errBuf.String(), exitCode
+}
+
+func (e *TestEnv) RunSquixWithStdin(stdin string, args ...string) (stdout, stderr string, exitCode int) {
+	e.t.Helper()
+
+	cmd := exec.Command(binaryPath, args...)
+	cmd.Env = append(os.Environ(), "HOME="+e.HomeDir)
+	cmd.Stdin = strings.NewReader(stdin)
+
+	var outBuf, errBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+
+	err := cmd.Run()
+	exitCode = 0
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else {
+			e.t.Logf("RunSquixWithStdin(%v) exec error: %v", args, err)
 			exitCode = -1
 		}
 	}
