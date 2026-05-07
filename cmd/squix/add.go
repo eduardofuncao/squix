@@ -24,7 +24,11 @@ func (a *App) handleAdd() {
 	if !ok {
 		a.config.Connections[a.config.CurrentConnection] = &config.ConnectionYAML{}
 	}
-	queries := a.config.Connections[a.config.CurrentConnection].Queries
+	conn := a.config.Connections[a.config.CurrentConnection]
+	if conn.Queries == nil {
+		conn.Queries = make(map[string]db.Query)
+	}
+	queries := conn.Queries
 
 	queryName := os.Args[2]
 	var querySQL string

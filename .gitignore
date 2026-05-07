@@ -22,4 +22,5 @@
 
 !cmd/
 !internal/
+!test/
 !docs/
