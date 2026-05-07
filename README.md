@@ -354,6 +354,9 @@ Thanks a lot to all the contributors:
 <a href="https://github.com/eduardofuncao"><img src="https://github.com/eduardofuncao.png" width="40" /></a>
 <a href="https://github.com/udirona"><img src="https://github.com/udirona.png" width="40" /></a>
 <a href="https://github.com/Leosallin"><img src="https://github.com/Leosallin.png" width="40" /></a>
+<a href="https://github.com/chasinglogic"><img src="https://github.com/chasinglogic.png" width="40" /></a>
+<a href="https://github.com/akdev1l"><img src="https://github.com/akdev1l.png" width="40" /></a>
+<a href="https://github.com/KalebJS"><img src="https://github.com/KalebJS.png" width="40" /></a>
 
 Squix wouldn't exist without the inspiration and groundwork laid by these fantastic projects:
 
