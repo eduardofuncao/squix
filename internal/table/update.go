@@ -45,6 +45,18 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleSearchInput(msg)
 	}
 
+	// If in help overlay mode, handle specific keys
+	if m.helpOverlayMode {
+		switch msg.String() {
+		case "H", "q", "esc":
+			m.helpOverlayMode = false
+			return m, nil
+		case "ctrl+c":
+			return m, tea.Quit
+		}
+		return m, nil
+	}
+
 	// If in detailed view mode, handle specific keys
 	if m.detailViewMode {
 		switch msg.String() {
@@ -77,6 +89,10 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	case "?":
 		m.uiVisibility.FooterKeymaps = !m.uiVisibility.FooterKeymaps
+		return m, nil
+
+	case "H":
+		m.helpOverlayMode = true
 		return m, nil
 
 	case "up", "k":

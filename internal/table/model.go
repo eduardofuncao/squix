@@ -51,6 +51,7 @@ type Model struct {
 	detailViewMode    bool
 	detailViewContent string
 	detailViewScroll  int
+	helpOverlayMode   bool
 	isTablesList      bool
 	onTableSelect     func(string) tea.Cmd
 	selectedTableName string

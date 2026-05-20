@@ -19,6 +19,11 @@ func (m Model) View() string {
 		return m.renderDetailView()
 	}
 
+	// If in help overlay mode, show the keybinds overlay
+	if m.helpOverlayMode {
+		return m.renderHelpOverlay()
+	}
+
 	// Don't render if we're about to rerun the query (prevents duplicate output)
 	if m.shouldRerunQuery {
 		return ""
@@ -218,83 +223,13 @@ func (m Model) renderFooter() string {
 	// Build keymaps info (conditional)
 	keymapsInfo := ""
 	if m.uiVisibility.FooterKeymaps {
-		updateInfo := ""
-		delInfo := ""
-		enterInfo := ""
-
-		if m.isTablesList {
-			// Special footer for tables list
-			enterInfo = styles.TableHeader.Render(
-				"↵",
-			) + styles.Faint.Render(
-				"enter",
-			)
-			updateInfo = ""
-			delInfo = ""
-		} else if m.tableName != "" && m.primaryKeyCol != "" {
-			updateInfo = styles.TableHeader.Render(
-				"u",
-			) + styles.Faint.Render(
-				"pdate",
-			)
-			delInfo = styles.TableHeader.Render("D") + styles.Faint.Render("el")
-		} else if m.tableName != "" {
-			updateInfo = styles.TableHeader.Render(
-				"u",
-			) + styles.Faint.Render(
-				"pdate (no PK)",
-			)
-			delInfo = ""
-		} else {
-			// No table name means JOIN or complex query
-			updateInfo = styles.Faint.Render("(update/delete disabled)")
-			delInfo = ""
+		pairs := []string{"hjkl:←↓↑→", "u:update", "D:delete", "v:select", "y:yank", "x:export", "/:search", "H:help", "q:quit"}
+		var parts []string
+		for _, p := range pairs {
+			key, desc, _ := strings.Cut(p, ":")
+			parts = append(parts, styles.TableHeader.Render(key)+":"+styles.Faint.Render(desc))
 		}
-
-		sel := styles.TableHeader.Render("v") + styles.Faint.Render("sel")
-		edit := styles.TableHeader.Render("e") + styles.Faint.Render("ditSQL")
-		save := styles.TableHeader.Render("s") + styles.Faint.Render("ave")
-		yank := styles.TableHeader.Render("y") + styles.Faint.Render("ank")
-		exportKey := styles.Faint.Render("e") + styles.TableHeader.Render("x") + styles.Faint.Render("port")
-		searchKey := styles.TableHeader.Render("/") + styles.Faint.Render("srch")
-		colSearchKey := styles.TableHeader.Render("f") + styles.Faint.Render("col")
-		quit := styles.TableHeader.Render("q") + styles.Faint.Render("uit")
-		hjkl := styles.TableHeader.Render("hjkl") + styles.Faint.Render("←↓↑→")
-
-		if m.isTablesList {
-			keymapsInfo = fmt.Sprintf("  %s  %s  %s  %s  %s  %s",
-				enterInfo,
-				yank,
-				edit,
-				save,
-				quit,
-				hjkl,
-			)
-		} else if m.visualMode {
-			keymapsInfo = fmt.Sprintf("  %s  %s  %s  %s  %s  %s  %s",
-				yank,
-				exportKey,
-				sel,
-				edit,
-				save,
-				quit,
-				hjkl,
-			)
-		} else {
-			keymapsInfo = fmt.Sprintf("  %s  %s  %s  %s  %s  %s  %s  %s  %s  %s  %s",
-				updateInfo,
-				delInfo,
-				yank,
-				sel,
-				edit,
-				save,
-				exportKey,
-				searchKey,
-				colSearchKey,
-				quit,
-				hjkl,
-			)
-		}
+		keymapsInfo = "  " + strings.Join(parts, " ")
 	}
 
 	// Assemble footer from conditional parts
@@ -430,6 +365,115 @@ func getTypeIcon(typeName string) string {
 
 	// Default fallback
 	return "•"
+}
+
+func (m Model) renderHelpOverlay() string {
+	type keyBind struct {
+		keys string
+		desc string
+	}
+	type category struct {
+		name  string
+		binds []keyBind
+	}
+
+	categories := []category{
+		{"Navigation", []keyBind{
+			{"h j k l", "Move left/down/up/right"},
+			{"g / G", "Jump to first/last row"},
+			{"0 / $", "Jump to first/last column"},
+			{"pgup / ctrl+u", "Page up"},
+			{"pgdown / ctrl+d", "Page down"},
+		}},
+		{"Selection", []keyBind{
+			{"v", "Visual (characterwise) mode"},
+			{"V", "Visual line mode"},
+		}},
+		{"Actions", []keyBind{
+			{"y", "Yank (copy) selection"},
+			{"x", "Export selected cells"},
+			{"X", "Export all rows"},
+			{"u", "Update cell value"},
+			{"D", "Delete row"},
+			{"enter", "Open cell detail view"},
+		}},
+		{"Query", []keyBind{
+			{"e", "Edit and re-run SQL"},
+			{"s", "Save query"},
+			{"/", "Search cells"},
+			{"f", "Search columns"},
+			{"n / N", "Next/previous search match"},
+			{", / ;", "Previous/next column match"},
+		}},
+		{"Other", []keyBind{
+			{"?", "Toggle footer keybinds"},
+			{"H", "Show/hide this help"},
+			{"q / ctrl+c", "Quit"},
+		}},
+	}
+
+	// Context adjustments
+	if m.isTablesList {
+		categories[2].binds = []keyBind{
+			{"y", "Yank (copy) selection"},
+			{"x", "Export selected cells"},
+			{"X", "Export all rows"},
+			{"enter", "Select table"},
+		}
+	} else if m.tableName == "" {
+		categories[2].binds = []keyBind{
+			{"y", "Yank (copy) selection"},
+			{"x", "Export selected cells"},
+			{"X", "Export all rows"},
+			{"enter", "Open cell detail view"},
+		}
+	} else if m.primaryKeyCol == "" {
+		categories[2].binds = []keyBind{
+			{"y", "Yank (copy) selection"},
+			{"x", "Export selected cells"},
+			{"X", "Export all rows"},
+			{"u", "Update cell value (no PK)"},
+			{"enter", "Open cell detail view"},
+		}
+	}
+
+	separatorWidth := m.width - 4
+	if separatorWidth < 0 {
+		separatorWidth = 0
+	}
+
+	renderColumn := func(cats []category) string {
+		var col strings.Builder
+		for _, cat := range cats {
+			col.WriteString(styles.TableHeader.Render(cat.name))
+			col.WriteString("\n")
+			for _, bind := range cat.binds {
+				line := fmt.Sprintf("  %-16s %s", bind.keys, bind.desc)
+				col.WriteString(styles.Faint.Render(line))
+				col.WriteString("\n")
+			}
+		}
+		return col.String()
+	}
+
+	colWidth := (separatorWidth - 2) / 2
+	leftStr := renderColumn([]category{categories[0], categories[1], categories[4]})
+	rightStr := renderColumn([]category{categories[2], categories[3]})
+	leftCol := lipgloss.NewStyle().Width(colWidth).Render(leftStr)
+	rightCol := lipgloss.NewStyle().Width(colWidth).Render(rightStr)
+
+	var b strings.Builder
+	b.WriteString(styles.Title.Render("Keyboard Shortcuts"))
+	b.WriteString("\n")
+	b.WriteString(styles.Separator.Render(strings.Repeat("─", separatorWidth)))
+	b.WriteString("\n")
+	b.WriteString(lipgloss.JoinHorizontal(lipgloss.Left, leftCol, rightCol))
+	b.WriteString("\n")
+	b.WriteString(styles.Separator.Render(strings.Repeat("─", separatorWidth)))
+	b.WriteString("\n")
+	b.WriteString(styles.Faint.Render("H / q / esc to close"))
+
+	return b.String()
 }
 
 func (m Model) renderDetailView() string {
