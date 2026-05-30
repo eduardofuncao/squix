@@ -2,6 +2,7 @@ package table
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/eduardofuncao/squix/internal/config"
 )
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -45,123 +46,126 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleSearchInput(msg)
 	}
 
-	// If in help overlay mode, handle specific keys
+	key := msg.String()
+
+	// ctrl+c always quits (safety net)
+	if key == "ctrl+c" {
+		return m, tea.Quit
+	}
+
+	// If in help overlay mode
 	if m.helpOverlayMode {
-		switch msg.String() {
-		case "H", "q", "esc":
-			m.helpOverlayMode = false
-			return m, nil
-		case "ctrl+c":
-			return m, tea.Quit
+		action, matched := m.keyMap.ResolveKey(config.ModeHelp, key)
+		if matched {
+			switch action {
+			case config.ActionHelpClose:
+				m.helpOverlayMode = false
+				return m, nil
+			}
 		}
 		return m, nil
 	}
 
-	// If in detailed view mode, handle specific keys
+	// If in detailed view mode
 	if m.detailViewMode {
-		switch msg.String() {
-		case "q", "esc":
-			return m.closeDetailView(), nil
-		case "enter":
-			// Close detail view and return to table
-			return m.closeDetailView(), nil
-		case "e":
-			// Edit the cell content
-			if m.tableName != "" && m.primaryKeyCol != "" {
-				return m.editFromDetailView()
+		action, matched := m.keyMap.ResolveKey(config.ModeDetail, key)
+		if matched {
+			switch action {
+			case config.ActionDetailClose:
+				return m.closeDetailView(), nil
+			case config.ActionDetailEdit:
+				if m.tableName != "" && m.primaryKeyCol != "" {
+					return m.editFromDetailView()
+				}
+				return m, nil
+			case config.ActionDetailYank:
+				return m.copySelection()
+			case config.ActionDetailScrollUp:
+				return m.scrollDetailViewUp(), nil
+			case config.ActionDetailScrollDown:
+				return m.scrollDetailViewDown(), nil
 			}
-			return m, nil
-		case "y":
-			return m.copySelection()
-		case "up", "k":
-			return m.scrollDetailViewUp(), nil
-		case "down", "j":
-			return m.scrollDetailViewDown(), nil
-		case "ctrl+c":
-			return m, tea.Quit
 		}
 		return m, nil
 	}
 
 	// Normal table navigation
-	switch msg.String() {
-	case "ctrl+c", "q":
-		return m, tea.Quit
-	case "?":
-		m.uiVisibility.FooterKeymaps = !m.uiVisibility.FooterKeymaps
-		return m, nil
+	action, matched := m.keyMap.ResolveKey(config.ModeNormal, key)
+	if matched {
+		switch action {
+		case config.ActionQuit:
+			return m, tea.Quit
+		case config.ActionToggleFooter:
+			m.uiVisibility.FooterKeymaps = !m.uiVisibility.FooterKeymaps
+			return m, nil
+		case config.ActionHelp:
+			m.helpOverlayMode = true
+			return m, nil
 
-	case "H":
-		m.helpOverlayMode = true
-		return m, nil
+		case config.ActionMoveUp:
+			return m.moveUp(), nil
+		case config.ActionMoveDown:
+			return m.moveDown(), nil
+		case config.ActionMoveLeft:
+			return m.moveLeft(), nil
+		case config.ActionMoveRight:
+			return m.moveRight(), nil
+		case config.ActionJumpFirstCol:
+			return m.jumpToFirstCol(), nil
+		case config.ActionJumpLastCol:
+			return m.jumpToLastCol(), nil
+		case config.ActionJumpFirstRow:
+			return m.jumpToFirstRow(), nil
+		case config.ActionJumpLastRow:
+			return m.jumpToLastRow(), nil
+		case config.ActionPageUp:
+			return m.pageUp(), nil
+		case config.ActionPageDown:
+			return m.pageDown(), nil
 
-	case "up", "k":
-		return m.moveUp(), nil
-	case "down", "j":
-		return m.moveDown(), nil
-	case "left", "h":
-		return m.moveLeft(), nil
-	case "right", "l":
-		return m.moveRight(), nil
+		case config.ActionVisualMode:
+			return m.toggleVisualMode()
+		case config.ActionVisualLineMode:
+			return m.toggleVisualLineMode()
 
-	case "home", "0", "_":
-		return m.jumpToFirstCol(), nil
-	case "end", "$":
-		return m.jumpToLastCol(), nil
-	case "g":
-		return m.jumpToFirstRow(), nil
-	case "G":
-		return m.jumpToLastRow(), nil
+		case config.ActionYank:
+			return m.copySelection()
+		case config.ActionExport:
+			return m.startExportFormatSelection()
+		case config.ActionExportAll:
+			return m.startExportAllFormatSelection()
 
-	case "pgup", "ctrl+u":
-		return m.pageUp(), nil
-	case "pgdown", "ctrl+d":
-		return m.pageDown(), nil
-
-	case "v":
-		return m.toggleVisualMode()
-	case "V":
-		return m.toggleVisualLineMode()
-
-	case "y":
-		return m.copySelection()
-	case "x":
-		return m.startExportFormatSelection()
-	case "X":
-		return m.startExportAllFormatSelection()
-
-	case "enter":
-		// If this is a tables list, select the table
-		if m.isTablesList {
-			if m.selectedRow >= 0 && m.selectedRow < m.numRows() {
-				// Get table name from the first column (should be "name")
-				m.selectedTableName = m.data[m.selectedRow][0]
-				return m, tea.Quit
+		case config.ActionEnter:
+			if m.isTablesList {
+				if m.selectedRow >= 0 && m.selectedRow < m.numRows() {
+					m.selectedTableName = m.data[m.selectedRow][0]
+					return m, tea.Quit
+				}
 			}
-		}
-		// Otherwise, show detail view (JSON viewer)
-		return m.showDetailView(), nil
+			return m.showDetailView(), nil
 
-	case "u":
-		return m.updateCell()
-	case "D":
-		return m.deleteRow()
-	case "e":
-		return m.editAndRerunQuery()
-	case "s":
-		return m.saveQuery()
-	case "/":
-		return m.startCellSearch(), nil
-	case "f":
-		return m.startColumnSearch(), nil
-	case "n":
-		return m.nextSearchMatch(), nil
-	case "N":
-		return m.prevSearchMatch(), nil
-	case ",":
-		return m.prevColumnMatch(), nil
-	case ";":
-		return m.nextColumnMatch(), nil
+		case config.ActionUpdate:
+			return m.updateCell()
+		case config.ActionDeleteRow:
+			return m.deleteRow()
+		case config.ActionEditSQL:
+			return m.editAndRerunQuery()
+		case config.ActionSaveQuery:
+			return m.saveQuery()
+
+		case config.ActionSearch:
+			return m.startCellSearch(), nil
+		case config.ActionSearchCol:
+			return m.startColumnSearch(), nil
+		case config.ActionNextMatch:
+			return m.nextSearchMatch(), nil
+		case config.ActionPrevMatch:
+			return m.prevSearchMatch(), nil
+		case config.ActionPrevColMatch:
+			return m.prevColumnMatch(), nil
+		case config.ActionNextColMatch:
+			return m.nextColumnMatch(), nil
+		}
 	}
 
 	return m, nil

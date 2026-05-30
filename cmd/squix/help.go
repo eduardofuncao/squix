@@ -331,6 +331,8 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  n / N                 " + styles.Faint.Render("Navigate to next/previous cell match"))
 		fmt.Println("  f                     " + styles.Faint.Render("Search column headers"))
 		fmt.Println("  ; / ,                 " + styles.Faint.Render("Navigate to next/previous column match"))
+		fmt.Println("  H                     " + styles.Faint.Render("Show keyboard shortcuts overlay"))
+		fmt.Println("  ?                     " + styles.Faint.Render("Toggle footer keybinds"))
 		fmt.Println("  Esc /Ctrl+c           " + styles.Faint.Render("Quit the table view"))
 		fmt.Println()
 		section("Examples")

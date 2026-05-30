@@ -52,6 +52,8 @@ Navigate query results with Vim-style keybindings, update cells in-place, delete
 - Primary key markers
 - Live cell editing
 - Visual selection mode
+- Help overlay (`H`) with context-aware keybind reference
+- Configurable keybindings via `config.yaml`
 
 ## Connection Switching
 

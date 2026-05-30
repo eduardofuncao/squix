@@ -18,6 +18,7 @@ func Render(
 	query db.Query,
 	columnWidth int,
 	visibility config.UIVisibility,
+	keyMap *config.KeyMap,
 	saveCallback func(query db.Query) (db.Query, error),
 	initialStatus ...string,
 ) (Model, error) {
@@ -32,6 +33,7 @@ func Render(
 		query,
 		columnWidth,
 		visibility,
+		keyMap,
 	)
 	model.saveQueryCallback = saveCallback
 	if len(initialStatus) > 0 && initialStatus[0] != "" {
@@ -53,8 +55,9 @@ func RenderTablesList(
 	query db.Query,
 	columnWidth int,
 	visibility config.UIVisibility,
+	keyMap *config.KeyMap,
 ) (Model, error) {
-	model := New(columns, nil, data, elapsed, conn, "", "", query, columnWidth, visibility)
+	model := New(columns, nil, data, elapsed, conn, "", "", query, columnWidth, visibility, keyMap)
 	model.isTablesList = true
 	p := tea.NewProgram(model)
 	finalModel, err := p.Run()

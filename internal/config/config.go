@@ -12,6 +12,37 @@ import (
 var CfgPath = os.ExpandEnv("$HOME/.config/squix/")
 var CfgFile = filepath.Join(CfgPath, "config.yaml")
 
+type KeybindingsConfig map[string][]string
+
+type stringOrSlice []string
+
+func (s *stringOrSlice) UnmarshalYAML(unmarshal func(any) error) error {
+	var single string
+	if err := unmarshal(&single); err == nil {
+		*s = []string{single}
+		return nil
+	}
+	var multi []string
+	if err := unmarshal(&multi); err != nil {
+		return err
+	}
+	*s = multi
+	return nil
+}
+
+func (kc *KeybindingsConfig) UnmarshalYAML(unmarshal func(any) error) error {
+	var raw map[string]stringOrSlice
+	if err := unmarshal(&raw); err != nil {
+		return err
+	}
+	result := make(map[string][]string, len(raw))
+	for k, v := range raw {
+		result[k] = []string(v)
+	}
+	*kc = result
+	return nil
+}
+
 type Config struct {
 	CurrentConnection  string                     `yaml:"current_connection"`
 	Connections        map[string]*ConnectionYAML `yaml:"connections"`
@@ -21,6 +52,8 @@ type Config struct {
 	DefaultRowLimit    int                        `yaml:"default_row_limit"`
 	DefaultColumnWidth int                        `yaml:"default_column_width"`
 	UIVisibility       UIVisibility               `yaml:"ui_visibility"`
+	Keybindings        KeybindingsConfig          `yaml:"keybindings,omitempty"`
+	KeyMap             *KeyMap                    `yaml:"-"`
 }
 
 type History struct {
@@ -94,6 +127,8 @@ func LoadConfig(path string) (*Config, error) {
 		cfg.UIVisibility.FooterStats = true
 		cfg.UIVisibility.FooterKeymaps = true
 	}
+
+	cfg.KeyMap = BuildKeyMap(cfg.Keybindings)
 
 	return &cfg, nil
 }

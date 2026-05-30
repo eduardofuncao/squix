@@ -93,7 +93,7 @@ func ExecuteSelect(sql, queryName string, params ExecutionParams) error {
 	statusMessage := ""
 
 	for {
-		model, err := table.Render(columns, columnTypes, data, elapsed, params.Connection, tableName, primaryKey, q, params.Config.DefaultColumnWidth, params.Config.UIVisibility, params.SaveCallback, statusMessage)
+		model, err := table.Render(columns, columnTypes, data, elapsed, params.Connection, tableName, primaryKey, q, params.Config.DefaultColumnWidth, params.Config.UIVisibility, params.Config.KeyMap, params.SaveCallback, statusMessage)
 		if err != nil {
 			return fmt.Errorf("error rendering table: %w", err)
 		}

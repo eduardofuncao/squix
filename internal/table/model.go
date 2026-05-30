@@ -60,6 +60,7 @@ type Model struct {
 	exportWaiting     exportWaitingFormatState
 	exportStatus      string
 	uiVisibility      config.UIVisibility
+	keyMap            *config.KeyMap
 	// Search state
 	searchMode       bool
 	searchQuery      string
@@ -81,7 +82,12 @@ func New(
 	query db.Query,
 	columnWidth int,
 	visibility config.UIVisibility,
+	keyMap *config.KeyMap,
 ) Model {
+	if keyMap == nil {
+		keyMap = config.BuildKeyMap(nil)
+	}
+
 	columnTypes := make([]string, len(columns))
 
 	// Use passed column types from result set if available (works for JOINs, CTEs, etc.)
@@ -150,6 +156,7 @@ func New(
 		cellWidth:        columnWidth,
 		isTablesList:     false,
 		uiVisibility:     visibility,
+		keyMap:            keyMap,
 		searchMode:       false,
 		searchQuery:      "",
 		searchMatches:    []CellPosition{},

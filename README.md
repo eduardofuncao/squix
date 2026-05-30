@@ -42,7 +42,7 @@
 
 - **Query Library** - Save and organize your most-used queries, with parameterized support
 - **Multi-Database** - Works with PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse, Firebird and DuckDB
-- **Table view TUI** - Keyboard focused navigation and search with vim-style bindings
+- **Table view TUI** - Keyboard focused navigation and search with configurable vim-style bindings
 - **In-Place Editing** - Update cells, delete rows and edit your SQL directly from the results table
 - **Export your data** - Export your data as CSV, JSON, SQL, Markdown or HTML tables
 - **Connection Switching** - Manage multiple databases and switch instantly
@@ -223,6 +223,10 @@ e          # Edit the query and re-run it
 /          # Search cell's contents (n/N to cycle through results)
 f          # Search column names (,/; to cycle through results)
 
+# Help
+H          # Show keyboard shortcuts overlay
+?          # Toggle footer keybinds
+
 # Exit
 q          # Quit back to terminal
 ```
@@ -315,7 +319,7 @@ as part of your workflow.
 - [x] Duckdb support
 
 ### v0.5.0 - Scrat 🧊
-- [ ] Configurable keybinds
+- [x] Configurable keybinds
 - [ ] Migrate to bubbletea v2
 - [ ] Return more info on exec statements (insert, update, delete, etc.)
 - [ ] Homebrew custom tap and nixpkgs entry

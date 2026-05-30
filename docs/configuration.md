@@ -33,3 +33,20 @@ ui_visibility:
 ```
 
 **Tip:** Press `?` in the table view to toggle the keymaps help on/off.
+
+## Keybindings `keybindings`
+
+Customize keyboard shortcuts in the table view. Each action accepts a single key or a list of keys:
+
+```yaml
+keybindings:
+  move_up: "up"
+  move_down: "down"
+  move_left: "left"
+  move_right: "right"
+  search: "ctrl+f"
+  help: "tab"
+  export: ["ctrl+e", "ctrl+x"]
+```
+
+Overrides only the actions you specify — everything else keeps its default binding. See [Keybindings](keybindings.md) for the full action reference and details on modes.

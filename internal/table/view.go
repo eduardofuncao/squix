@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/parser"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
@@ -204,7 +205,14 @@ func (m Model) renderFooter() string {
 			displayValue = displayValue[:maxPreviewWidth-3] + "..."
 		}
 
-		cellPreview = fmt.Sprintf("%s%s %s\n",
+		modeIndicator := ""
+		if m.visualLineMode {
+			modeIndicator = styles.SearchMatch.Render("-- V-LINE -- ")
+		} else if m.visualMode {
+			modeIndicator = styles.SearchMatch.Render("-- VISUAL -- ")
+		}
+		cellPreview = fmt.Sprintf("%s%s%s %s\n",
+			modeIndicator,
 			styles.Faint.Render(columnType),
 			styles.Faint.Render(fkRef),
 			styles.TableCell.Render(displayValue))
@@ -223,12 +231,20 @@ func (m Model) renderFooter() string {
 	// Build keymaps info (conditional)
 	keymapsInfo := ""
 	if m.uiVisibility.FooterKeymaps {
-		pairs := []string{"hjkl:←↓↑→", "u:update", "D:delete", "v:select", "y:yank", "x:export", "/:search", "H:help", "q:quit"}
+		km := m.keyMap
 		var parts []string
-		for _, p := range pairs {
-			key, desc, _ := strings.Cut(p, ":")
+		addEntry := func(key, desc string) {
 			parts = append(parts, styles.TableHeader.Render(key)+":"+styles.Faint.Render(desc))
 		}
+		addEntry(km.FirstKey(config.ActionMoveLeft)+km.FirstKey(config.ActionMoveDown)+km.FirstKey(config.ActionMoveUp)+km.FirstKey(config.ActionMoveRight), "←↓↑→")
+		addEntry(km.FirstKey(config.ActionUpdate), "update")
+		addEntry(km.FirstKey(config.ActionDeleteRow), "delete")
+		addEntry(km.FirstKey(config.ActionVisualMode), "visual")
+		addEntry(km.FirstKey(config.ActionYank), "copy")
+		addEntry(km.FirstKey(config.ActionExport), "export")
+		addEntry(km.FirstKey(config.ActionSearch), "search")
+		addEntry(km.FirstKey(config.ActionHelp), "help")
+		addEntry(km.FirstKey(config.ActionQuit), "quit")
 		keymapsInfo = "  " + strings.Join(parts, " ")
 	}
 
@@ -377,63 +393,69 @@ func (m Model) renderHelpOverlay() string {
 		binds []keyBind
 	}
 
+	km := m.keyMap
+
 	categories := []category{
 		{"Navigation", []keyBind{
-			{"h j k l", "Move left/down/up/right"},
-			{"g / G", "Jump to first/last row"},
-			{"0 / $", "Jump to first/last column"},
-			{"pgup / ctrl+u", "Page up"},
-			{"pgdown / ctrl+d", "Page down"},
+			{km.FirstKey(config.ActionMoveLeft), "Move left"},
+			{km.FirstKey(config.ActionMoveDown), "Move down"},
+			{km.FirstKey(config.ActionMoveUp), "Move up"},
+			{km.FirstKey(config.ActionMoveRight), "Move right"},
+			{km.DisplayKeys(config.ActionJumpFirstRow) + " / " + km.DisplayKeys(config.ActionJumpLastRow), "Jump to first/last row"},
+			{km.DisplayKeys(config.ActionJumpFirstCol), "Jump to first column"},
+			{km.DisplayKeys(config.ActionJumpLastCol), "Jump to last column"},
+			{km.DisplayKeys(config.ActionPageUp), "Page up"},
+			{km.DisplayKeys(config.ActionPageDown), "Page down"},
 		}},
 		{"Selection", []keyBind{
-			{"v", "Visual (characterwise) mode"},
-			{"V", "Visual line mode"},
+			{km.DisplayKeys(config.ActionVisualMode), "Visual (characterwise) mode"},
+			{km.DisplayKeys(config.ActionVisualLineMode), "Visual line mode"},
 		}},
 		{"Actions", []keyBind{
-			{"y", "Yank (copy) selection"},
-			{"x", "Export selected cells"},
-			{"X", "Export all rows"},
-			{"u", "Update cell value"},
-			{"D", "Delete row"},
-			{"enter", "Open cell detail view"},
+			{km.DisplayKeys(config.ActionYank), "Yank (copy) selection"},
+			{km.DisplayKeys(config.ActionExport), "Export selected cells"},
+			{km.DisplayKeys(config.ActionExportAll), "Export all rows"},
+			{km.DisplayKeys(config.ActionUpdate), "Update cell value"},
+			{km.DisplayKeys(config.ActionDeleteRow), "Delete row"},
+			{km.DisplayKeys(config.ActionEnter), "Open cell detail view"},
 		}},
 		{"Query", []keyBind{
-			{"e", "Edit and re-run SQL"},
-			{"s", "Save query"},
-			{"/", "Search cells"},
-			{"f", "Search columns"},
-			{"n / N", "Next/previous search match"},
-			{", / ;", "Previous/next column match"},
+			{km.DisplayKeys(config.ActionEditSQL), "Edit and re-run SQL"},
+			{km.DisplayKeys(config.ActionSaveQuery), "Save query"},
+			{km.DisplayKeys(config.ActionSearch), "Search cells"},
+			{km.DisplayKeys(config.ActionSearchCol), "Search columns"},
+			{km.DisplayKeys(config.ActionNextMatch) + " / " + km.DisplayKeys(config.ActionPrevMatch), "Next/previous search match"},
+			{km.DisplayKeys(config.ActionPrevColMatch) + " / " + km.DisplayKeys(config.ActionNextColMatch), "Previous/next column match"},
 		}},
 		{"Other", []keyBind{
-			{"?", "Toggle footer keybinds"},
-			{"H", "Show/hide this help"},
-			{"q / ctrl+c", "Quit"},
+			{km.DisplayKeys(config.ActionToggleFooter), "Toggle footer keybinds"},
+			{km.DisplayKeys(config.ActionHelp), "Show/hide this help"},
+			{km.DisplayKeys(config.ActionQuit), "Quit"},
 		}},
 	}
 
 	// Context adjustments
 	if m.isTablesList {
 		categories[2].binds = []keyBind{
-			{"y", "Yank (copy) selection"},
-			{"x", "Export selected cells"},
-			{"X", "Export all rows"},
-			{"enter", "Select table"},
+			{km.DisplayKeys(config.ActionYank), "Yank (copy) selection"},
+			{km.DisplayKeys(config.ActionExport), "Export selected cells"},
+			{km.DisplayKeys(config.ActionExportAll), "Export all rows"},
+			{km.DisplayKeys(config.ActionEnter), "Select table"},
 		}
 	} else if m.tableName == "" {
 		categories[2].binds = []keyBind{
-			{"y", "Yank (copy) selection"},
-			{"x", "Export selected cells"},
-			{"X", "Export all rows"},
-			{"enter", "Open cell detail view"},
+			{km.DisplayKeys(config.ActionYank), "Yank (copy) selection"},
+			{km.DisplayKeys(config.ActionExport), "Export selected cells"},
+			{km.DisplayKeys(config.ActionExportAll), "Export all rows"},
+			{km.DisplayKeys(config.ActionEnter), "Open cell detail view"},
 		}
 	} else if m.primaryKeyCol == "" {
 		categories[2].binds = []keyBind{
-			{"y", "Yank (copy) selection"},
-			{"x", "Export selected cells"},
-			{"X", "Export all rows"},
-			{"u", "Update cell value (no PK)"},
-			{"enter", "Open cell detail view"},
+			{km.DisplayKeys(config.ActionYank), "Yank (copy) selection"},
+			{km.DisplayKeys(config.ActionExport), "Export selected cells"},
+			{km.DisplayKeys(config.ActionExportAll), "Export all rows"},
+			{km.DisplayKeys(config.ActionUpdate), "Update cell value (no PK)"},
+			{km.DisplayKeys(config.ActionEnter), "Open cell detail view"},
 		}
 	}
 
@@ -471,7 +493,7 @@ func (m Model) renderHelpOverlay() string {
 	b.WriteString("\n")
 	b.WriteString(styles.Separator.Render(strings.Repeat("─", separatorWidth)))
 	b.WriteString("\n")
-	b.WriteString(styles.Faint.Render("H / q / esc to close"))
+	b.WriteString(styles.Faint.Render(km.DisplayKeys(config.ActionHelpClose) + " to close"))
 
 	return b.String()
 }
@@ -577,20 +599,16 @@ func (m Model) renderDetailView() string {
 		)
 	}
 
-	hjkl := styles.TableHeader.Render("kj↑↓") + styles.Faint.Render(" scroll")
+	hjkl := styles.TableHeader.Render(m.keyMap.FirstKey(config.ActionDetailScrollDown)+"/"+m.keyMap.FirstKey(config.ActionDetailScrollUp)) + styles.Faint.Render(" scroll")
 
 	edit := ""
 	if m.tableName != "" && m.primaryKeyCol != "" {
-		edit = styles.TableHeader.Render("e") + styles.Faint.Render(" edit")
+		edit = styles.TableHeader.Render(m.keyMap.FirstKey(config.ActionDetailEdit)) + styles.Faint.Render(" edit")
 	}
 
-	yank := styles.TableHeader.Render("y") + styles.Faint.Render(" yank")
+	yank := styles.TableHeader.Render(m.keyMap.FirstKey(config.ActionDetailYank)) + styles.Faint.Render(" yank")
 
-	quit := styles.TableHeader.Render(
-		"q/esc/enter",
-	) + styles.Faint.Render(
-		" close",
-	)
+	quit := styles.TableHeader.Render(m.keyMap.DisplayKeys(config.ActionDetailClose)) + styles.Faint.Render(" close")
 
 	footer := fmt.Sprintf("\n%s  %s  %s  %s  %s", scrollInfo, hjkl, edit, yank, quit)
 	b.WriteString(footer)
