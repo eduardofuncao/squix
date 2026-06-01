@@ -89,6 +89,19 @@ CGO_ENABLED=0 go build -o squix ./cmd/squix
 ```
 </details>
 
+<details>
+<summary>Nixpkgs</summary>
+
+Squix is available in [nixpkgs](https://search.nixos.org/packages?query=squix) (v0.4.0-beta+).
+
+```bash
+# Try it
+nix-shell -p squix
+
+# Or with flakes
+nix run nixpkgs#squix
+```
+</details>
 
 <details>
 <summary>Nix / NixOS (Flake)</summary>
@@ -169,6 +182,16 @@ outputs = { self, nixpkgs, squix, ... }: {
 ```
 
 Then apply: home-manager switch
+</details>
+
+<details>
+<summary>Homebrew</summary>
+
+```bash
+brew tap eduardofuncao/squix
+brew install squix
+```
+
 </details>
 
 <details>
@@ -322,7 +345,9 @@ as part of your workflow.
 - [x] Configurable keybinds
 - [ ] Migrate to bubbletea v2
 - [ ] Return more info on exec statements (insert, update, delete, etc.)
-- [ ] Homebrew custom tap and nixpkgs entry
+- [x] Homebrew custom tap
+- [x] nixpkgs entry
+- [ ] Handle windows env vars seamlessly
 - [ ] More options to encrypt data in the config file
 
 ---
