@@ -4,14 +4,30 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 )
 
-func GetEditorCommand() string {
-	editorCmd := os.Getenv("EDITOR")
-	if editorCmd == "" {
-		editorCmd = "vim"
+func defaultEditor() string {
+	if runtime.GOOS == "windows" {
+		return "edit"
 	}
-	return editorCmd
+	return "vim"
+}
+
+func GetEditorCommand() string {
+	if editorCmd := os.Getenv("EDITOR"); editorCmd != "" {
+		return editorCmd
+	}
+	return defaultEditor()
+}
+
+func CheckEditor() (string, error) {
+	editorCmd := GetEditorCommand()
+	_, err := exec.LookPath(editorCmd)
+	if err != nil {
+		return "", fmt.Errorf("editor %q not found in PATH. Install vim or Microsoft edit (https://github.com/microsoft/edit), or set $EDITOR", editorCmd)
+	}
+	return editorCmd, nil
 }
 
 func EditTempFile(content, prefix string) (string, error) {

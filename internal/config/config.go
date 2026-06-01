@@ -4,13 +4,25 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/eduardofuncao/squix/internal/styles"
 	"gopkg.in/yaml.v2"
 )
 
-var CfgPath = os.ExpandEnv("$HOME/.config/squix/")
+var CfgPath = initCfgPath()
 var CfgFile = filepath.Join(CfgPath, "config.yaml")
+
+func initCfgPath() string {
+	if runtime.GOOS == "windows" {
+		dir, err := os.UserConfigDir()
+		if err != nil {
+			dir = os.ExpandEnv("$HOME/.config")
+		}
+		return filepath.Join(dir, "squix")
+	}
+	return os.ExpandEnv("$HOME/.config/squix/")
+}
 
 type KeybindingsConfig map[string][]string
 

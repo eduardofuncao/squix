@@ -10,6 +10,7 @@ import (
 
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/eduardofuncao/squix/internal/editor"
 )
 
 func (m Model) moveUp() Model {
@@ -280,10 +281,7 @@ func (m Model) editFromDetailView() (Model, tea.Cmd) {
 		pkValue,
 	)
 
-	editorCmd := os.Getenv("EDITOR")
-	if editorCmd == "" {
-		editorCmd = "vim"
-	}
+	editorCmd := editor.GetEditorCommand()
 
 	tmpFile, err := os.CreateTemp("", "squix-update-*.sql")
 	if err != nil {

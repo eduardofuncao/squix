@@ -56,9 +56,9 @@ func (a *App) editSingleQuery(selector string) {
 	tmpFile.Close()
 
 	// Open editor
-	editorCmd := os.Getenv("EDITOR")
-	if editorCmd == "" {
-		editorCmd = "vim"
+	editorCmd, err := editor.CheckEditor()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	cmd := exec.Command(editorCmd, tmpPath)
@@ -106,9 +106,9 @@ func (a *App) editSingleQuery(selector string) {
 }
 
 func (a *App) editQueries() {
-	editorCmd := os.Getenv("EDITOR")
-	if editorCmd == "" {
-		editorCmd = "vim"
+	editorCmd, err := editor.CheckEditor()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	a.editQueriesWithEditor(editorCmd)

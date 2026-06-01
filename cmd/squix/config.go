@@ -7,13 +7,14 @@ import (
 	"os/exec"
 
 	"github.com/eduardofuncao/squix/internal/config"
+	"github.com/eduardofuncao/squix/internal/editor"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
 func (a *App) handleConfig() {
-	editorCmd := os.Getenv("EDITOR")
-	if editorCmd == "" {
-		editorCmd = "vim"
+	editorCmd, err := editor.CheckEditor()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Open config file in editor

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/eduardofuncao/squix/internal/editor"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
@@ -22,10 +23,7 @@ func (m Model) deleteRow() (tea.Model, tea.Cmd) {
 
 	deleteStmt := m.buildDeleteStatement()
 
-	editorCmd := os.Getenv("EDITOR")
-	if editorCmd == "" {
-		editorCmd = "vim"
-	}
+	editorCmd := editor.GetEditorCommand()
 
 	tmpFile, err := os.CreateTemp("", "squix-delete-*.sql")
 	if err != nil {

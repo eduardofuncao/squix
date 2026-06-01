@@ -3,10 +3,21 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 
+	"github.com/eduardofuncao/squix/internal/editor"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
+
+func configPathDisplay() string {
+	if runtime.GOOS == "windows" {
+		dir, _ := os.UserConfigDir()
+		return filepath.Join(dir, "squix", "config.yaml")
+	}
+	return "~/.config/squix/config.yaml"
+}
 
 func (a *App) handleHelp() {
 	if len(os.Args) == 2 {
@@ -258,7 +269,7 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println()
 		section("Description")
 		fmt.Println(
-			"  - If [query] is omitted, squix opens $EDITOR (default: vim) so you",
+			fmt.Sprintf("  - If [query] is omitted, squix opens $EDITOR (default: %s) so you", editor.GetEditorCommand()),
 		)
 		fmt.Println("    can write the query interactively.")
 		fmt.Println("  - Each query gets a numeric ID as well as a name.")
@@ -501,7 +512,7 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println()
 		section("Description")
 		fmt.Println(
-			"  Opens the configuration file (~/.config/squix/config.yaml) in your editor.",
+			fmt.Sprintf("  Opens the configuration file (%s) in your editor.", configPathDisplay()),
 		)
 		fmt.Println("  Allows you to edit connections, color schemes, and other settings.")
 		fmt.Println()
