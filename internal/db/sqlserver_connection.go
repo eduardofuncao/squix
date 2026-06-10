@@ -432,6 +432,11 @@ func (s *SQLServerConnection) ApplyRowLimit(sql string, limit int) string {
 		return sql
 	}
 
+ 	// Don't apply row limit if select-statement contains distinct
+	if strings.Contains(trimmedSQL, "DISTINCT") {
+		return sql
+	}
+
 	upperSQL := strings.ToUpper(sql)
 
 	if strings.Contains(upperSQL, " TOP ") {
