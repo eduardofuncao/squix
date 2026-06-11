@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -10,11 +12,23 @@ import (
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/run"
 	"github.com/eduardofuncao/squix/internal/styles"
+	"github.com/eduardofuncao/squix/internal/table"
 )
 
 func (a *App) handleExplore() {
 	if len(os.Args) < 3 {
 		a.listTablesAndViews()
+		return
+	}
+
+	// Check if argument is a supported file type
+	if ext, ok := getSupportedExtension(os.Args[2]); ok {
+		if _, err := os.Stat(os.Args[2]); err != nil {
+			printError("File not found: %s", os.Args[2])
+		}
+		if err := a.handleExploreFile(os.Args[2], ext); err != nil {
+			printError("%v", err)
+		}
 		return
 	}
 
@@ -160,4 +174,72 @@ func (a *App) formatTableList(items []string) {
 	if len(items)%numColumns != 0 {
 		fmt.Println()
 	}
+}
+
+var supportedFileTypes = map[string]bool{
+	".csv": true,
+	// ".json": true, // Future support
+}
+
+func getSupportedExtension(arg string) (string, bool) {
+	ext := strings.ToLower(filepath.Ext(arg))
+	if supported, ok := supportedFileTypes[ext]; ok && supported {
+		return ext, true
+	}
+	return "", false
+}
+
+func parseCSV(path string) (columns []string, data [][]string, err error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not open CSV file: %w", err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.LazyQuotes = true
+	reader.TrimLeadingSpace = true
+
+	// Read header row
+	columns, err = reader.Read()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not read CSV header: %w", err)
+	}
+
+	// Read data rows
+	data, err = reader.ReadAll()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not read CSV data: %w", err)
+	}
+
+	return columns, data, nil
+}
+
+func (a *App) handleExploreFile(path string, ext string) error {
+	columns, data, err := parseCSV(path)
+	if err != nil {
+		return err
+	}
+
+	// Render table with nil connection (read-only mode)
+	columnTypes := make([]string, len(columns))
+	_, err = table.Render(
+		columns,
+		columnTypes,
+		data,
+		0, // elapsed time
+		nil, // no database connection
+		"", // no table name
+		"", // no primary key
+		db.Query{}, // empty query
+		a.config.DefaultColumnWidth,
+		a.config.UIVisibility,
+		a.config.KeyMap, // use config keybindings if available
+		nil, // no save callback
+	)
+	if err != nil {
+		return fmt.Errorf("could not render table: %w", err)
+	}
+
+	return nil
 }

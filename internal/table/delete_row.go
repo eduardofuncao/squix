@@ -138,6 +138,10 @@ func (m Model) handleDeleteComplete(msg deleteCompleteMsg) (tea.Model, tea.Cmd) 
 }
 
 func (m Model) buildDeleteStatement() string {
+	if m.dbConnection == nil {
+		return ""
+	}
+
 	pkValue := ""
 	var multipleMatches bool
 
@@ -168,6 +172,10 @@ func (m Model) buildDeleteStatement() string {
 }
 
 func (m Model) executeDelete(sql string) error {
+	if m.dbConnection == nil {
+		return fmt.Errorf("no database connection")
+	}
+
 	var result strings.Builder
 	for line := range strings.SplitSeq(sql, "\n") {
 		trimmed := strings.TrimSpace(line)

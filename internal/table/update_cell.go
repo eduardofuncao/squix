@@ -126,6 +126,10 @@ func (m Model) blinkCmd() tea.Cmd {
 }
 
 func (m Model) buildUpdateStatement() string {
+	if m.dbConnection == nil {
+		return ""
+	}
+
 	columnName := m.columns[m.selectedCol]
 	currentValue := m.data[m.selectedRow][m.selectedCol]
 
@@ -162,6 +166,10 @@ func (m Model) buildUpdateStatement() string {
 }
 
 func (m Model) fetchPrimaryKeyValue() (string, bool) {
+	if m.dbConnection == nil {
+		return "", false
+	}
+
 	if m.primaryKeyCol == "" || m.tableName == "" {
 		return "", false
 	}
@@ -214,6 +222,10 @@ func escapeSQLValue(val string) string {
 }
 
 func (m Model) executeUpdate(sql string) error {
+	if m.dbConnection == nil {
+		return fmt.Errorf("no database connection")
+	}
+
 	var result strings.Builder
 	for line := range strings.SplitSeq(sql, "\n") {
 		trimmed := strings.TrimSpace(line)
