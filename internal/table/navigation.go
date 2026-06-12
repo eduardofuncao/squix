@@ -243,6 +243,10 @@ func (m Model) showDetailView() Model {
 }
 
 func (m Model) editFromDetailView() (Model, tea.Cmd) {
+	if m.dbConnection == nil {
+		return m, nil
+	}
+
 	if m.selectedRow < 0 || m.selectedRow >= len(m.data) ||
 		m.selectedCol < 0 || m.selectedCol >= len(m.data[m.selectedRow]) {
 		return m, nil

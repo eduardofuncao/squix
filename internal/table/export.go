@@ -182,10 +182,14 @@ func (m Model) executeExportForFormat(key string) (Model, tea.Cmd) {
 func (m Model) formatExportContent(headers []string, rows [][]string, format exportFormat) (string, error) {
 	opts := FormatOptions{
 		QueryName: m.currentQuery.Name,
-		DbType:    m.dbConnection.GetDbType(),
-		DbName:    m.dbConnection.GetName(),
 		TableName: m.tableName,
 	}
+
+	if m.dbConnection != nil {
+		opts.DbType = m.dbConnection.GetDbType()
+		opts.DbName = m.dbConnection.GetName()
+	}
+
 	return FormatExport(headers, rows, string(format), opts)
 }
 

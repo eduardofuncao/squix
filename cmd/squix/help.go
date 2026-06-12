@@ -523,13 +523,14 @@ func (a *App) PrintCommandHelp() {
 		section("Command: explore")
 		fmt.Println(
 			styles.Faint.Render(
-				"Explore your database schema and query tables interactively.",
+				"Explore your database schema and query tables interactively, or view CSV files.",
 			),
 		)
 		fmt.Println()
 		section("Usage")
 		fmt.Println("  squix explore")
 		fmt.Println("  squix explore <table> [--limit | -l N]")
+		fmt.Println("  squix explore <file.csv>")
 		fmt.Println()
 		section("Description")
 		fmt.Println(
@@ -539,6 +540,9 @@ func (a *App) PrintCommandHelp() {
 			"  With a table name, queries the table and shows results in an",
 		)
 		fmt.Println("  interactive table view (similar to 'squix run').")
+		fmt.Println(
+			"  With a file path, opens CSV files in read-only mode (no database connection required).",
+		)
 		fmt.Println()
 		fmt.Println(
 			"  --limit, -l N  " + styles.Faint.Render(
@@ -550,6 +554,7 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  squix explore                  # list all tables and views")
 		fmt.Println("  squix explore employees        # query employees table")
 		fmt.Println("  squix explore orders -l 50     # query with 50 row limit")
+		fmt.Println("  squix explore data.csv         # view CSV file")
 
 	case "explain":
 		section("Command: explain")
