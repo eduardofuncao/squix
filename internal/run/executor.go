@@ -116,11 +116,12 @@ func ExecuteNonSelect(params ExecutionParams) {
 	done := make(chan struct{})
 	go spinner.CircleWaitWithTimer(done)
 
+	var result stdlib.Result
 	var err error
 	if params.Args != nil && len(params.Args) > 0 {
-		err = params.Connection.Exec(params.Query.SQL, params.Args...)
+		result, err = params.Connection.Exec(params.Query.SQL, params.Args...)
 	} else {
-		err = params.Connection.Exec(params.Query.SQL)
+		result, err = params.Connection.Exec(params.Query.SQL)
 	}
 	done <- struct{}{}
 	fmt.Print("\r\033[2K")
@@ -131,7 +132,12 @@ func ExecuteNonSelect(params ExecutionParams) {
 		return
 	}
 
-	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ Command executed successfully in %.2fs", elapsed.Seconds())))
+	rowsAffected, _ := result.RowsAffected()
+	noun := "row"
+	if rowsAffected != 1 {
+		noun = "rows"
+	}
+	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ %d %s affected in %.2fs", rowsAffected, noun, elapsed.Seconds())))
 	fmt.Println(styles.Faint.Render("\nExecuted SQL:"))
 	fmt.Println(parser.HighlightSQL(params.Query.SQL))
 }
@@ -163,9 +169,9 @@ func ExecuteExportWithOpenConn(params ExecutionParams, format string) error {
 	start := time.Now()
 	var err error
 	if params.Args != nil && len(params.Args) > 0 {
-		err = params.Connection.Exec(params.Query.SQL, params.Args...)
+		_, err = params.Connection.Exec(params.Query.SQL, params.Args...)
 	} else {
-		err = params.Connection.Exec(params.Query.SQL)
+		_, err = params.Connection.Exec(params.Query.SQL)
 	}
 	elapsed := time.Since(start)
 

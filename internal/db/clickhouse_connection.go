@@ -80,9 +80,8 @@ func (c *ClickHouseConnection) ExecQuery(sql string, args ...any) (*sql.Rows, er
 	return c.db.Query(sql, args...)
 }
 
-func (c *ClickHouseConnection) Exec(sql string, args ...any) error {
-	_, err := c.db.Exec(sql, args...)
-	return err
+func (c *ClickHouseConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return c.db.Exec(sql, args...)
 }
 
 func (c *ClickHouseConnection) GetTableMetadata(tableName string) (*TableMetadata, error) {

@@ -74,9 +74,8 @@ func (m *MySQLConnection) ExecQuery(
 	return m.db.Query(sql, args...)
 }
 
-func (m *MySQLConnection) Exec(sql string, args ...any) error {
-	_, err := m.db.Exec(sql, args...)
-	return err
+func (m *MySQLConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return m.db.Exec(sql, args...)
 }
 
 func (m *MySQLConnection) GetTableMetadata(

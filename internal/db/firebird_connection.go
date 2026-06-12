@@ -67,9 +67,8 @@ func (f *FirebirdConnection) ExecQuery(sqlStr string, args ...any) (*sql.Rows, e
 	return f.db.Query(sqlStr, args...)
 }
 
-func (f *FirebirdConnection) Exec(sqlStr string, args ...any) error {
-	_, err := f.db.Exec(sqlStr, args...)
-	return err
+func (f *FirebirdConnection) Exec(sqlStr string, args ...any) (sql.Result, error) {
+	return f.db.Exec(sqlStr, args...)
 }
 
 func (f *FirebirdConnection) SetSchema(schema string) {

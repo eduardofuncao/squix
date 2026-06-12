@@ -60,9 +60,8 @@ func (s *SQLiteConnection) ExecQuery(
 	return s.db.Query(sql, args...)
 }
 
-func (s *SQLiteConnection) Exec(sql string, args ...any) error {
-	_, err := s.db.Exec(sql, args...)
-	return err
+func (s *SQLiteConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return s.db.Exec(sql, args...)
 }
 
 func (s *SQLiteConnection) GetTableMetadata(

@@ -102,10 +102,12 @@ func (m Model) handleEditorComplete(msg editorCompleteMsg) (tea.Model, tea.Cmd) 
 
 	m.lastExecutedQuery = m.cleanSQLForDisplay(msg.sql)
 
-	if err := m.executeUpdate(msg.sql); err != nil {
+	statusMsg, err := m.executeUpdate(msg.sql)
+	if err != nil {
 		printError("Could not execute update: %v", err)
 		return m, nil
 	}
+	m.statusMessage = statusMsg
 
 	m.data[m.selectedRow][msg.colIndex] = newValue
 
@@ -221,9 +223,9 @@ func escapeSQLValue(val string) string {
 	return strings.ReplaceAll(val, "'", "''")
 }
 
-func (m Model) executeUpdate(sql string) error {
+func (m Model) executeUpdate(sql string) (string, error) {
 	if m.dbConnection == nil {
-		return fmt.Errorf("no database connection")
+		return "", fmt.Errorf("no database connection")
 	}
 
 	var result strings.Builder
@@ -239,10 +241,20 @@ func (m Model) executeUpdate(sql string) error {
 	cleanSQL = strings.TrimSuffix(cleanSQL, ";")
 
 	if cleanSQL == "" {
-		return fmt.Errorf("no SQL to execute")
+		return "", fmt.Errorf("no SQL to execute")
 	}
 
-	return m.dbConnection.Exec(cleanSQL)
+	start := time.Now()
+	sqlResult, err := m.dbConnection.Exec(cleanSQL)
+	if err != nil {
+		return "", err
+	}
+
+	rowsAffected, _ := sqlResult.RowsAffected()
+	elapsed := time.Since(start)
+	msg := styles.Success.Render(fmt.Sprintf("✓ Updated %d row(s) in %.2fs", rowsAffected, elapsed.Seconds()))
+
+	return msg, nil
 }
 
 func validateUpdateStatement(sql string) error {

@@ -161,9 +161,8 @@ func (s *SnowflakeConnection) ExecQuery(sql string, args ...any) (*sql.Rows, err
 	return s.db.Query(sql, args...)
 }
 
-func (s *SnowflakeConnection) Exec(sql string, args ...any) error {
-	_, err := s.db.Exec(sql, args...)
-	return err
+func (s *SnowflakeConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return s.db.Exec(sql, args...)
 }
 
 // scanShowColumns runs after a Snowflake SHOW command and extracts named

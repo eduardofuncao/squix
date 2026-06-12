@@ -59,9 +59,8 @@ func (d *DuckDBConnection) ExecQuery(sql string, args ...any) (*sql.Rows, error)
 	return d.db.Query(sql, args...)
 }
 
-func (d *DuckDBConnection) Exec(sql string, args ...any) error {
-	_, err := d.db.Exec(sql, args...)
-	return err
+func (d *DuckDBConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return d.db.Exec(sql, args...)
 }
 
 func (d *DuckDBConnection) GetTableMetadata(tableName string) (*TableMetadata, error) {

@@ -66,9 +66,8 @@ func (oc *OracleConnection) ExecQuery(sql string, args ...any) (*sql.Rows, error
 	return oc.db.Query(sql, args...)
 }
 
-func (oc *OracleConnection) Exec(sql string, args ...any) error {
-	_, err := oc.db.Exec(sql, args...)
-	return err
+func (oc *OracleConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return oc.db.Exec(sql, args...)
 }
 
 func (oc *OracleConnection) GetTableMetadata(tableName string) (*TableMetadata, error) {

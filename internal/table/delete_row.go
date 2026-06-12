@@ -114,10 +114,12 @@ func (m Model) handleDeleteComplete(msg deleteCompleteMsg) (tea.Model, tea.Cmd) 
 
 	m.lastExecutedQuery = m.cleanSQLForDisplay(msg.sql)
 
-	if err := m.executeDelete(msg.sql); err != nil {
+	statusMsg, err := m.executeDelete(msg.sql)
+	if err != nil {
 		printError("Could not execute delete: %v", err)
 		return m, nil
 	}
+	m.statusMessage = statusMsg
 
 	// Successfully deleted - update the model data
 	m.data = append(m.data[:msg.rowIndex], m.data[msg.rowIndex+1:]...)
@@ -171,9 +173,9 @@ func (m Model) buildDeleteStatement() string {
 	return stmt
 }
 
-func (m Model) executeDelete(sql string) error {
+func (m Model) executeDelete(sql string) (string, error) {
 	if m.dbConnection == nil {
-		return fmt.Errorf("no database connection")
+		return "", fmt.Errorf("no database connection")
 	}
 
 	var result strings.Builder
@@ -189,10 +191,20 @@ func (m Model) executeDelete(sql string) error {
 	cleanSQL = strings.TrimSuffix(cleanSQL, ";")
 
 	if cleanSQL == "" {
-		return fmt.Errorf("no SQL to execute")
+		return "", fmt.Errorf("no SQL to execute")
 	}
 
-	return m.dbConnection.Exec(cleanSQL)
+	start := time.Now()
+	sqlResult, err := m.dbConnection.Exec(cleanSQL)
+	if err != nil {
+		return "", err
+	}
+
+	rowsAffected, _ := sqlResult.RowsAffected()
+	elapsed := time.Since(start)
+	msg := styles.Success.Render(fmt.Sprintf("✓ Deleted %d row(s) in %.2fs", rowsAffected, elapsed.Seconds()))
+
+	return msg, nil
 }
 
 func validateDeleteStatement(sql string) error {

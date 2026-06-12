@@ -58,9 +58,8 @@ func (s *SQLServerConnection) ExecQuery(sql string, args ...any) (*sql.Rows, err
 	return s.db.Query(sql, args...)
 }
 
-func (s *SQLServerConnection) Exec(sql string, args ...any) error {
-	_, err := s.db.Exec(sql, args...)
-	return err
+func (s *SQLServerConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return s.db.Exec(sql, args...)
 }
 
 func (s *SQLServerConnection) GetTableMetadata(tableName string) (*TableMetadata, error) {

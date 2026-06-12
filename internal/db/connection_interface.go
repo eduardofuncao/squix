@@ -8,7 +8,7 @@ type DatabaseConnection interface {
 	Close() error
 	Query(queryName string, args ...any) (any, error)
 	ExecQuery(sql string, args ...any) (*sql.Rows, error)
-	Exec(sql string, args ...any) error
+	Exec(sql string, args ...any) (sql.Result, error)
 	GetInfoSQL(infoType string) string
 	GetTables() ([]string, error)
 	GetViews() ([]string, error)

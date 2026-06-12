@@ -70,9 +70,8 @@ func (p *PostgresConnection) ExecQuery(
 	return p.db.Query(sql, args...)
 }
 
-func (p *PostgresConnection) Exec(sql string, args ...any) error {
-	_, err := p.db.Exec(sql, args...)
-	return err
+func (p *PostgresConnection) Exec(sql string, args ...any) (sql.Result, error) {
+	return p.db.Exec(sql, args...)
 }
 
 func (p *PostgresConnection) GetTableMetadata(

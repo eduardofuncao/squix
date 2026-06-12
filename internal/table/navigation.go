@@ -336,11 +336,13 @@ func (m Model) handleDetailViewEditComplete(
 	newValue := m.extractNewValue(msg.sql, m.columns[msg.colIndex])
 
 	// Executar update
-	if err := m.executeUpdate(msg.sql); err != nil {
+	statusMsg, err := m.executeUpdate(msg.sql)
+	if err != nil {
 		printError("Could not execute update: %v", err)
 		m.detailViewMode = false
 		return m, nil
 	}
+	m.statusMessage = statusMsg
 
 	// Atualizar dados locais
 	m.data[m.selectedRow][m.selectedCol] = newValue
