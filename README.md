@@ -344,10 +344,10 @@ as part of your workflow.
 ### v0.5.0 - Scrat 🧊
 - [x] Configurable keybinds
 - [ ] Migrate to bubbletea v2
-- [ ] Return more info on exec statements (insert, update, delete, etc.)
+- [x] Return more info on exec statements (insert, update, delete, etc.)
 - [x] Homebrew custom tap
 - [x] nixpkgs entry
-- [ ] Handle windows env vars seamlessly
+- [x] Handle windows env vars seamlessly
 - [ ] More options to encrypt data in the config file
 
 ---
@@ -386,6 +386,7 @@ Thanks a lot to all the contributors:
 <a href="https://github.com/chasinglogic"><img src="https://github.com/chasinglogic.png" width="40" /></a>
 <a href="https://github.com/akdev1l"><img src="https://github.com/akdev1l.png" width="40" /></a>
 <a href="https://github.com/KalebJS"><img src="https://github.com/KalebJS.png" width="40" /></a>
+<a href="https://github.com/Liferenko"><img src="https://github.com/Liferenko.png" width="40" /></a>
 
 Squix wouldn't exist without the inspiration and groundwork laid by these fantastic projects:
 
