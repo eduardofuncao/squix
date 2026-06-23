@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
@@ -23,6 +24,9 @@ func (a *App) handleSwitch() {
 	if err != nil {
 		printError("Could not save configuration file: %v", err)
 	}
+
+	// The last-query recovery is scoped to a connection; switching resets it.
+	_ = config.ClearLastQuery()
 
 	fmt.Println(styles.Success.Render("⇄ Switched to: "), styles.Title.Render(fmt.Sprintf("%s/%s", conn.DBType, connName)))
 }
