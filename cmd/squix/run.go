@@ -191,24 +191,54 @@ func parsePositionalArgsFrom(args []string, selector string) []string {
 }
 
 func (a *App) createNewQueryOrEdit() db.Query {
-	instructions := `-- Enter your SQL run below
--- Save and exit to execute, or exit without saving to cancel
---
-`
-	editedSQL, err := editor.EditTempFileWithTemplate(instructions, "squix-run-")
+	header := "-- Save and exit to execute, or exit without saving to cancel"
+	existing, err := config.LoadLastQuery()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: could not read last-query: %v\n", err)
+	}
+	if existing != "" {
+		header = "-- Last query (edit, clear, or replace). Save to re-run"
+	}
+
+	template := "-- Enter your SQL run below\n" + header + "\n--\n"
+	if existing != "" {
+		template += existing + "\n"
+	}
+
+	editedSQL, cancelled, err := editor.EditTempFileWithTemplate(template, "squix-run-")
 	if err != nil {
 		printError("Error opening editor: %v", err)
 	}
+
+	if cancelled {
+		// Exited without saving — leave recovery state untouched for next time.
+		printError("Cancelled")
+	}
+
 	if editedSQL == "" {
+		// User cleared the buffer — reset recovery state.
+		if cerr := config.ClearLastQuery(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "warning: could not clear last-query: %v\n", cerr)
+		}
 		printError("Empty SQL, cancelled")
 	}
+
+	// Persist before execution so the SQL survives a syntax failure or a TUI quit-without-save.
+	if serr := config.SaveLastQuery(editedSQL); serr != nil {
+		fmt.Fprintf(os.Stderr, "warning: could not save last-query: %v\n", serr)
+	}
+
 	return db.Query{Name: "<runtime>", SQL: editedSQL, Id: -1}
 }
 
 func (a *App) editQueryOrExit(query db.Query) db.Query {
-	editedSQL, err := editor.EditTempFile(query.SQL, "squix-run-")
+	editedSQL, cancelled, err := editor.EditTempFile(query.SQL, "squix-run-")
 	if err != nil {
 		printError("Error opening editor: %v", err)
+	}
+	if cancelled {
+		// No edits — run the original query as-is.
+		return query
 	}
 	query.SQL = editedSQL
 	return query

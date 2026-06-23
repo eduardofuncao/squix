@@ -107,6 +107,9 @@ func ExecuteSelect(sql, queryName string, params ExecutionParams) error {
 			return nil
 		}
 
+		// The rerun failed: track the attempted edit as the current query so the
+		// next `e` opens it (and the view shows what was tried), not the last success.
+		q.SQL = model.GetEditedQuery().SQL
 		statusMessage = formatQueryError(err)
 	}
 }
