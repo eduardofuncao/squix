@@ -205,9 +205,14 @@ func (a *App) createNewQueryOrEdit() db.Query {
 		template += existing + "\n"
 	}
 
-	editedSQL, err := editor.EditTempFileWithTemplate(template, "squix-run-")
+	editedSQL, cancelled, err := editor.EditTempFileWithTemplate(template, "squix-run-")
 	if err != nil {
 		printError("Error opening editor: %v", err)
+	}
+
+	if cancelled {
+		// Exited without saving — leave recovery state untouched for next time.
+		printError("Cancelled")
 	}
 
 	if editedSQL == "" {
@@ -227,9 +232,13 @@ func (a *App) createNewQueryOrEdit() db.Query {
 }
 
 func (a *App) editQueryOrExit(query db.Query) db.Query {
-	editedSQL, err := editor.EditTempFile(query.SQL, "squix-run-")
+	editedSQL, cancelled, err := editor.EditTempFile(query.SQL, "squix-run-")
 	if err != nil {
 		printError("Error opening editor: %v", err)
+	}
+	if cancelled {
+		// No edits — run the original query as-is.
+		return query
 	}
 	query.SQL = editedSQL
 	return query

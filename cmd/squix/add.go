@@ -42,9 +42,12 @@ func (a *App) handleAdd() {
 			a.config.Connections[a.config.CurrentConnection].DBType)
 		header += "-- Write your SQL run below and save\n\n"
 
-		editedContent, err := editor.EditTempFileWithTemplate(header, "squix-new-run-")
+		editedContent, cancelled, err := editor.EditTempFileWithTemplate(header, "squix-new-run-")
 		if err != nil {
 			printError("Failed to open editor: %v", err)
+		}
+		if cancelled {
+			printError("Cancelled")
 		}
 
 		querySQL = removeCommentLines(editedContent)

@@ -68,9 +68,13 @@ func TestSaveLastQueryEmptyNoOp(t *testing.T) {
 	if got != "SELECT 1" {
 		t.Fatalf("expected prior value preserved, got %q", got)
 	}
-	// File should not exist for whitespace-only save either
+	// Whitespace-only is also a no-op: prior value preserved.
 	if err := SaveLastQuery("   \n  "); err != nil {
 		t.Fatalf("SaveLastQuery whitespace: %v", err)
+	}
+	got, _ = LoadLastQuery()
+	if got != "SELECT 1" {
+		t.Fatalf("expected prior value preserved after whitespace save, got %q", got)
 	}
 }
 

@@ -30,14 +30,20 @@ func CheckEditor() (string, error) {
 	return editorCmd, nil
 }
 
-func EditTempFile(content, prefix string) (string, error) {
+func EditTempFile(content, prefix string) (string, bool, error) {
 	tmpFile, err := CreateTempFile(prefix, content)
 	if err != nil {
-		return "", fmt.Errorf("create temp file: %w", err)
+		return "", false, fmt.Errorf("create temp file: %w", err)
 	}
 	tmpPath := tmpFile.Name()
 	defer os.Remove(tmpPath)
 	tmpFile.Close()
+
+	// Snapshot mtime before editing to detect a no-save exit (cancel).
+	before, err := os.Stat(tmpPath)
+	if err != nil {
+		return "", false, fmt.Errorf("stat temp file: %w", err)
+	}
 
 	editorCmd := GetEditorCommand()
 	cmd := exec.Command(editorCmd, tmpPath)
@@ -46,21 +52,33 @@ func EditTempFile(content, prefix string) (string, error) {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("run editor: %w", err)
+		return "", false, fmt.Errorf("run editor: %w", err)
+	}
+
+	after, err := os.Stat(tmpPath)
+	if err != nil {
+		return "", false, fmt.Errorf("stat edited file: %w", err)
+	}
+	if !after.ModTime().After(before.ModTime()) {
+		// File unchanged — user exited without saving.
+		return "", true, nil
 	}
 
 	editedContent, err := ReadTempFile(tmpPath)
 	if err != nil {
-		return "", fmt.Errorf("read edited file: %w", err)
+		return "", false, fmt.Errorf("read edited file: %w", err)
 	}
 
-	return editedContent, nil
+	return editedContent, false, nil
 }
 
-func EditTempFileWithTemplate(template, prefix string) (string, error) {
-	editedContent, err := EditTempFile(template, prefix)
+func EditTempFileWithTemplate(template, prefix string) (string, bool, error) {
+	editedContent, cancelled, err := EditTempFile(template, prefix)
 	if err != nil {
-		return "", err
+		return "", false, err
+	}
+	if cancelled {
+		return "", true, nil
 	}
 
 	// Strip instructions if present
@@ -68,5 +86,5 @@ func EditTempFileWithTemplate(template, prefix string) (string, error) {
 		editedContent = StripInstructions(editedContent)
 	}
 
-	return editedContent, nil
+	return editedContent, false, nil
 }

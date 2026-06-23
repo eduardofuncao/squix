@@ -33,7 +33,12 @@ func SaveLastQuery(sql string) error {
 	if err := os.MkdirAll(CfgPath, 0755); err != nil {
 		return err
 	}
-	return os.WriteFile(LastQueryPath(), []byte(sql), 0600)
+	path := LastQueryPath()
+	if err := os.WriteFile(path, []byte(sql), 0600); err != nil {
+		return err
+	}
+	// WriteFile only applies the mode on creation; tighten perms on existing files.
+	return os.Chmod(path, 0600)
 }
 
 // ClearLastQuery removes the recovery file. Ignores missing-file.

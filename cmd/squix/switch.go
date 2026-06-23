@@ -26,7 +26,9 @@ func (a *App) handleSwitch() {
 	}
 
 	// The last-query recovery is scoped to a connection; switching resets it.
-	_ = config.ClearLastQuery()
+	if err := config.ClearLastQuery(); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: could not clear last-query: %v\n", err)
+	}
 
 	fmt.Println(styles.Success.Render("⇄ Switched to: "), styles.Title.Render(fmt.Sprintf("%s/%s", conn.DBType, connName)))
 }
