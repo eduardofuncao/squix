@@ -1,66 +1,41 @@
 package db
 
 import (
-	"fmt"
+	"net/url"
 	"strings"
 )
 
-// EncodeUserinfoPassword percent-encodes reserved characters in the password
-// portion of URL-format connection strings. Go's net/url.Parse treats '#' as
-// a fragment delimiter, which truncates userinfo and breaks DSNs whose
-// passwords contain it. Already-encoded %XX sequences are preserved.
+// EncodeUserinfo percent-encodes reserved characters in the username and
+// password of URL-format connection strings. Go's net/url.Parse treats reserved
+// characters like '#' as structural delimiters, which truncates userinfo and
+// breaks DSNs whose passwords contain them.
+//
+// The password is treated as a literal: any existing '%XX' sequences are
+// re-encoded (so '%23' in the config reaches the DB as the literal "%23", not
+// decoded to '#').
 //
 // Strings without "://" (keyword-format DSNs, file paths) are returned
 // unchanged.
-func EncodeUserinfoPassword(s string) string {
+func EncodeUserinfo(s string) string {
 	schemeIdx := strings.Index(s, "://")
 	if schemeIdx < 0 {
 		return s
 	}
 	userinfoStart := schemeIdx + 3
 
-	lastAt := strings.LastIndex(s, "@")
-	if lastAt < userinfoStart {
+	// The userinfo delimiter is the first '@' after the scheme. Using the last
+	// '@' would mistake an '@' in the path/query/fragment (e.g. ?role=a@b) for
+	// the delimiter and re-encode across the host, corrupting the DSN.
+	relAt := strings.Index(s[userinfoStart:], "@")
+	if relAt < 0 {
 		return s
 	}
+	atIdx := userinfoStart + relAt
 
-	userinfo := s[userinfoStart:lastAt]
-	user, password, found := strings.Cut(userinfo, ":")
+	user, password, found := strings.Cut(s[userinfoStart:atIdx], ":")
 	if !found {
 		return s
 	}
 
-	return s[:userinfoStart] + user + ":" + encodePassword(password) + s[lastAt:]
-}
-
-func encodePassword(s string) string {
-	var b strings.Builder
-	i := 0
-	for i < len(s) {
-		c := s[i]
-		if c == '%' && i+2 < len(s) && isHex(s[i+1]) && isHex(s[i+2]) {
-			b.WriteString(s[i : i+3])
-			i += 3
-			continue
-		}
-		if shouldEncode(c) {
-			fmt.Fprintf(&b, "%%%02X", c)
-		} else {
-			b.WriteByte(c)
-		}
-		i++
-	}
-	return b.String()
-}
-
-func shouldEncode(c byte) bool {
-	switch c {
-	case '#', '?', '/', ' ', '"', '\'':
-		return true
-	}
-	return false
-}
-
-func isHex(c byte) bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+	return s[:userinfoStart] + url.UserPassword(user, password).String() + s[atIdx:]
 }
