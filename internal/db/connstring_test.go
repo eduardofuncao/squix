@@ -98,6 +98,26 @@ func TestEncodeUserinfo(t *testing.T) {
 			in:   "postgres://u:abc%@host/db",
 			want: "postgres://u:abc%25@host/db",
 		},
+		{
+			name: "@ in password encoded as %40",
+			in:   "postgres://u:p@ss@host/db",
+			want: "postgres://u:p%40ss@host/db",
+		},
+		{
+			name: "multiple @ in password all encoded",
+			in:   "postgres://u:a@b@c@host/db",
+			want: "postgres://u:a%40b%40c@host/db",
+		},
+		{
+			name: "username-only with reserved char encoded",
+			in:   "postgres://us#er@host/db",
+			want: "postgres://us%23er@host/db",
+		},
+		{
+			name: "username-only with no reserved char unchanged",
+			in:   "postgres://user@host/db",
+			want: "postgres://user@host/db",
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

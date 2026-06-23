@@ -8,9 +8,9 @@ import (
 // EncodeUserinfo percent-encodes reserved characters in the username and
 // password of URL-format connection strings. Go's net/url.Parse treats reserved
 // characters like '#' as structural delimiters, which truncates userinfo and
-// breaks DSNs whose passwords contain them.
+// breaks DSNs whose credentials contain them.
 //
-// The password is treated as a literal: any existing '%XX' sequences are
+// Credentials are treated as literals: any existing '%XX' sequences are
 // re-encoded (so '%23' in the config reaches the DB as the literal "%23", not
 // decoded to '#').
 //
@@ -23,19 +23,42 @@ func EncodeUserinfo(s string) string {
 	}
 	userinfoStart := schemeIdx + 3
 
-	// The userinfo delimiter is the first '@' after the scheme. Using the last
-	// '@' would mistake an '@' in the path/query/fragment (e.g. ?role=a@b) for
-	// the delimiter and re-encode across the host, corrupting the DSN.
-	relAt := strings.Index(s[userinfoStart:], "@")
-	if relAt < 0 {
+	atIdx, ok := findUserinfoDelimiter(s, userinfoStart)
+	if !ok {
 		return s
 	}
-	atIdx := userinfoStart + relAt
 
 	user, password, found := strings.Cut(s[userinfoStart:atIdx], ":")
 	if !found {
-		return s
+		// Username-only userinfo: encode the username alone.
+		return s[:userinfoStart] + url.User(user).String() + s[atIdx:]
 	}
 
 	return s[:userinfoStart] + url.UserPassword(user, password).String() + s[atIdx:]
+}
+
+// findUserinfoDelimiter returns the index of the '@' that separates userinfo
+// from host. It is the first '@' whose following segment (up to the next '/',
+// '?' or '#') contains no other '@' — i.e. a plausible host. This lets a
+// password containing '@' be encoded (%40) instead of truncating the userinfo
+// early, while an '@' in the path/query/fragment is never mistaken for the
+// delimiter.
+func findUserinfoDelimiter(s string, userinfoStart int) (int, bool) {
+	from := userinfoStart
+	for {
+		rel := strings.Index(s[from:], "@")
+		if rel < 0 {
+			return 0, false
+		}
+		atIdx := from + rel
+
+		hostSeg := s[atIdx+1:]
+		if end := strings.IndexAny(hostSeg, "/?#"); end >= 0 {
+			hostSeg = hostSeg[:end]
+		}
+		if !strings.Contains(hostSeg, "@") {
+			return atIdx, true
+		}
+		from = atIdx + 1
+	}
 }
