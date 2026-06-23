@@ -1,66 +1,64 @@
 package db
 
 import (
-	"fmt"
+	"net/url"
 	"strings"
 )
 
-// EncodeUserinfoPassword percent-encodes reserved characters in the password
-// portion of URL-format connection strings. Go's net/url.Parse treats '#' as
-// a fragment delimiter, which truncates userinfo and breaks DSNs whose
-// passwords contain it. Already-encoded %XX sequences are preserved.
+// EncodeUserinfo percent-encodes reserved characters in the username and
+// password of URL-format connection strings. Go's net/url.Parse treats reserved
+// characters like '#' as structural delimiters, which truncates userinfo and
+// breaks DSNs whose credentials contain them.
+//
+// Credentials are treated as literals: any existing '%XX' sequences are
+// re-encoded (so '%23' in the config reaches the DB as the literal "%23", not
+// decoded to '#').
 //
 // Strings without "://" (keyword-format DSNs, file paths) are returned
 // unchanged.
-func EncodeUserinfoPassword(s string) string {
+func EncodeUserinfo(s string) string {
 	schemeIdx := strings.Index(s, "://")
 	if schemeIdx < 0 {
 		return s
 	}
 	userinfoStart := schemeIdx + 3
 
-	lastAt := strings.LastIndex(s, "@")
-	if lastAt < userinfoStart {
+	atIdx, ok := findUserinfoDelimiter(s, userinfoStart)
+	if !ok {
 		return s
 	}
 
-	userinfo := s[userinfoStart:lastAt]
-	user, password, found := strings.Cut(userinfo, ":")
+	user, password, found := strings.Cut(s[userinfoStart:atIdx], ":")
 	if !found {
-		return s
+		// Username-only userinfo: encode the username alone.
+		return s[:userinfoStart] + url.User(user).String() + s[atIdx:]
 	}
 
-	return s[:userinfoStart] + user + ":" + encodePassword(password) + s[lastAt:]
+	return s[:userinfoStart] + url.UserPassword(user, password).String() + s[atIdx:]
 }
 
-func encodePassword(s string) string {
-	var b strings.Builder
-	i := 0
-	for i < len(s) {
-		c := s[i]
-		if c == '%' && i+2 < len(s) && isHex(s[i+1]) && isHex(s[i+2]) {
-			b.WriteString(s[i : i+3])
-			i += 3
-			continue
+// findUserinfoDelimiter returns the index of the '@' that separates userinfo
+// from host. It is the first '@' whose following segment (up to the next '/',
+// '?' or '#') contains no other '@' — i.e. a plausible host. This lets a
+// password containing '@' be encoded (%40) instead of truncating the userinfo
+// early, while an '@' in the path/query/fragment is never mistaken for the
+// delimiter.
+func findUserinfoDelimiter(s string, userinfoStart int) (int, bool) {
+	from := userinfoStart
+	for {
+		rel := strings.Index(s[from:], "@")
+		if rel < 0 {
+			return 0, false
 		}
-		if shouldEncode(c) {
-			fmt.Fprintf(&b, "%%%02X", c)
-		} else {
-			b.WriteByte(c)
+		atIdx := from + rel
+
+		hostSeg := s[atIdx+1:]
+		if end := strings.IndexAny(hostSeg, "/?#"); end >= 0 {
+			hostSeg = hostSeg[:end]
 		}
-		i++
+		if !strings.Contains(hostSeg, "@") {
+			return atIdx, true
+		}
+		from = atIdx + 1
 	}
-	return b.String()
-}
-
-func shouldEncode(c byte) bool {
-	switch c {
-	case '#', '?', '/', ' ', '"', '\'':
-		return true
-	}
-	return false
-}
-
-func isHex(c byte) bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
