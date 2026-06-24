@@ -76,7 +76,7 @@ func isSpace(r rune) bool {
 
 // wrapWidth returns the rune width available for detail-view content.
 func (m Model) wrapWidth() int {
-	return max(m.width-4, 10)
+	return max(m.width-4, 1)
 }
 
 // detailViewportHeight is the number of content lines visible in the detail view

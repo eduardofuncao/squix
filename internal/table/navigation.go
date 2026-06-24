@@ -347,7 +347,7 @@ func (m Model) openValueInEditor() (Model, tea.Cmd) {
 
 	cmd := buildEditorCommand(editor.GetEditorCommand(), tmpPath, value, CursorAtTop)
 
-	return m, tea.ExecProcess(cmd, func(error) tea.Msg {
+	return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
 		os.Remove(tmpPath)
 		return detailViewEditorClosedMsg{}
 	})
