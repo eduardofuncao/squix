@@ -45,6 +45,7 @@ const (
 
 	ActionDetailClose      Action = "detail_close"
 	ActionDetailEdit       Action = "detail_edit"
+	ActionDetailOpen       Action = "detail_open"
 	ActionDetailYank       Action = "detail_yank"
 	ActionDetailScrollUp   Action = "detail_scroll_up"
 	ActionDetailScrollDown Action = "detail_scroll_down"
@@ -73,7 +74,7 @@ var modeActions = map[Mode][]Action{
 		ActionHelp, ActionToggleFooter, ActionQuit,
 	},
 	ModeDetail: {
-		ActionDetailClose, ActionDetailEdit, ActionDetailYank,
+		ActionDetailClose, ActionDetailEdit, ActionDetailOpen, ActionDetailYank,
 		ActionDetailScrollUp, ActionDetailScrollDown,
 	},
 	ModeHelp: {
@@ -117,7 +118,8 @@ var DefaultKeybindings = map[Action][]string{
 	ActionQuit:         {"q", "ctrl+c"},
 
 	ActionDetailClose:      {"q", "esc", "enter"},
-	ActionDetailEdit:       {"e"},
+	ActionDetailEdit:       {"u"},
+	ActionDetailOpen:       {"o"},
 	ActionDetailYank:       {"y"},
 	ActionDetailScrollUp:   {"k", "up"},
 	ActionDetailScrollDown: {"j", "down"},

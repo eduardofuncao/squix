@@ -33,15 +33,18 @@ func buildEditorCommand(editorCmd, tmpPath, content string, cursorHint cursorPos
 type cursorPositionHint int
 
 const (
-	CursorAtUpdateValue cursorPositionHint = iota // Inside the value in UPDATE SET col = 'value'
-	CursorAtWhereClause                           // Inside the value in WHERE col = 'value'
-	CursorAtEndOfFile                             // At the end of the file
+	CursorAtTop        cursorPositionHint = iota // Top of file (line 1, col 1)
+	CursorAtUpdateValue                          // Inside the value in UPDATE SET col = 'value'
+	CursorAtWhereClause                          // Inside the value in WHERE col = 'value'
+	CursorAtEndOfFile                            // At the end of the file
 )
 
 func findCursorPosition(content string, hint cursorPositionHint) (line int, col int) {
 	lines := strings.Split(content, "\n")
 
 	switch hint {
+	case CursorAtTop:
+		return 1, 1
 	case CursorAtUpdateValue:
 		// Look for:  SET column = 'value'
 		re := regexp.MustCompile(`SET\s+\w+\s*=\s*'`)

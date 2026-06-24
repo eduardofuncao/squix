@@ -26,6 +26,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleQueryEditComplete(msg)
 	case detailViewEditCompleteMsg:
 		return m.handleDetailViewEditComplete(msg)
+	case detailViewEditorClosedMsg:
+		return m, nil
 	case saveQueryCompleteMsg:
 		return m.handleSaveQueryComplete(msg)
 	case tea.WindowSizeMsg:
@@ -78,6 +80,8 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 					return m.editFromDetailView()
 				}
 				return m, nil
+			case config.ActionDetailOpen:
+				return m.openValueInEditor()
 			case config.ActionDetailYank:
 				return m.copySelection()
 			case config.ActionDetailScrollUp:
@@ -192,6 +196,16 @@ func (m Model) handleWindowResize(msg tea.WindowSizeMsg) Model {
 	}
 	if m.visibleRows < 3 {
 		m.visibleRows = 3
+	}
+
+	// Keep the detail-view scroll within bounds after a resize changes the
+	// wrapped-line count or viewport height (otherwise it can sit past the new
+	// maxScroll and leave the view scrolled into blank space).
+	if m.detailViewMode {
+		maxScroll := max(len(m.wrappedDetailLines())-m.detailViewportHeight(), 0)
+		if m.detailViewScroll > maxScroll {
+			m.detailViewScroll = maxScroll
+		}
 	}
 
 	return m

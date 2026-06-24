@@ -99,7 +99,7 @@ squix explain employees --depth 2    # Show relationships 2 levels deep
 
 ## Editor Integration
 
-Squix uses your `$EDITOR` environment variable for editing queries and UPDATE/DELETE statements.
+Squix uses your `$EDITOR` environment variable for editing queries and UPDATE/DELETE statements, and for opening cell values from the detail view (press `o`).
 
 <div align=center>
   <img width="448" height="238" alt="image" src="https://github.com/user-attachments/assets/f416f41a-8ec3-4a35-86e7-0bba6596f75f" />

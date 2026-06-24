@@ -53,7 +53,9 @@ Press `Enter` on any cell to open a detailed view that shows the full cell conte
 | Key | Action |
 |-----|--------|
 | `↑`, `↓`, `j`, `k` | Scroll through content |
-| `e` | Edit cell content (opens editor with formatted JSON) |
+| `u` | Update cell content (opens editor with formatted JSON) |
+| `o` | Open value in `$EDITOR` (read-only) |
+| `y` | Copy value to clipboard |
 | `q`, `Esc`, `Enter` | Close detail view |
 
 ## Help Overlay
@@ -117,8 +119,9 @@ Unknown action names print a warning at startup. Conflicting keys within the sam
 | `toggle_footer` | `?` | Toggle footer keybinds display |
 | `quit` | `q`, `ctrl+c` | Quit table view |
 | `detail_close` | `q`, `esc`, `enter` | Close detail view |
-| `detail_edit` | `e` | Edit cell from detail view |
+| `detail_edit` | `u` | Update cell from detail view |
 | `detail_yank` | `y` | Copy from detail view |
 | `detail_scroll_up` | `k`, `up` | Scroll detail view up |
 | `detail_scroll_down` | `j`, `down` | Scroll detail view down |
+| `detail_open` | `o` | Open value in editor (detail view) |
 | `help_close` | `H`, `q`, `esc` | Close help overlay |
