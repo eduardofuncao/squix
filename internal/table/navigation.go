@@ -317,6 +317,46 @@ func (m Model) editFromDetailView() (Model, tea.Cmd) {
 	})
 }
 
+// openValueInEditor opens the current cell value in the user's $EDITOR for
+// read-only browsing and navigation. Any edits made in the editor are discarded.
+func (m Model) openValueInEditor() (Model, tea.Cmd) {
+	if m.selectedRow < 0 || m.selectedRow >= len(m.data) ||
+		m.selectedCol < 0 || m.selectedCol >= len(m.data[m.selectedRow]) {
+		return m, nil
+	}
+
+	value := m.detailViewContent
+
+	ext := ".txt"
+	if json.Valid([]byte(value)) {
+		ext = ".json"
+	}
+
+	tmpFile, err := os.CreateTemp("", "squix-value-*"+ext)
+	if err != nil {
+		return m, nil
+	}
+	tmpPath := tmpFile.Name()
+
+	if _, err := tmpFile.WriteString(value); err != nil {
+		tmpFile.Close()
+		os.Remove(tmpPath)
+		return m, nil
+	}
+	tmpFile.Close()
+
+	cmd := buildEditorCommand(editor.GetEditorCommand(), tmpPath, value, CursorAtTop)
+
+	return m, tea.ExecProcess(cmd, func(error) tea.Msg {
+		os.Remove(tmpPath)
+		return detailViewEditorClosedMsg{}
+	})
+}
+
+// detailViewEditorClosedMsg is sent when the read-only editor opened from the
+// detail view exits; it just triggers a re-render.
+type detailViewEditorClosedMsg struct{}
+
 type detailViewEditCompleteMsg struct {
 	sql      string
 	colIndex int
@@ -374,11 +414,7 @@ func (m Model) scrollDetailViewUp() Model {
 }
 
 func (m Model) scrollDetailViewDown() Model {
-	lines := strings.Count(m.detailViewContent, "\n") + 1
-	maxScroll := lines - (m.height - 10) // Reserve space for header and footer
-	if maxScroll < 0 {
-		maxScroll = 0
-	}
+	maxScroll := max(len(m.wrappedDetailLines())-m.detailViewportHeight(), 0)
 	if m.detailViewScroll < maxScroll {
 		m.detailViewScroll++
 	}

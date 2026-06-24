@@ -527,12 +527,6 @@ func (m Model) renderDetailView() string {
 	)
 	b.WriteString(styles.Faint.Render(posInfo))
 
-	// Show if editing/updating is enabled
-	if m.tableName != "" && m.primaryKeyCol != "" {
-		b.WriteString(" ")
-		b.WriteString(styles.Faint.Render("• Press 'e' to edit"))
-	}
-
 	b.WriteString("\n\n")
 
 	// Separator
@@ -543,13 +537,9 @@ func (m Model) renderDetailView() string {
 	b.WriteString(styles.Separator.Render(strings.Repeat("─", separatorWidth)))
 	b.WriteString("\n\n")
 
-	// Content with scroll
-	lines := strings.Split(m.detailViewContent, "\n")
-	availableHeight := m.height - 10 // Reserve space for header and footer
-
-	if availableHeight < 5 {
-		availableHeight = 5
-	}
+	// Content with scroll (word-wrapped to viewport width)
+	lines := m.wrappedDetailLines()
+	availableHeight := m.detailViewportHeight()
 
 	startLine := m.detailViewScroll
 	endLine := startLine + availableHeight
@@ -566,12 +556,7 @@ func (m Model) renderDetailView() string {
 
 	// Render visible lines
 	for i := startLine; i < endLine; i++ {
-		line := lines[i]
-		// Truncate line if too long
-		if len(line) > m.width-4 {
-			line = line[:m.width-7] + "..."
-		}
-		b.WriteString(styles.TableCell.Render(line))
+		b.WriteString(styles.TableCell.Render(lines[i]))
 		b.WriteString("\n")
 	}
 
@@ -603,14 +588,16 @@ func (m Model) renderDetailView() string {
 
 	edit := ""
 	if m.tableName != "" && m.primaryKeyCol != "" {
-		edit = styles.TableHeader.Render(m.keyMap.FirstKey(config.ActionDetailEdit)) + styles.Faint.Render(" edit")
+		edit = styles.TableHeader.Render(m.keyMap.FirstKey(config.ActionDetailEdit)) + styles.Faint.Render(" update")
 	}
 
 	yank := styles.TableHeader.Render(m.keyMap.FirstKey(config.ActionDetailYank)) + styles.Faint.Render(" yank")
 
+	openHint := styles.TableHeader.Render(m.keyMap.FirstKey(config.ActionDetailOpen)) + styles.Faint.Render(" open")
+
 	quit := styles.TableHeader.Render(m.keyMap.DisplayKeys(config.ActionDetailClose)) + styles.Faint.Render(" close")
 
-	footer := fmt.Sprintf("\n%s  %s  %s  %s  %s", scrollInfo, hjkl, edit, yank, quit)
+	footer := fmt.Sprintf("\n%s  %s  %s  %s  %s  %s", scrollInfo, hjkl, edit, yank, openHint, quit)
 	b.WriteString(footer)
 
 	return b.String()
