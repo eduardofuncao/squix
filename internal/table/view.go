@@ -4,30 +4,31 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/parser"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
 	if m.width == 0 {
-		return "Loading..."
+		return tea.NewView("Loading...")
 	}
 
 	// If in detailed view mode, show the detailed view
 	if m.detailViewMode {
-		return m.renderDetailView()
+		return tea.NewView(m.renderDetailView())
 	}
 
 	// If in help overlay mode, show the keybinds overlay
 	if m.helpOverlayMode {
-		return m.renderHelpOverlay()
+		return tea.NewView(m.renderHelpOverlay())
 	}
 
 	// Don't render if we're about to rerun the query (prevents duplicate output)
 	if m.shouldRerunQuery {
-		return ""
+		return tea.NewView("")
 	}
 
 	var b strings.Builder
@@ -89,7 +90,7 @@ func (m Model) View() string {
 		b.WriteString(styles.SearchMatch.Render(m.statusMessage))
 	}
 
-	return b.String()
+	return tea.NewView(b.String())
 }
 
 func (m Model) renderHeader() string {
