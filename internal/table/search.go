@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // shouldUseCaseSensitive returns true if query contains uppercase (smart case)
@@ -37,7 +37,7 @@ func (m Model) startColumnSearch() Model {
 }
 
 // handleSearchInput processes keystrokes during search input
-func (m Model) handleSearchInput(msg tea.KeyMsg) (Model, tea.Cmd) {
+func (m Model) handleSearchInput(msg tea.KeyPressMsg) (Model, tea.Cmd) {
 	switch msg.String() {
 	case "enter":
 		return m.executeSearch()

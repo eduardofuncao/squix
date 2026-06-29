@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/eduardofuncao/squix/internal/parser"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
@@ -45,7 +45,7 @@ func (m InputModel) Init() tea.Cmd {
 
 func (m InputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc", "q":
 			m.aborted = true
@@ -78,12 +78,15 @@ func (m InputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Allow typing any character
 			m.currentValues[currentParam] += msg.String()
 		}
+	case tea.PasteMsg:
+		currentParam := m.missingParams[m.cursorIndex]
+		m.currentValues[currentParam] += msg.Content
 	}
 
 	return m, nil
 }
 
-func (m InputModel) View() string {
+func (m InputModel) View() tea.View {
 	var b strings.Builder
 
 	// Title
@@ -130,7 +133,7 @@ func (m InputModel) View() string {
 	b.WriteString("\n")
 	b.WriteString(styles.Faint.Render("↑: up  ↓: down  Enter: submit  Esc/q: cancel"))
 
-	return b.String()
+	return tea.NewView(b.String())
 }
 
 func (m InputModel) GetValues() map[string]string {

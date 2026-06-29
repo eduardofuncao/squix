@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/eduardofuncao/squix/internal/editor"
 )
 

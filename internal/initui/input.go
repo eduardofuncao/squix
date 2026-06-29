@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
@@ -53,7 +53,7 @@ func (m InitInputModel) Init() tea.Cmd {
 
 func (m InitInputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
 			m.aborted = true
@@ -127,9 +127,11 @@ func (m InitInputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.handleBackspace()
 
 		default:
-			// Handle regular character input (including pasted text)
+			// Handle regular character input
 			m.handleInput(msg.String())
 		}
+	case tea.PasteMsg:
+		m.handleInput(msg.Content)
 	}
 
 	return m, nil
@@ -226,7 +228,7 @@ func (m *InitInputModel) moveToNextEmptyField() {
 	// If all fields are filled, don't move cursor (will submit on next enter)
 }
 
-func (m InitInputModel) View() string {
+func (m InitInputModel) View() tea.View {
 	var b strings.Builder
 
 	// Title
@@ -245,7 +247,7 @@ func (m InitInputModel) View() string {
 	b.WriteString("\n")
 	b.WriteString(styles.Faint.Render("↑: up  ↓: down  ←/→: move cursor/cycle type  Type: input/paste  Enter: submit  Esc: cancel"))
 
-	return b.String()
+	return tea.NewView(b.String())
 }
 
 func (m InitInputModel) renderField(b *strings.Builder, label, value string, cursorPos int, focused bool) {
