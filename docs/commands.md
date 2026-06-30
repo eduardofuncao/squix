@@ -32,6 +32,7 @@
 |---------|-------------|---------|
 | `explore` | List all tables and views in multi-column format | `squix explore` |
 | `explore <table> [-l N]` | Query a table with optional row limit | `squix explore employees --limit 100` |
+| `explore <file.csv>` | View a local CSV file in the results view (read-only) | `squix explore sales.csv` |
 | `explain <table> [-d N] [-c]` | Visualize foreign key relationships | `squix explain employees --depth 2` |
 | `tables` | List all tables in using the results view, access with Enter| `squix tables` |
 

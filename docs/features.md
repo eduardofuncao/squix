@@ -83,6 +83,9 @@ squix explore
 # Query a table directly
 squix explore employees --limit 100
 
+# View a local CSV file in the results view (read-only)
+squix explore sales.csv
+
 # Open tables in the results view, use Enter to query everything in the table
 squix tables
 

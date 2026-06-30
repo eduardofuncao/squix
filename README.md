@@ -343,7 +343,7 @@ as part of your workflow.
 
 ### v0.5.0 - Scrat 🧊
 - [x] Configurable keybinds
-- [ ] Migrate to bubbletea v2
+- [x] Migrate to bubbletea v2
 - [x] Return more info on exec statements (insert, update, delete, etc.)
 - [x] Homebrew custom tap
 - [x] nixpkgs entry
