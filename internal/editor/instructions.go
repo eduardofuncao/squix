@@ -4,78 +4,34 @@ import (
 	"strings"
 )
 
-// HasInstructions checks if content contains instruction comments that should be stripped
-func HasInstructions(content string) bool {
-	return strings.Contains(content, "-- Enter your SQL") ||
-		strings.Contains(content, "-- Enter your SQL run") ||
-		strings.Contains(content, "-- Creating new") ||
-		(strings.Contains(content, "--") && strings.Contains(content, "Save and exit"))
+// isCommentLine reports whether a line is a full-line SQL comment (its trimmed
+// form starts with "--"). Such lines are treated as editor instructions/header
+// text and stripped from the SQL the user typed.
+func isCommentLine(line string) bool {
+	return strings.HasPrefix(strings.TrimSpace(line), "--")
 }
 
-// StripInstructions removes instruction comments from content
-// Looks for common instruction patterns and removes everything before the separator
+// HasInstructions reports whether content contains any full-line "--" comment,
+// i.e. there is something for StripInstructions to remove.
+func HasInstructions(content string) bool {
+	for line := range strings.SplitSeq(content, "\n") {
+		if isCommentLine(line) {
+			return true
+		}
+	}
+	return false
+}
+
+// StripInstructions removes every full-line "--" comment and returns the
+// remaining (non-comment) lines joined with newlines.
 func StripInstructions(content string) string {
-	// Check for various instruction patterns
-	patterns := []string{
-		"-- Enter your SQL run below",
-		"-- Enter your SQL query below",
-		"-- Creating new",
-	}
-
-	// Find which pattern matches
-	var separator string
-	for _, pattern := range patterns {
-		if strings.HasPrefix(strings.TrimSpace(content), pattern) ||
-			strings.Contains(content, pattern) {
-			separator = pattern
-			break
-		}
-	}
-
-	if separator == "" {
-		// No recognized pattern, return as-is
-		return strings.TrimSpace(content)
-	}
-
-	// Split and extract content after separator
-	lines := strings.Split(content, "\n")
-	var sqlLines []string
-	foundSeparator := false
-	foundDoubleDash := false
-
-	for i, line := range lines {
-		trimmed := strings.TrimSpace(line)
-
-		// Look for the separator line
-		if strings.Contains(trimmed, separator) {
-			foundSeparator = true
+	var sql strings.Builder
+	for line := range strings.SplitSeq(content, "\n") {
+		if isCommentLine(line) {
 			continue
 		}
-
-		// After finding separator, look for "--" on its own line
-		if foundSeparator && !foundDoubleDash {
-			if trimmed == "--" {
-				foundDoubleDash = true
-				continue
-			}
-			// Skip lines between separator and "--"
-			continue
-		}
-
-		// Collect SQL lines after "--" separator
-		if foundDoubleDash {
-			sqlLines = append(sqlLines, lines[i])
-		}
+		sql.WriteString(line)
+		sql.WriteByte('\n')
 	}
-
-	if len(sqlLines) == 0 {
-		// Fallback: if we didn't find the pattern, try returning everything after first empty line
-		parts := strings.SplitN(content, "\n--\n", 2)
-		if len(parts) == 2 {
-			return strings.TrimSpace(parts[1])
-		}
-		return strings.TrimSpace(content)
-	}
-
-	return strings.TrimSpace(strings.Join(sqlLines, "\n"))
+	return strings.TrimSpace(sql.String())
 }
