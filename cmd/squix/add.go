@@ -50,8 +50,7 @@ func (a *App) handleAdd() {
 			printError("Cancelled")
 		}
 
-		querySQL = removeCommentLines(editedContent)
-		querySQL = strings.TrimSpace(querySQL)
+		querySQL = strings.TrimSpace(editedContent)
 
 		if querySQL == "" {
 			printError("No SQL run provided.   Run not saved")
@@ -72,17 +71,3 @@ func (a *App) handleAdd() {
 	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ Added query '%s' with ID %d", queryName, queries[queryName].Id)))
 }
 
-func removeCommentLines(content string) string {
-	lines := strings.Split(content, "\n")
-	var result strings.Builder
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if !strings.HasPrefix(trimmed, "--") {
-			result.WriteString(line)
-			result.WriteString("\n")
-		}
-	}
-
-	return result.String()
-}
