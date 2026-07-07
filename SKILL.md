@@ -1,3 +1,8 @@
+---
+name: squix
+description: Run SQL queries across databases (Postgres, MySQL, SQLite, etc.) via the squix CLI. Use for running named queries, exploring schema, or parameterized queries. Always use -f for non-interactive output.
+---
+
 # Squix Skill for AI Coding Agents
 
 ## What is Squix
