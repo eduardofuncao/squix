@@ -9,8 +9,6 @@
 
 ### **SQL Query Stashing for Terminal Squirrels**
 
-> **Bear Grylls:** "Out here in the wild database ecosystem, efficiency means survival. See that squirrel? That’s Squix, or _Sequillis termius_. He doesn’t panic-write queries under pressure. He prepares. He caches. He optimizes. While others are wrestling with joins in the dark, Squix already has his results. Extraordinary creature."
-
 ---
 
 [![MIT License](https://img.shields.io/badge/license-MIT-white.svg)](LICENSE)
@@ -18,7 +16,7 @@
 [![Matrix](https://img.shields.io/matrix/squix:matrix.org?server_fqdn=matrix.org&label=chat&color=green)](https://matrix.to/#/#squix-sql:matrix.org)
 [![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-pink.svg)](https://github.com/sponsors/eduardofuncao)
 
-**A minimal CLI tool for managing and executing SQL queries across multiple databases. Written in Go, made beautiful with BubbleTea**
+**A CLI tool for managing and executing SQL queries across multiple databases. Written in Go, made beautiful with BubbleTea**
 
 [Quick Start](#--------quick-start) • [Configuration](docs/configuration.md) • [Commands](docs/commands.md) • [Keybindings](docs/keybindings.md) • [Features](docs/features.md) • [Completion](docs/completion.md) • [Databases](docs/databases.md) • [Roadmap](#--------roadmap) • [Contributing](CONTRIBUTING.md)
 
