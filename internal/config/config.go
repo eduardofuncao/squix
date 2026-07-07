@@ -121,9 +121,8 @@ func LoadConfig(path string) (*Config, error) {
 	if cfg.DefaultColumnWidth == 0 {
 		cfg.DefaultColumnWidth = 15
 	}
-	if cfg.DefaultRowLimit == 0 {
-		cfg.DefaultRowLimit = 1000
-	}
+
+	// DefaultRowLimit == 0 means "no limit" — left as-is so users can disable row limiting.
 
 	// Set UI visibility defaults (all true by default)
 	if !cfg.UIVisibility.QueryName && !cfg.UIVisibility.QuerySQL &&

@@ -34,9 +34,6 @@ func (a *App) handleExplore() {
 
 	tableName := os.Args[2]
 	limit := a.config.DefaultRowLimit
-	if limit == 0 {
-		limit = 1000
-	}
 
 	// Parse optional -l/--limit flag
 	for i := 3; i < len(os.Args); i++ {
@@ -64,7 +61,9 @@ func (a *App) handleExplore() {
 	defer conn.Close()
 
 	sql := fmt.Sprintf("SELECT * FROM %s", tableName)
-	sql = conn.ApplyRowLimit(sql, limit)
+	if limit > 0 {
+		sql = conn.ApplyRowLimit(sql, limit)
+	}
 
 	var onRerun func(string) error
 	onRerun = func(newSQL string) error {
