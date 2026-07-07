@@ -167,7 +167,7 @@ func New(
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return tea.ClearScreen
 }
 
 func (m Model) numRows() int {

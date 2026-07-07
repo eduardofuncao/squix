@@ -14,7 +14,9 @@ import (
 )
 
 type tablesFlags struct {
-	oneline bool
+	oneline       bool
+	hideQueryName bool
+	hideQuerySQL  bool
 }
 
 func parseTablesFlags() (tablesFlags, []string) {
@@ -23,10 +25,17 @@ func parseTablesFlags() (tablesFlags, []string) {
 	args := os.Args[2:]
 
 	for _, arg := range args {
-		if arg == "--oneline" || arg == "-o" {
+		switch arg {
+		case "--oneline", "-o":
 			flags.oneline = true
-		} else if !strings.HasPrefix(arg, "-") {
-			remainingArgs = append(remainingArgs, arg)
+		case "--hide-query-name":
+			flags.hideQueryName = true
+		case "--hide-query-sql":
+			flags.hideQuerySQL = true
+		default:
+			if !strings.HasPrefix(arg, "-") {
+				remainingArgs = append(remainingArgs, arg)
+			}
 		}
 	}
 
@@ -41,6 +50,8 @@ func (a *App) handleTables() {
 	}
 
 	flags, args := parseTablesFlags()
+	a.hideQueryName = flags.hideQueryName
+	a.hideQuerySQL = flags.hideQuerySQL
 	conn := config.FromConnectionYaml(
 		a.config.Connections[a.config.CurrentConnection],
 	)
@@ -237,9 +248,22 @@ func (a *App) showTablesInteractive(
 			return
 		}
 
+		// The list query selects a single "name" column; relabel it "table".
+		if len(columns) > 0 && columns[0] == "name" {
+			columns[0] = "table"
+		}
+
 		q := db.Query{
 			Name: "tables",
 			SQL:  queryStr,
+		}
+
+		vis := a.config.UIVisibility
+		if a.hideQueryName {
+			vis.QueryName = false
+		}
+		if a.hideQuerySQL {
+			vis.QuerySQL = false
 		}
 
 		model, err := table.RenderTablesList(
@@ -249,7 +273,7 @@ func (a *App) showTablesInteractive(
 			conn,
 			q,
 			a.config.DefaultColumnWidth,
-			a.config.UIVisibility,
+			vis,
 			a.config.KeyMap,
 		)
 		if err != nil {

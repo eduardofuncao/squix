@@ -36,6 +36,8 @@ func (a *App) handleRun() {
 
 func (a *App) runFromArgs(args []string, conn db.DatabaseConnection) error {
 	flags := parseRunFlagsFrom(args)
+	a.hideQueryName = flags.HideQueryName
+	a.hideQuerySQL = flags.HideQuerySQL
 
 	resolved, err := run.ResolveQuery(flags, a.config, a.config.CurrentConnection, conn)
 	if err != nil {
@@ -74,7 +76,7 @@ func parseRunFlagsFrom(args []string) run.Flags {
 
 	for i, arg := range args {
 		// Skip parameter flags and their values
-		if strings.HasPrefix(arg, "--") && arg != "--edit" && arg != "-e" && arg != "--last" && arg != "-l" && arg != "--format" {
+		if strings.HasPrefix(arg, "--") && arg != "--edit" && arg != "-e" && arg != "--last" && arg != "-l" && arg != "--format" && arg != "--hide-query-name" && arg != "--hide-query-sql" {
 			// This is a parameter flag, skip it and its value
 			if i+1 < len(args) && !strings.HasPrefix(args[i+1], "--") {
 				continue
@@ -86,6 +88,10 @@ func parseRunFlagsFrom(args []string) run.Flags {
 			flags.EditMode = true
 		case "--last", "-l":
 			flags.LastQuery = true
+		case "--hide-query-name":
+			flags.HideQueryName = true
+		case "--hide-query-sql":
+			flags.HideQuerySQL = true
 		case "--format", "-f":
 			if i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
 				flags.ExportFormat = args[i+1]
@@ -107,7 +113,7 @@ func parseParameterFlagsFrom(args []string) map[string]string {
 		arg := args[i]
 
 		// Skip known flags (and their values for --format/-f)
-		if arg == "--edit" || arg == "-e" || arg == "--last" || arg == "-l" {
+		if arg == "--edit" || arg == "-e" || arg == "--last" || arg == "-l" || arg == "--hide-query-name" || arg == "--hide-query-sql" {
 			i++
 			continue
 		}
@@ -152,18 +158,18 @@ func parsePositionalArgsFrom(args []string, selector string) []string {
 	for i < len(args) {
 		arg := args[i]
 
-		// Skip flags and their values
-		if strings.HasPrefix(arg, "--") {
-			// Skip the flag itself
+		// Boolean flags (-e/--edit, -l/--last, --hide-query-*) take no value.
+		if arg == "-e" || arg == "--edit" || arg == "-l" || arg == "--last" ||
+			arg == "--hide-query-name" || arg == "--hide-query-sql" {
 			i++
-			// Skip the value if it exists and isn't another flag
+			continue
+		}
+		// Other --flags are parameter flags (--name value): skip flag + value.
+		if strings.HasPrefix(arg, "--") {
+			i++
 			if i < len(args) && !strings.HasPrefix(args[i], "--") {
 				i++
 			}
-			continue
-		}
-		if arg == "-e" || arg == "-l" {
-			i++
 			continue
 		}
 		if arg == "-f" {
@@ -263,6 +269,20 @@ func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseCon
 		return err
 	}
 
+	// Render-only config copy: honor --hide-query-name/--hide-query-sql during
+	// rendering without persisting (the save callback still uses a.config).
+	renderCfg := a.config
+	if a.hideQueryName || a.hideQuerySQL {
+		c := *a.config
+		if a.hideQueryName {
+			c.UIVisibility.QueryName = false
+		}
+		if a.hideQuerySQL {
+			c.UIVisibility.QuerySQL = false
+		}
+		renderCfg = &c
+	}
+
 	processedQuery := db.Query{
 		Name: query.Name,
 		SQL:  sql,
@@ -295,7 +315,7 @@ func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseCon
 		return executor(run.ExecutionParams{
 			Query:        processedQuery,
 			Connection:   conn,
-			Config:       a.config,
+			Config:       renderCfg,
 			SaveCallback: a.saveQueryFromTable,
 			Args:         finalArgs,
 			DisplaySQL:   finalDisplaySQL,
@@ -306,7 +326,7 @@ func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseCon
 	return executor(run.ExecutionParams{
 		Query:        processedQuery,
 		Connection:   conn,
-		Config:       a.config,
+		Config:       renderCfg,
 		SaveCallback: a.saveQueryFromTable,
 		Args:         args,
 		DisplaySQL:   displaySQL,

@@ -8,6 +8,7 @@ import (
 	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/initui"
+	"github.com/eduardofuncao/squix/internal/spinner"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
@@ -20,19 +21,13 @@ func (a *App) handleInit() {
 		dbType = db.InferDBType(connString)
 	}
 
-	missing := false
-	if name == "" {
-		missing = true
-	}
-	if dbType == "" {
-		missing = true
-	}
-	if connString == "" {
-		missing = true
-	}
-
-	// Launch TUI
-	if missing {
+	if name == "" || dbType == "" || connString == "" {
+		if !spinner.Interactive() {
+			if connString != "" && dbType == "" {
+				printError("Could not infer the database type from the connection string. Pass --type or use a scheme squix recognises (e.g. postgresql://).")
+			}
+			printError("Missing parameters. Run 'squix init' in a terminal, or pass --name, --type, and --conn-string.")
+		}
 		var err error
 		name, dbType, connString, err = initui.CollectInitParameters(name, dbType, connString)
 		if err != nil {
