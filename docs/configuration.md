@@ -5,6 +5,12 @@ Squix stores its configuration at `~/.config/squix/config.yaml`.
 ## Row Limit `default_row_limit: 1000`
 All queries are automatically limited to prevent fetching massive result sets. Configure via `default_row_limit` in config or use explicit `LIMIT` in your SQL queries.
 
+Setting `default_row_limit: 0` **disables** automatic limiting — no row-limit clause is appended to your SQL. This matters on databases where the generated limit syntax is unsupported: e.g. Oracle before 12c rejects `FETCH FIRST ... ROWS ONLY` with `ORA-00933: SQL command not properly ended`.
+
+Defaults:
+- **Newly created** config files get `default_row_limit: 1000` written on first run.
+- An **existing** file missing the key falls back to `0` (no limit).
+
 ## Column Width `default_column_width: 15`
 The width for all columns in the table TUI is fixed to a constant size, which can be configured through `default_column_width` in the config file. There are plans to make the column widths flexible in future versions.
 
