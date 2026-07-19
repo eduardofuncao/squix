@@ -57,7 +57,7 @@ See [Features](docs/features.md) for details and examples
 </h2>
 
 ### Installation
-Go to [the releases page](https://github.com/eduardofuncao/squix/releases) and find the correct version for your system. Download it and make sure the file is executable and moved to a directory in your $PATH.
+Go to [the releases page](https://github.com/eduardofuncao/squix/releases) and find the correct version for your system. Download it and make sure the file is executable and moved to a directory in your $PATH. Alternatively, use one of the methods below:
 
 
 <details>
