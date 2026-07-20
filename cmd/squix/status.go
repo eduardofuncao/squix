@@ -22,7 +22,11 @@ func (a *App) printConnStatus(conn db.DatabaseConnection) {
 		queryCount = len(currConn.Queries)
 	}
 
-	fmt.Printf("Using %s\n", styles.Title.Render(connInfo))
+	interactive := spinner.Interactive()
+	if interactive {
+		// Provisional header, erased and reprinted with status below.
+		fmt.Printf("Using %s\n", styles.Title.Render(connInfo))
+	}
 
 	done := make(chan struct{})
 	reachable := make(chan bool)
@@ -43,10 +47,12 @@ func (a *App) printConnStatus(conn db.DatabaseConnection) {
 		isReachable = false
 	}
 
-	// Clear spinner lines
-	fmt.Print("\r\033[2K")
-	fmt.Print("\033[1A")
-	fmt.Print("\r\033[2K")
+	if interactive {
+		// Clear the spinner line + the provisional header above it.
+		fmt.Print("\r\033[2K")
+		fmt.Print("\033[1A")
+		fmt.Print("\r\033[2K")
+	}
 
 	circleIcon := "●"
 	statusText := "reachable"

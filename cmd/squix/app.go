@@ -12,7 +12,9 @@ import (
 var Version = "dev" // overridden via -ldflags at build time
 
 type App struct {
-	config *config.Config
+	config        *config.Config
+	hideQueryName bool // from `squix run --hide-query-name` (render-only, not persisted)
+	hideQuerySQL  bool // from `squix run --hide-query-sql`  (render-only, not persisted)
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -68,6 +70,8 @@ func (a *App) Run() {
 		a.handleConfig()
 	case "explain":
 		a.handleExplain()
+	case "example":
+		a.handleExample()
 	case "help":
 		a.handleHelp()
 	case "__complete":

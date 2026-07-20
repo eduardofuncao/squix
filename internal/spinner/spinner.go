@@ -2,12 +2,25 @@ package spinner
 
 import (
 	"fmt"
+	"os"
 	"time"
 
+	isatty "github.com/mattn/go-isatty"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
+// Interactive reports whether stdout is a terminal. When false (e.g. piped to
+// an editor or CI), spinner frames and cursor-control escapes would land as
+// literal garbage in the captured output, so animation and erasure are skipped.
+func Interactive() bool {
+	return isatty.IsTerminal(os.Stdout.Fd())
+}
+
 func Wait(done chan struct{}) {
+	if !Interactive() {
+		<-done
+		return
+	}
 	spinnerStages := []string{"▉", "▊", "▋", "▌", "▍", "▎", "▏", "▎", "▍", "▌", "▋", "▊", "▉"}
 	var passed time.Duration = 0
 	for {
@@ -25,6 +38,10 @@ func Wait(done chan struct{}) {
 }
 
 func CircleWait(done chan struct{}) {
+	if !Interactive() {
+		<-done
+		return
+	}
 	// Custom pulsing animation
 	stages := []string{" ", ".", "o", "O", "@", "*"}
 	for {
@@ -41,6 +58,10 @@ func CircleWait(done chan struct{}) {
 }
 
 func CircleWaitWithTimer(done chan struct{}) {
+	if !Interactive() {
+		<-done
+		return
+	}
 	// Custom pulsing animation with timer
 	stages := []string{" ", ".", "o", "O", "@", "*"}
 	var passed time.Duration = 0

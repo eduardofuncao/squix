@@ -35,6 +35,7 @@
 | `explore <file.csv>` | View a local CSV file in the results view (read-only) | `squix explore sales.csv` |
 | `explain <table> [-d N] [-c]` | Visualize foreign key relationships | `squix explain employees --depth 2` |
 | `tables` | List all tables in using the results view, access with Enter| `squix tables` |
+| `example [path] [--force]` | Create a sample office-themed SQLite database to try squix | `squix example` |
 
 ## Configuration
 

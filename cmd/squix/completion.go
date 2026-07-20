@@ -135,6 +135,7 @@ func getSubcommands() []string {
 		"unset",
 		"config",
 		"explain",
+		"example",
 		"help",
 	}
 }
