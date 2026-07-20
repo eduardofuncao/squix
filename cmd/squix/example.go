@@ -34,11 +34,15 @@ func (a *App) handleExample() {
 		printError("resolve path: %v", err)
 	}
 
-	if _, err := os.Stat(absPath); err == nil && !force {
-		printError("%s already exists (use --force to overwrite)", path)
-	}
-	if force {
-		_ = os.Remove(absPath)
+	if _, err := os.Stat(absPath); err == nil {
+		if !force {
+			printError("%s already exists (use --force to overwrite)", path)
+		}
+		if err := os.Remove(absPath); err != nil {
+			printError("remove existing file: %v", err)
+		}
+	} else if !os.IsNotExist(err) {
+		printError("stat %s: %v", path, err)
 	}
 
 	conn, err := db.CreateConnection("example", "sqlite", absPath)
