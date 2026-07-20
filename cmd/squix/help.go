@@ -123,6 +123,11 @@ func (a *App) PrintGeneralHelp() {
 		),
 	)
 	fmt.Println(
+		"  example     " + styles.Faint.Render(
+			"Create a sample SQLite database to try squix",
+		),
+	)
+	fmt.Println(
 		"  help        " + styles.Faint.Render(
 			"Show help for squix or a specific command",
 		),
@@ -601,6 +606,34 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  squix explain employees")
 		fmt.Println("  squix explain employees --depth 2")
 		fmt.Println("  squix explain departments -d 3")
+
+	case "example":
+		section("Command: example")
+		fmt.Println(
+			styles.Faint.Render(
+				"Create a sample Office-themed SQLite database in the current directory.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  squix example [path] [--force]")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  - Materializes an example.db with departments, employees, and timesheets",
+		)
+		fmt.Println(
+			"  - No database connection or config needed; great for a quick test drive",
+		)
+		fmt.Println("  - Defaults to ./example.db; pass a path to customize")
+		fmt.Println(
+			"  - Refuses to overwrite an existing file; use --force to replace it",
+		)
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  squix example                  # create ./example.db")
+		fmt.Println("  squix example my.db            # create ./my.db")
+		fmt.Println("  squix example --force          # recreate ./example.db")
 
 	case "info":
 		section("Command: info")

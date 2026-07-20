@@ -218,6 +218,16 @@ squix run list_users
 squix run "SELECT * FROM products WHERE price > 100"
 ```
 
+No database handy? Spin up a sample one to explore right away:
+
+```bash
+# Create an Office-themed SQLite database in the current directory
+squix example
+squix init --name example --type sqlite --conn example.db
+squix explore
+squix run "select * from employees"
+```
+
 ### Navigating the Table
 
 Once your query results appear, you can navigate and interact with the data:

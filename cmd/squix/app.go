@@ -70,6 +70,8 @@ func (a *App) Run() {
 		a.handleConfig()
 	case "explain":
 		a.handleExplain()
+	case "example":
+		a.handleExample()
 	case "help":
 		a.handleHelp()
 	case "__complete":
