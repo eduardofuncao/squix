@@ -26,7 +26,7 @@ func (a *App) handleInit() {
 			if connString != "" && dbType == "" {
 				printError("Could not infer the database type from the connection string. Pass --type or use a scheme squix recognises (e.g. postgresql://).")
 			}
-			printError("Missing parameters. Run 'squix init' in a terminal, or pass --name, --type, and --conn-string.")
+			printError("Missing parameters. Run 'squix init' in a terminal, or pass --name, --type, and --conn/--conn-string.")
 		}
 		var err error
 		name, dbType, connString, err = initui.CollectInitParameters(name, dbType, connString)
