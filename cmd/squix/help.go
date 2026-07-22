@@ -128,6 +128,11 @@ func (a *App) PrintGeneralHelp() {
 		),
 	)
 	fmt.Println(
+		"  export      " + styles.Faint.Render(
+			"Export a native database backup",
+		),
+	)
+	fmt.Println(
 		"  help        " + styles.Faint.Render(
 			"Show help for squix or a specific command",
 		),
@@ -634,6 +639,45 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println("  squix example                  # create ./example.db")
 		fmt.Println("  squix example my.db            # create ./my.db")
 		fmt.Println("  squix example --force          # recreate ./example.db")
+
+	case "export":
+		section("Command: export")
+		fmt.Println(
+			styles.Faint.Render(
+				"Export a native database backup using the engine's own dump tool.",
+			),
+		)
+		fmt.Println()
+		section("Usage")
+		fmt.Println("  squix export [path] --backup [--format <fmt>]")
+		fmt.Println()
+		section("Description")
+		fmt.Println(
+			"  - Currently supports Postgres only (via pg_dump); other engines error.",
+		)
+		fmt.Println(
+			"  - Format is inferred from the file extension, or set explicitly with",
+		)
+		fmt.Println(
+			"    --format. Setting both is an error.",
+		)
+		fmt.Println(
+			"  - If path is a directory, writes '<dbName>_<timestamp>.<ext>' inside it.",
+		)
+		fmt.Println(
+			"  - If path is omitted, writes to the current directory.",
+		)
+		fmt.Println()
+		section("Postgres formats")
+		fmt.Println("  custom (default)  " + styles.Faint.Render(".dump, -Fc"))
+		fmt.Println("  plain             " + styles.Faint.Render(".sql, -Fp"))
+		fmt.Println("  tar               " + styles.Faint.Render(".tar, -Ft"))
+		fmt.Println()
+		section("Examples")
+		fmt.Println("  squix export --backup")
+		fmt.Println("  squix export ./backups --backup")
+		fmt.Println("  squix export dump.sql --backup")
+		fmt.Println("  squix export dump --backup --format tar")
 
 	case "info":
 		section("Command: info")
