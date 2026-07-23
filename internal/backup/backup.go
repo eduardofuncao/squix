@@ -13,11 +13,19 @@ type FormatSpec struct {
 	Ext  string
 }
 
+// DumpOptions configures a native database dump.
+type DumpOptions struct {
+	Format     string
+	OutPath    string
+	SchemaOnly bool
+	Tables     []string
+}
+
 // Dumper performs a native, engine-specific database dump.
 type Dumper interface {
 	DefaultFormat() string
 	Formats() map[string]FormatSpec
-	Dump(connString, format, outPath string) error
+	Dump(connString string, opts DumpOptions) error
 }
 
 // ResolveFormat determines the dump format from a file extension and/or an

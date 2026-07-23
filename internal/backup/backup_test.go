@@ -3,6 +3,7 @@ package backup
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -23,6 +24,7 @@ func TestResolveFormat(t *testing.T) {
 		{name: "flag only", formatFlag: "tar", want: "tar"},
 		{name: "unknown flag errors", formatFlag: "bogus", wantErr: true},
 		{name: "neither set uses default", want: "custom"},
+		{name: "schema default (plain) resolves like any other flag", formatFlag: "plain", want: "plain"},
 	}
 
 	for _, tt := range tests {
@@ -39,6 +41,51 @@ func TestResolveFormat(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Fatalf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPgDumpArgs(t *testing.T) {
+	plain := postgresFormats["plain"]
+
+	tests := []struct {
+		name string
+		opts DumpOptions
+		want []string
+	}{
+		{
+			name: "plain, no schema-only, no tables",
+			opts: DumpOptions{Format: "plain", OutPath: "out.sql"},
+			want: []string{"-Fp", "-f", "out.sql"},
+		},
+		{
+			name: "schema-only, no tables",
+			opts: DumpOptions{Format: "plain", OutPath: "out.sql", SchemaOnly: true},
+			want: []string{"-Fp", "-f", "out.sql", "--schema-only"},
+		},
+		{
+			name: "schema-only, one table",
+			opts: DumpOptions{Format: "plain", OutPath: "out.sql", SchemaOnly: true, Tables: []string{"users"}},
+			want: []string{"-Fp", "-f", "out.sql", "--schema-only", "-t", "users"},
+		},
+		{
+			name: "schema-only, many tables",
+			opts: DumpOptions{Format: "plain", OutPath: "out.sql", SchemaOnly: true, Tables: []string{"users", "orders"}},
+			want: []string{"-Fp", "-f", "out.sql", "--schema-only", "-t", "users", "-t", "orders"},
+		},
+		{
+			name: "tables without schema-only still narrows",
+			opts: DumpOptions{Format: "plain", OutPath: "out.sql", Tables: []string{"users"}},
+			want: []string{"-Fp", "-f", "out.sql", "-t", "users"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := pgDumpArgs(plain, tt.opts)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("got %v, want %v", got, tt.want)
 			}
 		})
 	}

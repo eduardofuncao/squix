@@ -10,19 +10,37 @@ import (
 )
 
 func (a *App) handleExport() {
-	var path string
-	var doBackup bool
-	var format string
+	if len(os.Args) < 3 {
+		printError("usage: squix export [backup|schema]")
+	}
 
-	for i := 2; i < len(os.Args); i++ {
-		arg := os.Args[i]
+	switch os.Args[2] {
+	case "backup":
+		a.runExport(os.Args[3:], false, "Backup")
+	case "schema":
+		a.runExport(os.Args[3:], true, "Schema")
+	default:
+		printError("usage: squix export [backup|schema]")
+	}
+}
+
+func (a *App) runExport(args []string, schemaOnly bool, label string) {
+	var path string
+	var format string
+	var tables []string
+
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
 		switch arg {
-		case "--backup":
-			doBackup = true
 		case "--format":
-			if i+1 < len(os.Args) {
+			if i+1 < len(args) {
 				i++
-				format = os.Args[i]
+				format = args[i]
+			}
+		case "--table":
+			if i+1 < len(args) {
+				i++
+				tables = append(tables, args[i])
 			}
 		default:
 			if path == "" && arg[0] != '-' {
@@ -31,8 +49,8 @@ func (a *App) handleExport() {
 		}
 	}
 
-	if !doBackup {
-		printError("only --backup is supported currently")
+	if !schemaOnly && len(tables) > 0 {
+		printError("--table is only valid for export schema")
 	}
 
 	if a.config.CurrentConnection == "" {
@@ -49,6 +67,10 @@ func (a *App) handleExport() {
 	}
 
 	fileExt := filepath.Ext(path)
+	if schemaOnly && fileExt == "" && format == "" {
+		format = "plain"
+	}
+
 	formatName, err := backup.ResolveFormat(fileExt, format, dumper)
 	if err != nil {
 		printError("%v", err)
@@ -57,9 +79,16 @@ func (a *App) handleExport() {
 	spec := dumper.Formats()[formatName]
 	outPath := backup.ResolvePath(path, a.config.CurrentConnection, spec.Ext)
 
-	if err := dumper.Dump(connString, formatName, outPath); err != nil {
+	opts := backup.DumpOptions{
+		Format:     formatName,
+		OutPath:    outPath,
+		SchemaOnly: schemaOnly,
+		Tables:     tables,
+	}
+
+	if err := dumper.Dump(connString, opts); err != nil {
 		printError("%v", err)
 	}
 
-	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ Backup written to %s", outPath)))
+	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ %s written to %s", label, outPath)))
 }

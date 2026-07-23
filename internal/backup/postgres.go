@@ -33,14 +33,30 @@ func (d *postgresDumper) Formats() map[string]FormatSpec {
 	return postgresFormats
 }
 
-func (d *postgresDumper) Dump(connString, format, outPath string) error {
+// pgDumpArgs builds the pg_dump argv (excluding the connection string) for
+// the given format spec and dump options.
+func pgDumpArgs(spec FormatSpec, opts DumpOptions) []string {
+	args := []string{spec.Flag, "-f", opts.OutPath}
+
+	if opts.SchemaOnly {
+		args = append(args, "--schema-only")
+	}
+
+	for _, table := range opts.Tables {
+		args = append(args, "-t", table)
+	}
+
+	return args
+}
+
+func (d *postgresDumper) Dump(connString string, opts DumpOptions) error {
 	if _, err := exec.LookPath(pgDumpBin); err != nil {
 		return fmt.Errorf("%s not found on PATH: %w", pgDumpBin, err)
 	}
 
-	spec, ok := postgresFormats[format]
+	spec, ok := postgresFormats[opts.Format]
 	if !ok {
-		return fmt.Errorf("unknown postgres backup format %q", format)
+		return fmt.Errorf("unknown postgres backup format %q", opts.Format)
 	}
 
 	u, err := url.Parse(connString)
@@ -50,7 +66,8 @@ func (d *postgresDumper) Dump(connString, format, outPath string) error {
 
 	password, _ := u.User.Password()
 
-	cmd := exec.Command(pgDumpBin, spec.Flag, "-f", outPath, connString)
+	args := append(pgDumpArgs(spec, opts), connString)
+	cmd := exec.Command(pgDumpBin, args...)
 	cmd.Env = append(os.Environ(), "PGPASSWORD="+password)
 
 	var stderr bytes.Buffer
