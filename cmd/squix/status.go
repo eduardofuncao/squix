@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/spinner"
 	"github.com/eduardofuncao/squix/internal/styles"
@@ -17,10 +16,7 @@ func (a *App) printConnStatus(conn db.DatabaseConnection) {
 		connInfo += fmt.Sprintf(" (schema: %s)", currConn.Schema)
 	}
 
-	queryCount := 0
-	if currConn.Queries != nil {
-		queryCount = len(currConn.Queries)
-	}
+	queryCount := len(a.config.QueriesFor(a.config.CurrentConnection))
 
 	interactive := spinner.Interactive()
 	if interactive {
@@ -71,7 +67,7 @@ func (a *App) handleStatus() {
 		return
 	}
 
-	conn := config.FromConnectionYaml(a.config.Connections[a.config.CurrentConnection])
+	conn := a.config.LiveConnection(a.config.CurrentConnection)
 	conn.Open()
 	defer conn.Close()
 

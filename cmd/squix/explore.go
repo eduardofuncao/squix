@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/run"
 	"github.com/eduardofuncao/squix/internal/styles"
@@ -53,7 +52,7 @@ func (a *App) handleExplore() {
 		printError("No active connection. Use 'squix switch <connection>' or 'squix init' first")
 	}
 
-	conn := config.FromConnectionYaml(a.config.Connections[a.config.CurrentConnection])
+	conn := a.config.LiveConnection(a.config.CurrentConnection)
 
 	if err := conn.Open(); err != nil {
 		printError("Could not open connection: %v", err)
@@ -91,9 +90,7 @@ func (a *App) listTablesAndViews() {
 		)
 	}
 
-	conn := config.FromConnectionYaml(
-		a.config.Connections[a.config.CurrentConnection],
-	)
+	conn := a.config.LiveConnection(a.config.CurrentConnection)
 
 	if err := conn.Open(); err != nil {
 		printError(

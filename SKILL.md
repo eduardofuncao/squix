@@ -11,6 +11,8 @@ Squix is a CLI tool for managing and executing SQL queries across multiple
 databases (PostgreSQL, MySQL, SQLite, Oracle, SQL Server, ClickHouse, Firebird).
 It stores named queries in `~/.config/squix/config.yaml`.
 
+**Shared query libraries:** Connections named `{service}:{env}` (e.g. `ecommerce:dev`, `ecommerce:prod`) share one query library keyed by service — a query added on one is visible on siblings. `last_query` and `conn_string` stay per-connection. See [docs/configuration.md](docs/configuration.md#shared-query-libraries).
+
 ## Critical Rules
 
 1. **Always use `-f` with `squix run` for SELECT queries** — without it, SELECT results open an interactive TUI; non-SELECT queries print a status message either way

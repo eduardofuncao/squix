@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/run"
 )
@@ -24,7 +23,7 @@ func (a *App) handleInfo() {
 		printError("No active connection. Use 'squix switch <connection>' or 'squix init' first")
 	}
 
-	conn := config.FromConnectionYaml(a.config.Connections[a.config.CurrentConnection])
+	conn := a.config.LiveConnection(a.config.CurrentConnection)
 
 	queryStr := conn.GetInfoSQL(infoType)
 	if queryStr == "" {

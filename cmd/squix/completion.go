@@ -154,13 +154,12 @@ func getCurrentConnectionQueries(cfg *config.Config) []string {
 		return []string{}
 	}
 
-	conn, exists := cfg.Connections[cfg.CurrentConnection]
-	if !exists {
+	if _, exists := cfg.Connections[cfg.CurrentConnection]; !exists {
 		return []string{}
 	}
 
 	var names []string
-	for name := range conn.Queries {
+	for name := range cfg.QueriesFor(cfg.CurrentConnection) {
 		names = append(names, name)
 	}
 	sort.Strings(names)

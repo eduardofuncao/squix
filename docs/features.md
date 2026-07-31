@@ -38,6 +38,8 @@ squix run 2
 squix run emp_by_salary --edit
 ```
 
+> **Shared libraries:** Connections named `{service}:{env}` (e.g. `ecommerce:dev`, `ecommerce:prod`) share one query library — a query added on one is visible on the others. See [Shared query libraries](configuration.md#shared-query-libraries).
+
 <img width="1188" height="714" alt="image" src="https://github.com/user-attachments/assets/016c7a61-ace4-49cc-9375-564ee6089899" />
 
 ## TUI Table Viewer

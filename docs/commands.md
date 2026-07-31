@@ -42,7 +42,7 @@
 | Command | Description | Example |
 |---------|-------------|---------|
 | `config` | Edit main configuration file | `squix config` |
-| `edit` | Edit all queries for current connection | `squix edit` |
+| `edit` | Edit all queries for current connection's library (shared across `{service}:{env}` siblings) | `squix edit` |
 | `edit <name\|id>` | Edit a single named query | `squix edit 3` |
 | `remove --connection <name>` | Remove a db connection | `squix remove --conection dev4`` |
 | `help [command]` | Show help information | `squix help run` |

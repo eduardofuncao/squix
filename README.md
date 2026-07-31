@@ -293,6 +293,8 @@ See [Shell Completion](docs/completion.md)
 
 Row limits, column widths, color schemes (`dracula`, `gruvbox`, `catppuccin-mocha`, etc.) and UI visibility options can be set through the config file at `~/.config/squix/config.yaml`.
 
+Connections named `{service}:{env}` (e.g. `ecommerce:dev`, `ecommerce:prod`) share one saved-query library — add a query once, run it on any sibling environment. See [Shared query libraries](docs/configuration.md#shared-query-libraries).
+
 See [Configuration](docs/configuration.md)
 
 ---

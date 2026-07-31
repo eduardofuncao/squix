@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/styles"
 	"gopkg.in/yaml.v2"
 )
@@ -58,6 +59,7 @@ func (kc *KeybindingsConfig) UnmarshalYAML(unmarshal func(any) error) error {
 type Config struct {
 	CurrentConnection  string                     `yaml:"current_connection"`
 	Connections        map[string]*ConnectionYAML `yaml:"connections"`
+	QueryGroups        map[string]map[string]db.Query `yaml:"query_groups,omitempty"`
 	ColorScheme        string                     `yaml:"color_scheme"`
 	CustomColorScheme  *styles.ColorScheme        `yaml:"custom_colors,omitempty"`
 	History            History                    `yaml:"history"`
@@ -90,6 +92,7 @@ func LoadConfig(path string) (*Config, error) {
 			cfg := &Config{
 				CurrentConnection:  "",
 				Connections:        make(map[string]*ConnectionYAML),
+				QueryGroups:        make(map[string]map[string]db.Query),
 				ColorScheme:        "default",
 				History:            History{},
 				DefaultRowLimit:    1000,
@@ -117,6 +120,11 @@ func LoadConfig(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if cfg.QueryGroups == nil {
+		cfg.QueryGroups = make(map[string]map[string]db.Query)
+	}
+	cfg.MigrateQueryGroups()
 
 	if cfg.DefaultColumnWidth == 0 {
 		cfg.DefaultColumnWidth = 15

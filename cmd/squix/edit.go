@@ -31,13 +31,13 @@ func (a *App) editSingleQuery(selector string) {
 		log.Fatal("No active connection. Use 'squix switch <connection>' or 'squix init' first")
 	}
 
-	conn, ok := a.config.Connections[a.config.CurrentConnection]
-	if !ok {
+	if _, ok := a.config.Connections[a.config.CurrentConnection]; !ok {
 		log.Fatalf("Connection %s not found", a.config.CurrentConnection)
 	}
+	queries := a.config.QueriesFor(a.config.CurrentConnection)
 
 	// Find the query
-	query, exists := db.FindQueryWithSelector(conn.Queries, selector)
+	query, exists := db.FindQueryWithSelector(queries, selector)
 	if !exists {
 		log.Fatalf("Query '%s' not found in connection '%s'", selector, a.config.CurrentConnection)
 	}
@@ -85,14 +85,13 @@ func (a *App) editSingleQuery(selector string) {
 			return
 		}
 
-		delete(conn.Queries, query.Name)
+		delete(queries, query.Name)
 	}
 
 	// Update query
 	query.Name = newName
 	query.SQL = newSQL
-	conn.Queries[query.Name] = query
-	a.config.Connections[a.config.CurrentConnection] = conn
+	queries[query.Name] = query
 
 	if err := a.config.Save(); err != nil {
 		log.Fatalf("Failed to save config: %v", err)
@@ -124,6 +123,7 @@ func (a *App) editQueriesWithEditor(editorCmd string) {
 	if !ok {
 		log.Fatalf("Connection %s not found", a.config.CurrentConnection)
 	}
+	queries := a.config.QueriesFor(a.config.CurrentConnection)
 
 	var content strings.Builder
 	content.WriteString(fmt.Sprintf("-- Editing queries for connection: %s (%s)\n",
@@ -132,7 +132,7 @@ func (a *App) editQueriesWithEditor(editorCmd string) {
 	content.WriteString("--         SQL run here\n")
 	content.WriteString("-- Save and close to update\n\n")
 
-	for _, query := range conn.Queries {
+	for _, query := range queries {
 		content.WriteString(fmt.Sprintf("-- %s\n", query.Name))
 		content.WriteString(strings.TrimSpace(query.SQL))
 		content.WriteString("\n\n")
@@ -164,8 +164,8 @@ func (a *App) editQueriesWithEditor(editorCmd string) {
 		log.Fatalf("Failed to parse edited queries: %v", err)
 	}
 
-	conn.Queries = editedQueries
-	a.config.Connections[a.config.CurrentConnection] = conn
+	// Replace the shared library in place so sibling connections see the change.
+	a.config.SetQueriesFor(a.config.CurrentConnection, editedQueries)
 
 	if err := a.config.Save(); err != nil {
 		log.Fatalf("Failed to save config: %v", err)

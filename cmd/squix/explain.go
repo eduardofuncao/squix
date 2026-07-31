@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/styles"
 )
@@ -57,9 +56,7 @@ func (a *App) handleExplain() {
 		os.Exit(1)
 	}
 
-	conn := config.FromConnectionYaml(
-		a.config.Connections[a.config.CurrentConnection],
-	)
+	conn := a.config.LiveConnection(a.config.CurrentConnection)
 
 	if err := conn.Open(); err != nil {
 		printError(

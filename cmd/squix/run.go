@@ -17,7 +17,7 @@ func (a *App) handleRun() {
 		printError("No active connection.   Use 'squix switch <connection>' or 'squix init' first")
 	}
 
-	conn := config.FromConnectionYaml(a.config.Connections[a.config.CurrentConnection])
+	conn := a.config.LiveConnection(a.config.CurrentConnection)
 	args := os.Args[2:]
 
 	// Check for empty args → open editor for new query (CLI-only feature)

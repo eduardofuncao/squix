@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/eduardofuncao/squix/internal/config"
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/run"
 	"github.com/eduardofuncao/squix/internal/spinner"
@@ -50,9 +49,7 @@ func (a *App) handleTables() {
 	}
 
 	flags, args := parseTablesFlags()
-	conn := config.FromConnectionYaml(
-		a.config.Connections[a.config.CurrentConnection],
-	)
+	conn := a.config.LiveConnection(a.config.CurrentConnection)
 
 	if err := conn.Open(); err != nil {
 		printError(

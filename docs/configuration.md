@@ -2,6 +2,27 @@
 
 Squix stores its configuration at `~/.config/squix/config.yaml`.
 
+## Shared query libraries
+
+Saved queries are stored once per **query group**, not per connection. By default a connection owns a private group keyed by its own name, so a single connection behaves exactly as before. To share one library across several environments of the same service, name connections using the `{service}:{env}` convention:
+
+```yaml
+current_connection: ecommerce:dev
+query_groups:          # one shared library per service
+  ecommerce:
+    list_orders: {id: 1, name: list_orders, sql: "SELECT * FROM orders"}
+connections:
+  ecommerce:dev:  {db_type: postgres, conn_string: postgres://dev-host/db}
+  ecommerce:prod: {db_type: postgres, conn_string: postgres://prod-host/db}
+  analytics:      {db_type: sqlite,   conn_string: analytics.db}   # no colon → private group "analytics"
+```
+
+`ecommerce:dev`, `ecommerce:stg`, and `ecommerce:prod` are distinct connections (each keeps its own `conn_string`, `schema`, and `last_query`) but read and write the **same** query library. A query added on one is immediately visible on the others; `squix edit` edits the shared set.
+
+The group key is the **service**: the part of the name **before the last `:`**. Names without a colon (`analytics`) keep a private library. A colon in a connection name is therefore effectively reserved — a database literally named `host:port` would be grouped by `host`.
+
+> **Migration:** if you are upgrading from an older squix version that stored queries inline under each connection, they are lifted into `query_groups` automatically on the first run. The migration is one-way — back up `config.yaml` before the first run if you may need to downgrade. On a collision (two sibling envs each carrying different inline queries), the alphabetically-first connection wins and the others are dropped with a stderr warning so you can merge manually.
+
 ## Row Limit `default_row_limit: 1000`
 All queries are automatically limited to prevent fetching massive result sets. Configure via `default_row_limit` in config or use explicit `LIMIT` in your SQL queries.
 
