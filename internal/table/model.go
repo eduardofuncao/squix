@@ -66,6 +66,8 @@ type Model struct {
 	searchQuery      string
 	searchMatches    []CellPosition
 	searchColMatches []int
+	cellMatchIdx     int
+	colMatchIdx      int
 	searchCursor     int
 	columnSearchMode bool
 }
@@ -156,7 +158,7 @@ func New(
 		cellWidth:        columnWidth,
 		isTablesList:     false,
 		uiVisibility:     visibility,
-		keyMap:            keyMap,
+		keyMap:           keyMap,
 		searchMode:       false,
 		searchQuery:      "",
 		searchMatches:    []CellPosition{},
