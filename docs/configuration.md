@@ -19,9 +19,7 @@ connections:
 
 `ecommerce:dev`, `ecommerce:stg`, and `ecommerce:prod` are distinct connections (each keeps its own `conn_string`, `schema`, and `last_query`) but read and write the **same** query library. A query added on one is immediately visible on the others; `squix edit` edits the shared set.
 
-The group key is the **service**: the part of the name **before the last `:`**. Names without a colon (`analytics`) keep a private library. A colon in a connection name is therefore effectively reserved — a database literally named `host:port` would be grouped by `host`.
-
-> **Migration:** if you are upgrading from an older squix version that stored queries inline under each connection, they are lifted into `query_groups` automatically on the first run. The migration is one-way — back up `config.yaml` before the first run if you may need to downgrade. On a collision (two sibling envs each carrying different inline queries), the alphabetically-first connection wins and the others are dropped with a stderr warning so you can merge manually.
+> **Migration:** if you are upgrading from an older squix version that stored queries inline under each connection, they are lifted into `query_groups` automatically on the first run. The migration is one-way, back up `config.yaml` before the first run if you may need to downgrade. On a collision (two sibling envs each carrying different inline queries), the alphabetically-first connection wins and the others are dropped with a stderr warning so you can merge manually.
 
 ## Row Limit `default_row_limit: 1000`
 All queries are automatically limited to prevent fetching massive result sets. Configure via `default_row_limit` in config or use explicit `LIMIT` in your SQL queries.
