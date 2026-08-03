@@ -35,23 +35,3 @@ func (c *Config) SaveQueryToConnection(connName string, query db.Query) (db.Quer
 
 	return query, nil
 }
-
-func (c *Config) UpdateLastQuery(connName string, query db.Query) error {
-	connData := c.Connections[connName]
-	connData.LastQuery = query
-	return c.Save()
-}
-
-func (c *Config) SaveQueryAndLast(connName string, query db.Query, saveAsLast bool) error {
-	connData := c.Connections[connName]
-
-	if query.Name != "<inline>" && query.Name != "" && query.SQL != "" {
-		c.QueriesFor(connName)[query.Name] = query
-	}
-
-	if saveAsLast {
-		connData.LastQuery = query
-	}
-
-	return c.Save()
-}

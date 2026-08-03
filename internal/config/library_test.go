@@ -1,7 +1,9 @@
 package config
 
 import (
+	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/eduardofuncao/squix/internal/db"
@@ -88,17 +90,20 @@ func TestSetQueriesFor_PreservesReference(t *testing.T) {
 	}
 }
 
-func TestMigrateQueryGroups_LegacyInline(t *testing.T) {
+func TestMigrateQueriesToFiles_LegacyInline(t *testing.T) {
+	withTempCfg(t)
 	cfg := &Config{
 		Connections: map[string]*ConnectionYAML{
 			"ecommerce:dev": {
 				Name:    "ecommerce:dev",
-				Queries: map[string]db.Query{"list_users": {Name: "list_users", Id: 1, SQL: "SELECT 1"}},
+				Queries: map[string]db.Query{"list_users": {Name: "list_users", SQL: "SELECT 1"}},
 			},
 		},
 		QueryGroups: map[string]map[string]db.Query{},
 	}
-	cfg.MigrateQueryGroups()
+	if !cfg.MigrateQueriesToFiles() {
+		t.Fatal("expected migration to report it migrated something")
+	}
 
 	if cfg.Connections["ecommerce:dev"].Queries != nil {
 		t.Error("legacy inline Queries not cleared after migration")
@@ -106,30 +111,42 @@ func TestMigrateQueryGroups_LegacyInline(t *testing.T) {
 	if got := cfg.QueryGroups["ecommerce"]["list_users"]; got.Name != "list_users" {
 		t.Errorf("legacy query not lifted into group: %+v", got)
 	}
+	data, err := os.ReadFile(GroupFile("ecommerce"))
+	if err != nil {
+		t.Fatalf("group file not written: %v", err)
+	}
+	if !strings.Contains(string(data), "list_users") {
+		t.Errorf("group file missing query:\n%s", data)
+	}
 }
 
-func TestMigrateQueryGroups_NoColon(t *testing.T) {
+func TestMigrateQueriesToFiles_NoColon(t *testing.T) {
+	withTempCfg(t)
 	cfg := &Config{
 		Connections: map[string]*ConnectionYAML{
-			"mydb": {Queries: map[string]db.Query{"q": {Name: "q", Id: 1}}},
+			"mydb": {Queries: map[string]db.Query{"q": {Name: "q"}}},
 		},
 		QueryGroups: map[string]map[string]db.Query{},
 	}
-	cfg.MigrateQueryGroups()
+	cfg.MigrateQueriesToFiles()
 	if cfg.QueryGroups["mydb"]["q"].Name != "q" {
 		t.Error("no-colon connection did not map to a private group keyed by its name")
 	}
+	if _, err := os.Stat(GroupFile("mydb")); err != nil {
+		t.Errorf("expected queries/mydb.sql: %v", err)
+	}
 }
 
-func TestMigrateQueryGroups_FirstWinsSorted(t *testing.T) {
+func TestMigrateQueriesToFiles_FirstWinsSorted(t *testing.T) {
+	withTempCfg(t)
 	cfg := &Config{
 		Connections: map[string]*ConnectionYAML{
-			"ecommerce:prod": {Queries: map[string]db.Query{"prod_q": {Name: "prod_q", Id: 1}}},
-			"ecommerce:dev":  {Queries: map[string]db.Query{"dev_q": {Name: "dev_q", Id: 1}}},
+			"ecommerce:prod": {Queries: map[string]db.Query{"prod_q": {Name: "prod_q"}}},
+			"ecommerce:dev":  {Queries: map[string]db.Query{"dev_q": {Name: "dev_q"}}},
 		},
 		QueryGroups: map[string]map[string]db.Query{},
 	}
-	cfg.MigrateQueryGroups()
+	cfg.MigrateQueriesToFiles()
 
 	// Sorted: "ecommerce:dev" < "ecommerce:prod" → dev wins.
 	if _, ok := cfg.QueryGroups["ecommerce"]["dev_q"]; !ok {
@@ -138,30 +155,39 @@ func TestMigrateQueryGroups_FirstWinsSorted(t *testing.T) {
 	if _, ok := cfg.QueryGroups["ecommerce"]["prod_q"]; ok {
 		t.Error("first-wins: prod_q should have been dropped")
 	}
+	data, _ := os.ReadFile(GroupFile("ecommerce"))
+	if strings.Contains(string(data), "prod_q") {
+		t.Errorf("dropped query leaked into file:\n%s", data)
+	}
 }
 
-func TestMigrateQueryGroups_NilSafe(t *testing.T) {
+func TestMigrateQueriesToFiles_NilSafe(t *testing.T) {
+	withTempCfg(t)
 	cfg := &Config{
 		Connections: map[string]*ConnectionYAML{"x": {Queries: map[string]db.Query{"q": {Name: "q"}}}},
 	}
-	cfg.MigrateQueryGroups() // QueryGroups is nil here
+	cfg.MigrateQueriesToFiles() // QueryGroups is nil here
 	if cfg.QueryGroups == nil {
-		t.Fatal("MigrateQueryGroups did not initialize QueryGroups")
+		t.Fatal("MigrateQueriesToFiles did not initialize QueryGroups")
 	}
 }
 
-func TestMigrateQueryGroups_Idempotent(t *testing.T) {
+func TestMigrateQueriesToFiles_Idempotent(t *testing.T) {
+	withTempCfg(t)
 	cfg := &Config{
 		Connections: map[string]*ConnectionYAML{
-			"ecommerce:dev": {Queries: map[string]db.Query{"q": {Name: "q", Id: 1}}},
+			"ecommerce:dev": {Queries: map[string]db.Query{"q": {Name: "q"}}},
 		},
 		QueryGroups: map[string]map[string]db.Query{},
 	}
-	cfg.MigrateQueryGroups()
-	before := cfg.QueryGroups["ecommerce"]["q"]
-	cfg.MigrateQueryGroups() // second run: nothing to lift
-	after := cfg.QueryGroups["ecommerce"]["q"]
-	if before.Name != after.Name || before.Id != after.Id {
+	if !cfg.MigrateQueriesToFiles() {
+		t.Fatal("first migration should report migrated=true")
+	}
+	before := cfg.QueryGroups["ecommerce"]["q"].Name
+	if cfg.MigrateQueriesToFiles() {
+		t.Error("second migration should be a no-op (migrated=false)")
+	}
+	if cfg.QueryGroups["ecommerce"]["q"].Name != before {
 		t.Error("second migration pass altered already-migrated data")
 	}
 }

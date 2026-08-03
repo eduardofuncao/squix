@@ -189,7 +189,7 @@ func parseInput(input string) []string {
 func (a *App) runFromArgsOpenConn(args []string, conn db.DatabaseConnection) error {
 	flags := parseRunFlagsFrom(args)
 
-	resolved, err := run.ResolveQuery(flags, a.config, a.config.CurrentConnection, conn)
+	resolved, err := run.ResolveQuery(flags, a.config.CurrentConnection, conn)
 	if err != nil {
 		return err
 	}

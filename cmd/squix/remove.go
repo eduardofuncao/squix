@@ -58,7 +58,7 @@ func (a *App) removeConnection(connName string) {
 		return
 	}
 
-	key := config.QueryGroupKey(connName)
+	key := config.GroupKey(connName)
 	queryCount := len(a.config.QueriesFor(connName))
 	hasSiblings := a.config.GroupHasOtherMembers(key, connName)
 
@@ -75,6 +75,10 @@ func (a *App) removeConnection(connName string) {
 	// Drop the shared library only if no other connection still derives it.
 	if !hasSiblings {
 		delete(a.config.QueryGroups, key)
+		// Remove the on-disk file too (only place group files are deleted).
+		if err := os.Remove(config.GroupFile(key)); err != nil && !os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "squix: could not remove %s: %v\n", config.GroupFile(key), err)
+		}
 	}
 
 	err := a.config.Save()

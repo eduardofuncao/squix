@@ -59,6 +59,6 @@ func (a *App) handleAdd() {
 		printError("Could not save configuration file: %v", err)
 	}
 
-	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ Added query '%s' with ID %d", queryName, queries[queryName].Id)))
+	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ Added query '%s'", queryName)))
 }
 

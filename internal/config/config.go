@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/eduardofuncao/squix/internal/db"
 	"github.com/eduardofuncao/squix/internal/styles"
@@ -59,7 +60,7 @@ func (kc *KeybindingsConfig) UnmarshalYAML(unmarshal func(any) error) error {
 type Config struct {
 	CurrentConnection  string                     `yaml:"current_connection"`
 	Connections        map[string]*ConnectionYAML `yaml:"connections"`
-	QueryGroups        map[string]map[string]db.Query `yaml:"query_groups,omitempty"`
+	QueryGroups        map[string]map[string]db.Query `yaml:"-"`
 	ColorScheme        string                     `yaml:"color_scheme"`
 	CustomColorScheme  *styles.ColorScheme        `yaml:"custom_colors,omitempty"`
 	History            History                    `yaml:"history"`
@@ -124,7 +125,14 @@ func LoadConfig(path string) (*Config, error) {
 	if cfg.QueryGroups == nil {
 		cfg.QueryGroups = make(map[string]map[string]db.Query)
 	}
-	cfg.MigrateQueryGroups()
+	if err := cfg.loadQueryFiles(); err != nil {
+		return nil, err
+	}
+	if cfg.MigrateQueriesToFiles() {
+		if err := cfg.Save(); err != nil {
+			return nil, err
+		}
+	}
 
 	if cfg.DefaultColumnWidth == 0 {
 		cfg.DefaultColumnWidth = 15
@@ -153,9 +161,22 @@ func LoadConfig(path string) (*Config, error) {
 }
 
 func (c *Config) Save() error {
-	err := os.MkdirAll(CfgPath, 0755)
-	if err != nil {
+	if err := os.MkdirAll(CfgPath, 0755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Persist each query group to its .sql file. Disk must match memory, so a
+	// now-empty group (e.g. after its last query is removed) drops its file.
+	for key, queries := range c.QueryGroups {
+		if len(queries) == 0 {
+			if err := os.Remove(GroupFile(key)); err != nil && !os.IsNotExist(err) {
+				return fmt.Errorf("failed to remove empty query group %s: %w", key, err)
+			}
+			continue
+		}
+		if err := WriteGroupFile(key, queries); err != nil {
+			return fmt.Errorf("failed to write query group %s: %w", key, err)
+		}
 	}
 
 	data, err := yaml.Marshal(c)
@@ -163,4 +184,35 @@ func (c *Config) Save() error {
 		return err
 	}
 	return os.WriteFile(CfgFile, data, 0644)
+}
+
+// loadQueryFiles reads queries/<group>.sql into QueryGroups, assigning ids.
+// A missing queries/ directory is not an error.
+func (c *Config) loadQueryFiles() error {
+	entries, err := os.ReadDir(QueriesDir())
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".sql") {
+			continue
+		}
+		key := strings.TrimSuffix(e.Name(), ".sql")
+		data, err := os.ReadFile(filepath.Join(QueriesDir(), e.Name()))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "squix: skipping unreadable query file %s: %v\n", e.Name(), err)
+			continue
+		}
+		queries, err := ParseGroupFile(data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "squix: skipping malformed query file %s: %v\n", e.Name(), err)
+			continue
+		}
+		AssignIDs(queries)
+		c.QueryGroups[key] = queries
+	}
+	return nil
 }

@@ -61,33 +61,28 @@ func TestStandalonePrivateLibrary(t *testing.T) {
 	}
 }
 
-func TestLastQueryPerConnection(t *testing.T) {
+func TestLastQueryClearedOnSwitch(t *testing.T) {
 	env := Setup(t)
-	// dev has a last_query; prod does not. Both share group ecommerce.
-	cfg := `current_connection: ecommerce:prod
-connections:
-  ecommerce:dev:
-    name: ecommerce:dev
-    db_type: sqlite
-    conn_string: ` + env.NewDBPath("dev.db") + `
-    last_query:
-      name: q1
-      id: 1
-      sql: SELECT 1
-  ecommerce:prod:
-    name: ecommerce:prod
-    db_type: sqlite
-    conn_string: ` + env.NewDBPath("prod.db") + `
-`
-	env.WriteConfig(cfg)
+	env.WriteConfig(multiConnConfig(map[string]string{
+		"ecommerce:dev":  env.NewDBPath("dev.db"),
+		"ecommerce:prod": env.NewDBPath("prod.db"),
+	}, "ecommerce:dev"))
 
+	// Run a query on dev → writes last-query.sql via the execute chokepoint.
+	if _, _, code := env.RunSquix("run", "SELECT 1", "-f", "csv"); code != 0 {
+		t.Fatal("run on dev failed")
+	}
+
+	// Switching connections clears last-query.sql (ephemeral, no longer stored
+	// per-connection in config.yaml).
+	env.RunSquix("switch", "ecommerce:prod")
+
+	// --last on prod must fail: switching wiped the last query.
 	_, stderr, code := env.RunSquix("run", "--last")
 	if code == 0 {
-		t.Fatalf("run --last on prod (no last_query) should have failed; stderr: %s", stderr)
+		t.Fatalf("run --last after switch should fail; stderr: %s", stderr)
 	}
-	// prod must NOT inherit dev's last_query.
-	lowered := strings.ToLower(stderr)
-	if !strings.Contains(lowered, "no last query") {
+	if !strings.Contains(strings.ToLower(stderr), "no last query") {
 		t.Errorf("expected 'no last query' error, got stderr: %s", stderr)
 	}
 }
@@ -175,17 +170,18 @@ func TestRemoveConnection_GCOrphanGroup(t *testing.T) {
 	}, "ecommerce:dev"))
 
 	env.RunSquix("add", "list_users", "SELECT * FROM users")
+
+	grpFile := filepath.Join(env.HomeDir, ".config", "squix", "queries", "ecommerce.sql")
+	if _, err := os.Stat(grpFile); err != nil {
+		t.Fatalf("group file not created after add: %v", err)
+	}
 	if _, _, code := env.RunSquixWithStdin("y\n", "remove", "-c", "ecommerce:dev"); code != 0 {
 		t.Fatal("remove dev failed")
 	}
 
-	// The orphaned group must be garbage-collected from the config file.
-	data, err := os.ReadFile(filepath.Join(env.HomeDir, ".config", "squix", "config.yaml"))
-	if err != nil {
-		t.Fatalf("read config: %v", err)
-	}
-	if strings.Contains(string(data), "query_groups") {
-		t.Errorf("orphaned query group not GC'd after removing last member:\n%s", data)
+	// The orphaned group file must be removed with its last connection.
+	if _, err := os.Stat(grpFile); !os.IsNotExist(err) {
+		t.Errorf("orphaned group file not removed after removing last member: %v", err)
 	}
 }
 
@@ -210,18 +206,22 @@ connections:
 		t.Fatal("add on legacy config failed")
 	}
 
-	data, err := os.ReadFile(filepath.Join(env.HomeDir, ".config", "squix", "config.yaml"))
+	// Legacy queries migrate to a per-group .sql file.
+	grpFile := filepath.Join(env.HomeDir, ".config", "squix", "queries", "onlydb.sql")
+	data, err := os.ReadFile(grpFile)
+	if err != nil {
+		t.Fatalf("legacy queries not migrated to %s: %v", grpFile, err)
+	}
+	if !strings.Contains(string(data), "legacy_q") {
+		t.Errorf("legacy query lost during migration:\n%s", data)
+	}
+
+	// config.yaml must no longer carry inline per-connection queries.
+	cfgData, err := os.ReadFile(filepath.Join(env.HomeDir, ".config", "squix", "config.yaml"))
 	if err != nil {
 		t.Fatalf("read config: %v", err)
 	}
-	body := string(data)
-	if !strings.Contains(body, "query_groups:") {
-		t.Errorf("legacy queries not migrated to query_groups:\n%s", body)
-	}
-	if !strings.Contains(body, "legacy_q") {
-		t.Errorf("legacy query lost during migration:\n%s", body)
-	}
-	if strings.Contains(body, "    queries:") {
-		t.Errorf("inline per-connection queries still present after migration:\n%s", body)
+	if strings.Contains(string(cfgData), "queries:") {
+		t.Errorf("inline per-connection queries still present after migration:\n%s", cfgData)
 	}
 }
