@@ -58,7 +58,7 @@ func (a *App) Run() {
 		a.handleInfo()
 	case "explore":
 		a.handleExplore()
-	case "status", "test":
+	case "status", "st", "test":
 		a.handleStatus()
 	case "history":
 		a.handleHistory()
