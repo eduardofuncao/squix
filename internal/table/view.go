@@ -201,10 +201,7 @@ func (m Model) renderFooter() string {
 		}
 
 		maxPreviewWidth := m.width - len(columnType) - len(fkRef) - 10
-		displayValue := currentCellValue
-		if len(displayValue) > maxPreviewWidth && maxPreviewWidth > 0 {
-			displayValue = displayValue[:maxPreviewWidth-3] + "..."
-		}
+		displayValue := formatFooterPreview(currentCellValue, maxPreviewWidth)
 
 		modeIndicator := ""
 		if m.visualLineMode {
@@ -278,6 +275,10 @@ func (m Model) getCellStyle(row, col int) lipgloss.Style {
 }
 
 func formatCell(content string, cellWidth int) string {
+	content = strings.ReplaceAll(content, "\t", " ")
+	if idx := strings.IndexAny(content, "\r\n\v\f"); idx >= 0 {
+		content = content[:idx] + "…"
+	}
 	runes := []rune(content)
 	runeCount := len(runes)
 
@@ -287,6 +288,17 @@ func formatCell(content string, cellWidth int) string {
 
 	padding := cellWidth - runeCount
 	return content + strings.Repeat(" ", padding)
+}
+
+func formatFooterPreview(value string, max int) string {
+	value = strings.ReplaceAll(value, "\t", " ")
+	if idx := strings.IndexAny(value, "\r\n\v\f"); idx >= 0 {
+		value = value[:idx] + "…"
+	}
+	if max > 0 && len(value) > max {
+		return value[:max-1] + "…"
+	}
+	return value
 }
 
 func getTypeIcon(typeName string) string {
