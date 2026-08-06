@@ -23,7 +23,7 @@ func (a *App) handleRun() {
 	// Check for empty args → open editor for new query (CLI-only feature)
 	if len(args) == 0 {
 		newQuery := a.createNewQueryOrEdit()
-		if err := a.executeQueryWithParams(newQuery, conn, nil, nil); err != nil {
+		if err := a.executeQueryWithParams(newQuery, conn, nil, nil, run.Flags{}); err != nil {
 			printError("%v", err)
 		}
 		return
@@ -36,8 +36,6 @@ func (a *App) handleRun() {
 
 func (a *App) runFromArgs(args []string, conn db.DatabaseConnection) error {
 	flags := parseRunFlagsFrom(args)
-	a.hideQueryName = flags.HideQueryName
-	a.hideQuerySQL = flags.HideQuerySQL
 
 	resolved, err := run.ResolveQuery(flags, a.config, a.config.CurrentConnection, conn)
 	if err != nil {
@@ -65,10 +63,10 @@ func (a *App) runFromArgs(args []string, conn db.DatabaseConnection) error {
 	if flags.ExportFormat != "" {
 		return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, func(p run.ExecutionParams) error {
 			return run.ExecuteExport(p, flags.ExportFormat)
-		}, true)
+		}, true, flags)
 	}
 
-	return a.executeQueryWithParams(resolved.Query, conn, paramFlags, positionalArgs)
+	return a.executeQueryWithParams(resolved.Query, conn, paramFlags, positionalArgs, flags)
 }
 
 func parseRunFlagsFrom(args []string) run.Flags {
@@ -263,21 +261,19 @@ func (a *App) saveIfNeeded(resolved run.ResolvedQuery) {
 
 type executorFunc func(run.ExecutionParams) error
 
-func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseConnection, paramFlags, positionalArgs map[string]string, executor executorFunc, noInteractive bool) error {
+func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseConnection, paramFlags, positionalArgs map[string]string, executor executorFunc, noInteractive bool, flags run.Flags) error {
 	sql, args, displaySQL, err := a.processParameters(query.SQL, conn, paramFlags, positionalArgs, noInteractive)
 	if err != nil {
 		return err
 	}
 
-	// Render-only config copy: honor --hide-query-name/--hide-query-sql during
-	// rendering without persisting (the save callback still uses a.config).
 	renderCfg := a.config
-	if a.hideQueryName || a.hideQuerySQL {
+	if flags.HideQueryName || flags.HideQuerySQL {
 		c := *a.config
-		if a.hideQueryName {
+		if flags.HideQueryName {
 			c.UIVisibility.QueryName = false
 		}
-		if a.hideQuerySQL {
+		if flags.HideQuerySQL {
 			c.UIVisibility.QuerySQL = false
 		}
 		renderCfg = &c
@@ -334,8 +330,8 @@ func (a *App) executeQueryWithParamsInternal(query db.Query, conn db.DatabaseCon
 	})
 }
 
-func (a *App) executeQueryWithParams(query db.Query, conn db.DatabaseConnection, paramFlags, positionalArgs map[string]string) error {
-	return a.executeQueryWithParamsInternal(query, conn, paramFlags, positionalArgs, run.Execute, false)
+func (a *App) executeQueryWithParams(query db.Query, conn db.DatabaseConnection, paramFlags, positionalArgs map[string]string, flags run.Flags) error {
+	return a.executeQueryWithParamsInternal(query, conn, paramFlags, positionalArgs, run.Execute, false, flags)
 }
 
 // processParameters handles parameter extraction, validation, and substitution

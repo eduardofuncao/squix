@@ -213,10 +213,10 @@ func (a *App) runFromArgsOpenConn(args []string, conn db.DatabaseConnection) err
 	if flags.ExportFormat != "" {
 		return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, func(p run.ExecutionParams) error {
 			return run.ExecuteExportWithOpenConn(p, flags.ExportFormat)
-		}, true)
+		}, true, flags)
 	}
 
-	return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, run.ExecuteWithOpenConn, false)
+	return a.executeQueryWithParamsInternal(resolved.Query, conn, paramFlags, positionalArgs, run.ExecuteWithOpenConn, false, flags)
 }
 
 func shellHelpText() string {

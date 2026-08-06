@@ -50,8 +50,6 @@ func (a *App) handleTables() {
 	}
 
 	flags, args := parseTablesFlags()
-	a.hideQueryName = flags.hideQueryName
-	a.hideQuerySQL = flags.hideQuerySQL
 	conn := config.FromConnectionYaml(
 		a.config.Connections[a.config.CurrentConnection],
 	)
@@ -152,7 +150,7 @@ func (a *App) handleTables() {
 		}
 	} else {
 		// For normal mode, use the interactive table viewer with name-only query
-		a.showTablesInteractive(conn, nameOnlyQuery)
+		a.showTablesInteractive(conn, nameOnlyQuery, flags.hideQueryName, flags.hideQuerySQL)
 	}
 }
 
@@ -213,12 +211,14 @@ func (a *App) handleReplTables(conn db.DatabaseConnection, args []string) {
 		queryStr,
 	)
 
-	a.showTablesInteractive(conn, nameOnlyQuery)
+	a.showTablesInteractive(conn, nameOnlyQuery, false, false)
 }
 
 func (a *App) showTablesInteractive(
 	conn db.DatabaseConnection,
 	queryStr string,
+	hideName bool,
+	hideSQL bool,
 ) {
 	for {
 		start := time.Now()
@@ -259,10 +259,10 @@ func (a *App) showTablesInteractive(
 		}
 
 		vis := a.config.UIVisibility
-		if a.hideQueryName {
+		if hideName {
 			vis.QueryName = false
 		}
-		if a.hideQuerySQL {
+		if hideSQL {
 			vis.QuerySQL = false
 		}
 
