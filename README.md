@@ -43,7 +43,7 @@
 - **Table view TUI** - Keyboard focused navigation and search with configurable vim-style bindings
 - **In-Place Editing** - Update cells, delete rows and edit your SQL directly from the results table
 - **Export your data** - Export your data as CSV, JSON, SQL, Markdown or HTML tables
-- **Connection Switching** - Manage multiple databases and switch instantly
+- **Connection Switching** - Manage multiple databases and switch whenever you want
 - **Database Exploration** - Browse schema, visualize foreign key relationships
 - **Interactive Shell** - REPL with history, multi-line, and meta-commands
 
@@ -336,19 +336,6 @@ as part of your workflow.
 
 > This project is currently in beta, please report unexpected behavior through the issues tab
 
-### v0.3.0 - Squix 🐿️
-- [x] Edit command overhaul
-- [x] Delete connections with remove command
-- [x] Full project rename
-
-### v0.4.0 - Acorn 🌰
-- [x] Interactive query shell (`squix shell`)
-- [x] Shell autocomplete (bash, fish, zsh)
-- [x] Cell search (`/`) and column header search (`f`)
-- [x] Add skill file for ai agents and non interactive query results
-- [x] Option to return results from `squix run` as json, csv, etc. with `--format` flag
-- [x] Duckdb support
-
 ### v0.5.0 - Scrat 🧊
 - [x] Configurable keybinds
 - [x] Migrate to bubbletea v2
@@ -356,7 +343,13 @@ as part of your workflow.
 - [x] Homebrew custom tap
 - [x] nixpkgs entry
 - [x] Handle windows env vars seamlessly
-- [ ] More options to encrypt data in the config file
+
+### v1.0.0 - Scrat 🧊
+- [x] Move saved configs from top level yaml file to per-connection sql files
+- [x] Display counters for selected lines and search results
+- [x] Allow different connections to share query collection (eg. dev, stg, prod)
+- [ ] Rework database exploration commands
+- [ ] Option to encrypt sensitive data in the config file
 
 ---
  
