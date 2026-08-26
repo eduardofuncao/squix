@@ -463,14 +463,7 @@ func (m Model) renderHelpOverlay() string {
 	}
 
 	// Context adjustments
-	if m.isTablesList {
-		categories[2].binds = []keyBind{
-			{km.DisplayKeys(config.ActionYank), "Yank (copy) selection"},
-			{km.DisplayKeys(config.ActionExport), "Export selected cells"},
-			{km.DisplayKeys(config.ActionExportAll), "Export all rows"},
-			{km.DisplayKeys(config.ActionEnter), "Select table"},
-		}
-	} else if m.tableName == "" {
+	if m.tableName == "" {
 		categories[2].binds = []keyBind{
 			{km.DisplayKeys(config.ActionYank), "Yank (copy) selection"},
 			{km.DisplayKeys(config.ActionExport), "Export selected cells"},

@@ -46,15 +46,11 @@ type Model struct {
 	shouldRerunQuery  bool
 	editedQuery       string
 	lastExecutedQuery string
-	displaySQL        string
 	cellWidth         int
 	detailViewMode    bool
 	detailViewContent string
 	detailViewScroll  int
 	helpOverlayMode   bool
-	isTablesList      bool
-	onTableSelect     func(string) tea.Cmd
-	selectedTableName string
 	saveQueryCallback func(query db.Query) (db.Query, error)
 	statusMessage     string
 	exportWaiting     exportWaitingFormatState
@@ -93,7 +89,7 @@ func New(
 	columnTypes := make([]string, len(columns))
 
 	// Use passed column types from result set if available (works for JOINs, CTEs, etc.)
-	if passedColumnTypes != nil && len(passedColumnTypes) > 0 {
+	if len(passedColumnTypes) > 0 {
 		// Use types from SQL driver's ColumnTypes()
 		for i := range columns {
 			if i < len(passedColumnTypes) {
@@ -156,7 +152,6 @@ func New(
 		shouldRerunQuery: false,
 		editedQuery:      "",
 		cellWidth:        columnWidth,
-		isTablesList:     false,
 		uiVisibility:     visibility,
 		keyMap:           keyMap,
 		searchMode:       false,
@@ -220,14 +215,4 @@ func (m Model) calculateHeaderLines() int {
 	headerLines++
 
 	return headerLines
-}
-
-func (m Model) SetTablesList(onSelect func(string) tea.Cmd) Model {
-	m.isTablesList = true
-	m.onTableSelect = onSelect
-	return m
-}
-
-func (m Model) GetSelectedTableName() string {
-	return m.selectedTableName
 }
