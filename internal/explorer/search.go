@@ -8,7 +8,6 @@ import (
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
-// shouldUseCaseSensitive returns true if the query contains uppercase (smart case)
 func shouldUseCaseSensitive(query string) bool {
 	for _, r := range query {
 		if r >= 'A' && r <= 'Z' {
@@ -23,27 +22,6 @@ func containsMatch(value, query string, caseSensitive bool) bool {
 		return strings.Contains(value, query)
 	}
 	return strings.Contains(strings.ToLower(value), strings.ToLower(query))
-}
-
-// rebuildRows flattens sections into visible rows, applying folds. Sections
-// with no items are hidden.
-func (m *Model) rebuildRows() {
-	var rows []row
-	for si, sec := range m.sections {
-		if len(sec.items) == 0 {
-			continue
-		}
-
-		rows = append(rows, row{kind: rowHeader, section: si})
-		if !sec.folded {
-			for ii := range sec.items {
-				rows = append(rows, row{kind: rowItem, section: si, item: ii})
-			}
-		}
-	}
-
-	m.rows = rows
-	m.clampCursor()
 }
 
 func (m Model) startSearch() Model {
@@ -89,9 +67,6 @@ func (m Model) handleSearchInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// executeSearch highlights all matching item rows, jumps the cursor to the
-// first match at or below the current position, and reports the match count.
-// The list is never filtered; n/N cycle through the matches.
 func (m Model) executeSearch() Model {
 	m.searchMode = false
 
@@ -127,8 +102,6 @@ func (m Model) executeSearch() Model {
 	return m
 }
 
-// jumpToFirstMatchFrom moves to the first match at or after `from`, wrapping
-// around to the top when none follows.
 func (m *Model) jumpToFirstMatchFrom(from int) {
 	for idx, rowIdx := range m.searchMatches {
 		if rowIdx >= from {
@@ -153,7 +126,6 @@ func (m Model) clearSearch() Model {
 	return m
 }
 
-// nextMatch cycles forward through the active search matches (wraps around).
 func (m Model) nextMatch() Model {
 	if len(m.searchMatches) == 0 {
 		return m
@@ -164,7 +136,6 @@ func (m Model) nextMatch() Model {
 	return m
 }
 
-// prevMatch cycles backward through the active search matches (wraps around).
 func (m Model) prevMatch() Model {
 	if len(m.searchMatches) == 0 {
 		return m

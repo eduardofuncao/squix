@@ -13,7 +13,7 @@ func TestGroupKey(t *testing.T) {
 		{"ecommerce:dev", "ecommerce"},
 		{"ecommerce:prod", "ecommerce"},
 		{"analytics", "analytics"},
-		{"a/b:c", "a_b"},     // QueryGroupKey -> "a/b", then sanitized -> "a_b"
+		{"a/b:c", "a_b"}, // QueryGroupKey -> "a/b", then sanitized -> "a_b"
 		{"weird name", "weird_name"},
 	}
 	for _, c := range cases {

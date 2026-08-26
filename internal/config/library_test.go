@@ -16,8 +16,8 @@ func TestQueryGroupKey(t *testing.T) {
 		{"ecommerce:stg", "ecommerce"},
 		{"mydb", "mydb"},
 		{"", ""},
-		{":dev", ":dev"},          // empty service → whole name (private)
-		{"dev:", "dev"},           // empty env → service key "dev"
+		{":dev", ":dev"}, // empty service → whole name (private)
+		{"dev:", "dev"},  // empty env → service key "dev"
 		{"ecommerce:us:dev", "ecommerce:us"},
 	}
 	for _, c := range cases {

@@ -6,7 +6,6 @@ import (
 	"github.com/eduardofuncao/squix/internal/db"
 )
 
-// Render runs the interactive schema explorer and returns its final model.
 func Render(
 	conn db.DatabaseConnection,
 	tables, views []string,

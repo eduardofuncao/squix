@@ -16,7 +16,7 @@ type explainFlags struct {
 
 func parseExplainFlags() (explainFlags, []string) {
 	flags := explainFlags{
-		depth: 1, // Default to showing just direct relationships
+		depth: 1,
 	}
 	remainingArgs := []string{}
 	args := os.Args[2:]
@@ -28,7 +28,7 @@ func parseExplainFlags() (explainFlags, []string) {
 				if depth, err := strconv.Atoi(args[i+1]); err == nil {
 					flags.depth = depth
 				}
-				i++ // Skip the next argument
+				i++
 			}
 		} else if arg == "--verbose" || arg == "-v" {
 			flags.verbose = true

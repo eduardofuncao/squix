@@ -51,7 +51,7 @@ type Model struct {
 	searchQuery  string
 	searchCursor int
 
-	searchMatches []int // row indices of active search matches
+	searchMatches []int
 	matchIdx      int
 
 	spinnerFrame       int
@@ -90,13 +90,10 @@ func New(
 			{title: "Tables", items: dedupeSorted(tables)},
 			{title: "Views", items: dedupeSorted(views)},
 		},
-		offsetY:       0,
-		visibleRows:   10,
-		conn:          conn,
-		uiVisibility:  visibility,
-		keyMap:        keyMap,
-		pendingAction: ActionNone,
-		selectedTable: "",
+		visibleRows:  10,
+		conn:         conn,
+		uiVisibility: visibility,
+		keyMap:       keyMap,
 	}
 
 	m.rebuildRows()
@@ -127,7 +124,6 @@ func (m Model) numRows() int {
 	return len(m.rows)
 }
 
-// selectedItemName returns the table/view name when the cursor sits on an item row.
 func (m Model) selectedItemName() (string, bool) {
 	if m.cursor < 0 || m.cursor >= len(m.rows) {
 		return "", false
@@ -139,7 +135,6 @@ func (m Model) selectedItemName() (string, bool) {
 	return m.sections[r.section].items[r.item], true
 }
 
-// currentSectionIdx returns the section index of the row under the cursor.
 func (m Model) currentSectionIdx() int {
 	if m.cursor < 0 || m.cursor >= len(m.rows) {
 		return -1
@@ -159,4 +154,23 @@ func dedupeSorted(items []string) []string {
 		out = append(out, name)
 	}
 	return out
+}
+
+func (m *Model) rebuildRows() {
+	var rows []row
+	for si, sec := range m.sections {
+		if len(sec.items) == 0 {
+			continue
+		}
+
+		rows = append(rows, row{kind: rowHeader, section: si})
+		if !sec.folded {
+			for ii := range sec.items {
+				rows = append(rows, row{kind: rowItem, section: si, item: ii})
+			}
+		}
+	}
+
+	m.rows = rows
+	m.clampCursor()
 }

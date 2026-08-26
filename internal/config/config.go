@@ -58,17 +58,17 @@ func (kc *KeybindingsConfig) UnmarshalYAML(unmarshal func(any) error) error {
 }
 
 type Config struct {
-	CurrentConnection  string                     `yaml:"current_connection"`
-	Connections        map[string]*ConnectionYAML `yaml:"connections"`
+	CurrentConnection  string                         `yaml:"current_connection"`
+	Connections        map[string]*ConnectionYAML     `yaml:"connections"`
 	QueryGroups        map[string]map[string]db.Query `yaml:"-"`
-	ColorScheme        string                     `yaml:"color_scheme"`
-	CustomColorScheme  *styles.ColorScheme        `yaml:"custom_colors,omitempty"`
-	History            History                    `yaml:"history"`
-	DefaultRowLimit    int                        `yaml:"default_row_limit"`
-	DefaultColumnWidth int                        `yaml:"default_column_width"`
-	UIVisibility       UIVisibility               `yaml:"ui_visibility"`
-	Keybindings        KeybindingsConfig          `yaml:"keybindings,omitempty"`
-	KeyMap             *KeyMap                    `yaml:"-"`
+	ColorScheme        string                         `yaml:"color_scheme"`
+	CustomColorScheme  *styles.ColorScheme            `yaml:"custom_colors,omitempty"`
+	History            History                        `yaml:"history"`
+	DefaultRowLimit    int                            `yaml:"default_row_limit"`
+	DefaultColumnWidth int                            `yaml:"default_column_width"`
+	UIVisibility       UIVisibility                   `yaml:"ui_visibility"`
+	Keybindings        KeybindingsConfig              `yaml:"keybindings,omitempty"`
+	KeyMap             *KeyMap                        `yaml:"-"`
 }
 
 type History struct {

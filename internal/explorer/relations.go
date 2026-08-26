@@ -20,8 +20,6 @@ type relationsTreeMsg struct {
 
 type spinnerTickMsg struct{}
 
-// openRelations kicks off an async relationship-tree build for the selected
-// table and switches to the relations panel with a spinner while it loads.
 func (m Model) openRelations() (tea.Model, tea.Cmd) {
 	name, ok := m.selectedItemName()
 	if !ok {

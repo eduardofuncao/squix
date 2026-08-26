@@ -81,7 +81,7 @@ Explore your database schema and visualize relationships between tables.
 ```bash
 # Open the interactive schema explorer (foldable tables/views sections)
 # Keybinds: enter = SELECT *, c = columns, r = relationships, Tab = fold,
-#           / = filter items, H = help
+#           / = search items, H = help
 squix explore
 
 # Scriptable listing: print table/view names one per line

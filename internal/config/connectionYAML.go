@@ -16,7 +16,7 @@ type ConnectionYAML struct {
 	// queries/<group>.sql files. Kept so the first load after upgrade can lift
 	// legacy per-connection queries; cleared by MigrateQueriesToFiles and never
 	// repopulated.
-	Queries   map[string]db.Query `yaml:"queries,omitempty"`
+	Queries map[string]db.Query `yaml:"queries,omitempty"`
 }
 
 func ToConnectionYAML(conn db.DatabaseConnection) *ConnectionYAML {

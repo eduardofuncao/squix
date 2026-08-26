@@ -57,17 +57,14 @@ func parseExploreFlags() (exploreFlags, []string) {
 func (a *App) handleExplore() {
 	flags, args := parseExploreFlags()
 
-	// Check if argument is a supported file type (no connection needed)
-	if len(args) > 0 {
-		if ext, ok := getSupportedExtension(args[0]); ok {
-			if _, err := os.Stat(args[0]); err != nil {
-				printError("File not found: %s", args[0])
-			}
-			if err := a.handleExploreFile(args[0], ext); err != nil {
-				printError("%v", err)
-			}
-			return
+	if len(args) > 0 && isSupportedFile(args[0]) {
+		if _, err := os.Stat(args[0]); err != nil {
+			printError("File not found: %s", args[0])
 		}
+		if err := a.handleExploreFile(args[0]); err != nil {
+			printError("%v", err)
+		}
+		return
 	}
 
 	if a.config.CurrentConnection == "" {
@@ -113,19 +110,17 @@ func (a *App) runExplorerLoop(conn db.DatabaseConnection, showTables, showViews 
 		if showTables {
 			tables, err = conn.GetTables()
 			if err != nil {
-				stopSpinner(done)
 				printError("Could not list tables: %v", err)
 			}
 		}
 		if showViews {
 			views, err = conn.GetViews()
 			if err != nil {
-				stopSpinner(done)
 				printError("Could not list views: %v", err)
 			}
 		}
 
-		stopSpinner(done)
+		spinner.Stop(done)
 
 		model, err := explorer.Render(
 			conn,
@@ -150,12 +145,6 @@ func (a *App) runExplorerLoop(conn db.DatabaseConnection, showTables, showViews 
 			return
 		}
 	}
-}
-
-// stopSpinner halts the loading animation and erases its line.
-func stopSpinner(done chan struct{}) {
-	done <- struct{}{}
-	fmt.Print("\r\033[2K")
 }
 
 // handleReplExplore handles the explore command inside the REPL. With an
@@ -308,15 +297,10 @@ func (a *App) openColumnsResults(conn db.DatabaseConnection, name string) {
 
 var supportedFileTypes = map[string]bool{
 	".csv": true,
-	// ".json": true, // Future support
 }
 
-func getSupportedExtension(arg string) (string, bool) {
-	ext := strings.ToLower(filepath.Ext(arg))
-	if supported, ok := supportedFileTypes[ext]; ok && supported {
-		return ext, true
-	}
-	return "", false
+func isSupportedFile(arg string) bool {
+	return supportedFileTypes[strings.ToLower(filepath.Ext(arg))]
 }
 
 func parseCSV(path string) (columns []string, data [][]string, err error) {
@@ -343,27 +327,26 @@ func parseCSV(path string) (columns []string, data [][]string, err error) {
 	return columns, data, nil
 }
 
-func (a *App) handleExploreFile(path string, ext string) error {
+func (a *App) handleExploreFile(path string) error {
 	columns, data, err := parseCSV(path)
 	if err != nil {
 		return err
 	}
 
-	// Render table with nil connection (read-only mode)
 	columnTypes := make([]string, len(columns))
 	_, err = table.Render(
 		columns,
 		columnTypes,
 		data,
-		0,          // elapsed time
-		nil,        // no database connection
-		"",         // no table name
-		"",         // no primary key
-		db.Query{}, // empty query
+		0,
+		nil,
+		"",
+		"",
+		db.Query{},
 		a.config.DefaultColumnWidth,
 		a.config.UIVisibility,
-		a.config.KeyMap, // use config keybindings if available
-		nil,             // no save callback
+		a.config.KeyMap,
+		nil,
 	)
 	if err != nil {
 		return fmt.Errorf("could not render table: %w", err)

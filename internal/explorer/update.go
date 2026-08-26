@@ -43,7 +43,6 @@ func (m Model) handleKeyPress(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m.handleSearchInput(msg)
 	}
 
-	// esc with no other binding clears the active search
 	if key == "esc" && len(m.searchMatches) > 0 {
 		return m.clearSearch(), nil
 	}
@@ -156,9 +155,6 @@ func (m Model) pageDown() Model {
 	return m
 }
 
-// toggleFold collapses/expands the section under the cursor. When a section is
-// collapsed the cursor lands on its header; when expanded it stays on the row
-// it was on when possible.
 func (m Model) toggleFold() Model {
 	si := m.currentSectionIdx()
 	if si < 0 || si >= len(m.sections) {
@@ -170,7 +166,6 @@ func (m Model) toggleFold() Model {
 	wasFolded := m.sections[si].folded
 	m.sections[si].folded = !m.sections[si].folded
 	m.rebuildRows()
-	// Row indices shift after a fold; stale matches would highlight wrong rows.
 	if len(m.searchMatches) > 0 {
 		m.searchMatches = nil
 		m.matchIdx = 0

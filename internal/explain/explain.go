@@ -26,8 +26,6 @@ type relationship struct {
 	junctionTable    string // For N:N relationships
 }
 
-// BuildTree renders an ASCII tree of foreign key relationships for a table,
-// up to maxDepth levels deep. Set verbose to include FK column details.
 func BuildTree(conn db.DatabaseConnection, tableName string, maxDepth int, verbose bool) string {
 	if maxDepth < 1 {
 		maxDepth = 1
@@ -37,19 +35,16 @@ func BuildTree(conn db.DatabaseConnection, tableName string, maxDepth int, verbo
 	return renderNode(conn, tableName, tableRelationships(conn, tableName), maxDepth, 0, visited, true, verbose)
 }
 
-// tableRelationships collects the direct relationships of a table.
 func tableRelationships(conn db.DatabaseConnection, tableName string) []relationship {
 	var relationships []relationship
 	seenTables := make(map[string]bool)
 
-	// Get unique constraints for this table (for 1:1 detection)
 	uniqueConstraints, _ := conn.GetUniqueConstraints(tableName)
 	uniqueMap := make(map[string]bool)
 	for _, uc := range uniqueConstraints {
 		uniqueMap[uc] = true
 	}
 
-	// Get "belongs to" relationships (FKs from this table to other tables)
 	belongsToFKs, err := conn.GetForeignKeys(tableName)
 	if err == nil {
 		for _, fk := range belongsToFKs {
@@ -73,11 +68,9 @@ func tableRelationships(conn db.DatabaseConnection, tableName string) []relation
 		}
 	}
 
-	// Get "has many" relationships (FKs from other tables to this table)
 	hasManyFKs, err := conn.GetForeignKeysReferencingTable(tableName)
 	if err == nil {
 		for _, fk := range hasManyFKs {
-			// Check if the referencing table is a junction table (N:N detection)
 			if isJunctionTable(conn, fk.ReferencedTable) {
 				otherTable := getJunctionTableOtherSide(conn, fk.ReferencedTable, tableName)
 				if otherTable != "" {
@@ -127,14 +120,12 @@ func tableRelationships(conn db.DatabaseConnection, tableName string) []relation
 	return relationships
 }
 
-// isJunctionTable checks if a table is a junction table for N:N relationship
 func isJunctionTable(conn db.DatabaseConnection, tableName string) bool {
 	fks, err := conn.GetForeignKeys(tableName)
 	if err != nil || len(fks) != 2 {
 		return false
 	}
 
-	// Check if both FKs are part of the primary key (composite PK)
 	metadata, err := conn.GetTableMetadata(tableName)
 	if err != nil {
 		return false
@@ -156,7 +147,6 @@ func isJunctionTable(conn db.DatabaseConnection, tableName string) bool {
 	return bothInPK
 }
 
-// getJunctionTableOtherSide returns the other table referenced by a junction table
 func getJunctionTableOtherSide(conn db.DatabaseConnection, junctionTable, currentTable string) string {
 	fks, err := conn.GetForeignKeys(junctionTable)
 	if err != nil || len(fks) != 2 {
@@ -183,7 +173,6 @@ func renderNode(
 ) string {
 	var builder strings.Builder
 
-	// Render current table with PK info (only at root level)
 	if isRoot {
 		metadata, _ := conn.GetTableMetadata(tableName)
 		if len(metadata.PrimaryKeys) > 0 {
@@ -197,10 +186,8 @@ func renderNode(
 		builder.WriteString("\n")
 	}
 
-	// Mark current table as visited to prevent cycles
 	visited[tableName] = true
 
-	// Check if we should render relationships at this depth
 	if currentDepth >= maxDepth && !isRoot {
 		return builder.String()
 	}

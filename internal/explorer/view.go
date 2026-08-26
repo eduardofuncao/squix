@@ -2,6 +2,7 @@ package explorer
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -13,8 +14,7 @@ import (
 	"github.com/eduardofuncao/squix/internal/styles"
 )
 
-// chromeLines is the number of screen lines reserved for the title, separator
-// and footer areas; the list viewport gets the rest.
+// number of screen lines reserved for the title, separato and footer areas
 func chromeLines() int { return 6 }
 
 func (m Model) View() tea.View {
@@ -97,18 +97,8 @@ func (m Model) renderRow(idx int) string {
 	}
 }
 
-// isSearchMatch reports whether idx is in the sorted searchMatches slice.
 func isSearchMatch(idx int, matches []int) bool {
-	lo, hi := 0, len(matches)
-	for lo < hi {
-		mid := (lo + hi) / 2
-		if matches[mid] < idx {
-			lo = mid + 1
-		} else {
-			hi = mid
-		}
-	}
-	return lo < len(matches) && matches[lo] == idx
+	return slices.Contains(matches, idx)
 }
 
 func (m Model) renderListFooter() string {
@@ -135,7 +125,7 @@ func (m Model) renderListFooter() string {
 		addEntry := func(key, desc string) {
 			parts = append(parts, styles.TableHeader.Render(key)+":"+styles.Faint.Render(desc))
 		}
-		addEntry(km.FirstKey(config.ActionMoveUp)+km.FirstKey(config.ActionMoveDown), "navigate")
+		addEntry(km.FirstKey(config.ActionMoveUp)+km.FirstKey(config.ActionMoveDown), "↑↓")
 		addEntry(km.FirstKey(config.ActionExplorerSelect), "select *")
 		addEntry(km.FirstKey(config.ActionExplorerColumns), "columns")
 		addEntry(km.FirstKey(config.ActionExplorerRelations), "relations")
@@ -172,7 +162,6 @@ func (m Model) renderRelationsPanel() string {
 	start := m.relationsScroll
 	end := min(start+panelHeight, len(lines))
 
-	// Panel hugs its content: width fits the widest visible line.
 	titleText := fmt.Sprintf("◆ relationships · %s (depth %d)", m.relationsTarget, relationsDepth)
 	panelWidth := lipgloss.Width(titleText)
 	maxLineWidth := max(m.width-2, 20)
@@ -190,12 +179,12 @@ func (m Model) renderRelationsPanel() string {
 		scrollInfo = fmt.Sprintf(" [%d-%d of %d]", start+1, end, len(lines))
 	}
 	km := m.keyMap
-	closeKeys := ""
+	footerText := ""
 	if !m.relationsLoading {
-		closeKeys = "  " + km.DisplayKeys(config.ActionQuit) + " close"
+		footerText = km.FirstKey(config.ActionMoveDown) + "/" +
+			km.FirstKey(config.ActionMoveUp) + " scroll" + scrollInfo +
+			"  " + km.DisplayKeys(config.ActionQuit) + " close"
 	}
-	footerText := km.FirstKey(config.ActionMoveDown) + "/" +
-		km.FirstKey(config.ActionMoveUp) + " scroll" + scrollInfo + closeKeys
 
 	panelWidth = min(max(panelWidth+2, 24), max(m.width-1, 1))
 
@@ -214,14 +203,11 @@ func (m Model) renderRelationsPanel() string {
 		}
 	}
 
-	// Footer hugs the content so the panel stays as tall as the tree.
 	b.WriteString(footerText)
 
 	return b.String()
 }
 
-// relationsViewportHeight is the number of tree lines the panel can show at
-// once: everything except the title row, its separator and the footer.
 func (m Model) relationsViewportHeight() int {
 	h := m.height - 3
 	if h < 3 {
@@ -230,14 +216,10 @@ func (m Model) relationsViewportHeight() int {
 	return h
 }
 
-// relationsLines splits the tree into logical lines. Lines wider than the
-// terminal are truncated at render time, so no width-dependent cache needed.
 func (m Model) relationsLines() []string {
 	return strings.Split(m.relationsText, "\n")
 }
 
-// truncateANSI shortens a styled line to width visible cells, preserving
-// escape sequences and marking truncation with an ellipsis.
 func truncateANSI(line string, width int) string {
 	if lipgloss.Width(line) <= width {
 		return line

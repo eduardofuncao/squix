@@ -109,7 +109,6 @@ Keybindings are resolved per **mode** — different views can bind the same key 
 | `detail` | Cell detail view (opened with `Enter`) |
 | `help` | Help overlay |
 | `explorer` | Schema explorer list view |
-| `explorer_relations` | Explorer relationships panel |
 
 Unknown action names print a warning at startup. Conflicting keys within the same mode also print a warning.
 

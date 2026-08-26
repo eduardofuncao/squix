@@ -37,15 +37,15 @@ func (a *App) printConnStatus(conn db.DatabaseConnection) {
 	var isReachable bool
 	select {
 	case isReachable = <-reachable:
-		close(done)
+		spinner.Stop(done)
 	case <-time.After(5 * time.Second):
-		close(done)
+		spinner.Stop(done)
 		isReachable = false
 	}
 
 	if interactive {
-		// Clear the spinner line + the provisional header above it.
-		fmt.Print("\r\033[2K")
+		// Clear the header line above the spinner (Stop already cleared the
+		// spinner line itself).
 		fmt.Print("\033[1A")
 		fmt.Print("\r\033[2K")
 	}

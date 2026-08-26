@@ -63,7 +63,7 @@ func (a *App) renderList(objectType string, flags listFlags) {
 			return
 		}
 		for name, connection := range a.config.Connections {
-			marker := "◆"
+			var marker string
 			if name == a.config.CurrentConnection {
 				marker = styles.Success.Render("●")
 			} else {

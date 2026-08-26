@@ -9,19 +9,22 @@ import (
 	isatty "github.com/mattn/go-isatty"
 )
 
-// Interactive reports whether stdout is a terminal. When false (e.g. piped to
-// an editor or CI), spinner frames and cursor-control escapes would land as
-// literal garbage in the captured output, so animation and erasure are skipped.
 func Interactive() bool {
 	return isatty.IsTerminal(os.Stdout.Fd())
 }
 
-// Stages is the pulsing frame sequence shared by all squix spinners so the
-// stdout and TUI variants look identical.
 var Stages = []string{" ", ".", "o", "O", "@", "*"}
 
 // TickInterval is how often spinner frames advance.
 const TickInterval = 100 * time.Millisecond
+
+// Stop signals the spinner goroutine to exit and erases its line
+func Stop(done chan struct{}) {
+	close(done)
+	if Interactive() {
+		fmt.Print("\r\033[2K")
+	}
+}
 
 func Wait(done chan struct{}) {
 	if !Interactive() {
