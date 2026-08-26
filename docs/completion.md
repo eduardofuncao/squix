@@ -48,7 +48,6 @@ After installation, press TAB to autocomplete:
 squix [TAB]              # List all commands
 squix run [TAB]          # List queries from current connection
 squix switch [TAB]       # List connection names
-squix info [TAB]         # List: table, view
 squix list [TAB]         # List: queries
 squix edit [TAB]         # List queries to edit
 ```

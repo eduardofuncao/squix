@@ -49,9 +49,16 @@ squix run list_users -f json                                   # always use -f
 ## Explore Schema
 
 ```bash
-squix explore              # List all tables (non-interactive, prints to stdout)
-squix explain orders -d 2  # Show FK relationships as ASCII tree
+squix explore                # Interactive schema explorer TUI (tables + views)
+squix explore --oneline      # Non-interactive: print table/view names one per line
+squix explore --oneline --tables   # tables only (--views for views only)
+squix explain orders -d 2    # Show FK relationships as ASCII tree
 ```
+
+Explorer TUI keys: `enter`=SELECT *, `c`=columns, `r`=relationships,
+`Tab`=fold section, `/`=search. Defaults can be overridden by adding
+`explorer_*` entries under `keybindings:` in config.yaml — see
+docs/keybindings.md.
 
 ## List Queries
 
@@ -84,7 +91,7 @@ echo y | squix remove -c mydb  # Delete connection (needs confirmation)
 - `squix run <query>` without `-f` on a SELECT — opens TUI
 - `squix shell` — interactive REPL
 - `squix edit` — opens `$EDITOR`
+- `squix explore` — interactive schema explorer TUI (use `--oneline`)
 - `squix explore <table>` — opens TUI
-- `squix info` — opens TUI
 - `squix add <name>` without SQL — opens `$EDITOR`
 - `squix run` with no args — opens `$EDITOR`

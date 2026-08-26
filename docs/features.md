@@ -79,17 +79,20 @@ squix status
 Explore your database schema and visualize relationships between tables.
 
 ```bash
-# List all tables and views in multi-column format
+# Open the interactive schema explorer (foldable tables/views sections)
+# Keybinds: enter = SELECT *, c = columns, r = relationships, Tab = fold,
+#           / = filter items, H = help
 squix explore
+
+# Scriptable listing: print table/view names one per line
+squix explore --oneline
+squix explore --oneline --views   # views only
 
 # Query a table directly
 squix explore employees --limit 100
 
 # View a local CSV file in the results view (read-only)
 squix explore sales.csv
-
-# Open tables in the results view, use Enter to query everything in the table
-squix tables
 
 # Visualize foreign key relationships
 squix explain employees

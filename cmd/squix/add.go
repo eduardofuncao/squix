@@ -61,4 +61,3 @@ func (a *App) handleAdd() {
 
 	fmt.Println(styles.Success.Render(fmt.Sprintf("✓ Added query '%s'", queryName)))
 }
-

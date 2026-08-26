@@ -565,12 +565,12 @@ func (a *App) PrintCommandHelp() {
 		fmt.Println()
 		fmt.Println(
 			styles.Faint.Render(
-				"  All explorer keybinds are configurable under keybindings: in",
+				"  Explorer keybinds use built-in defaults; add explorer_* entries",
 			),
 		)
 		fmt.Println(
 			styles.Faint.Render(
-				"  ~/.config/squix/config.yaml (explorer_* actions).",
+				"  under keybindings: in ~/.config/squix/config.yaml to override.",
 			),
 		)
 		fmt.Println()

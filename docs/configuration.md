@@ -100,7 +100,7 @@ ui_visibility:
 
 ## Keybindings `keybindings`
 
-Customize keyboard shortcuts in the table view. Each action accepts a single key or a list of keys:
+Customize keyboard shortcuts in the table view and the schema explorer. Each action accepts a single key or a list of keys:
 
 ```yaml
 keybindings:
