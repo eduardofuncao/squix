@@ -49,9 +49,6 @@ func GenerateDisplaySQL(sql string, paramValues map[string]string) string {
 
 	return replaceSafeMatches(sql, matches, func(m paramMatch) string {
 		if value, ok := paramValues[m.name]; ok {
-			if isNumeric(value) {
-				return value
-			}
 			return "'" + strings.ReplaceAll(value, "'", "''") + "'"
 		}
 		return sql[m.start:m.end]
@@ -73,27 +70,4 @@ func replaceSafeMatches(sql string, matches []paramMatch, fn func(paramMatch) st
 	}
 	buf.WriteString(sql[prev:])
 	return buf.String()
-}
-
-func isNumeric(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	hasDigits := false
-	hasDot := false
-
-	for i, r := range s {
-		if r >= '0' && r <= '9' {
-			hasDigits = true
-		} else if r == '.' && !hasDot && i > 0 && i < len(s)-1 {
-			hasDot = true
-		} else if (r == '-' || r == '+') && i == 0 {
-			// leading sign
-		} else {
-			return false
-		}
-	}
-
-	return hasDigits
 }

@@ -147,16 +147,13 @@ func TestSubstituteParameters(t *testing.T) {
 }
 
 func TestGenerateDisplaySQL(t *testing.T) {
-	t.Run("numeric value unquoted", func(t *testing.T) {
+	t.Run("numeric value quoted", func(t *testing.T) {
 		got := GenerateDisplaySQL(
 			"SELECT * FROM t WHERE id = :id",
 			map[string]string{"id": "42"},
 		)
-		if !strings.Contains(got, "42") {
-			t.Errorf("expected 42 in output: %q", got)
-		}
-		if strings.Contains(got, "'42'") {
-			t.Errorf("should not be quoted: %q", got)
+		if !strings.Contains(got, "'42'") {
+			t.Errorf("expected quoted '42' in output: %q", got)
 		}
 	})
 
@@ -177,33 +174,4 @@ func TestGenerateDisplaySQL(t *testing.T) {
 			t.Errorf("expected unchanged sql, got %q", got)
 		}
 	})
-}
-
-func TestIsNumeric(t *testing.T) {
-	tests := []struct {
-		input string
-		want  bool
-	}{
-		{"42", true},
-		{"0", true},
-		{"-3", true},
-		{"+10", true},
-		{"3.14", true},
-		{"", false},
-		{"abc", false},
-		{"12.34.56", false},
-		{".5", false},
-		{"5.", false},
-		{"1e5", false},
-		{"--1", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			got := isNumeric(tt.input)
-			if got != tt.want {
-				t.Errorf("isNumeric(%q) = %v, want %v", tt.input, got, tt.want)
-			}
-		})
-	}
 }

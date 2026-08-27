@@ -37,11 +37,12 @@ func FormatSQLWithLineBreaks(sql string) string {
 		pattern := regexp.MustCompile(`(?i)\b` + regexp.QuoteMeta(keyword) + `\b`)
 
 		formatted = pattern.ReplaceAllStringFunc(formatted, func(match string) string {
-			// Only add line break if not already at start of line
-			if strings.HasPrefix(formatted[:strings.Index(formatted, match)], "\n") {
-				return match + " "
+			pos := strings.Index(formatted, match)
+			// Check if the character immediately before the match is a newline
+			if pos > 0 && formatted[pos-1] == '\n' {
+				return match
 			}
-			return "\n" + match + " "
+			return "\n" + match
 		})
 	}
 
