@@ -34,7 +34,7 @@
 
 ![squixdemo2](https://github.com/user-attachments/assets/ee9653cf-6aaa-4be9-a898-37153ab0c898)
 
-> Try out the [live demo](https://squix.live.eduardofuncao.com) (no install required!)
+> Try out the [live demo](https://squix.live.eduardofuncao.com) (desktop only, no install required!)
 
 ### Highlights
 
