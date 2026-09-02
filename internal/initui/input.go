@@ -128,7 +128,9 @@ func (m InitInputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		default:
 			// Handle regular character input
-			m.handleInput(msg.String())
+			if t := msg.Key().Text; t != "" {
+				m.handleInput(t)
+			}
 		}
 	case tea.PasteMsg:
 		m.handleInput(msg.Content)
@@ -245,7 +247,7 @@ func (m InitInputModel) View() tea.View {
 	m.renderField(&b, "Connection string", m.connString, m.connCursor, m.cursorIndex == fieldConnString)
 
 	b.WriteString("\n")
-	b.WriteString(styles.Faint.Render("↑: up  ↓: down  ←/→: move cursor/cycle type  Type: input/paste  Enter: submit  Esc: cancel"))
+	b.WriteString(styles.Faint.Render("↑: up  ↓: down  Type: input/paste  Enter: submit  Esc: cancel"))
 
 	return tea.NewView(b.String())
 }

@@ -16,6 +16,7 @@ type InputModel struct {
 	defaults      map[string]string
 	currentValues map[string]string
 	cursorIndex   int
+	cursorPos     int
 	aborted       bool
 }
 
@@ -29,12 +30,18 @@ func NewInputModel(sql string, missingParams []string, defaults map[string]strin
 		}
 	}
 
+	cursorPos := 0
+	if len(missingParams) > 0 {
+		cursorPos = len(currentValues[missingParams[0]])
+	}
+
 	return InputModel{
 		sql:           sql,
 		missingParams: missingParams,
 		defaults:      defaults,
 		currentValues: currentValues,
 		cursorIndex:   0,
+		cursorPos:     cursorPos,
 		aborted:       false,
 	}
 }
@@ -47,7 +54,7 @@ func (m InputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc", "q":
+		case "ctrl+c", "esc":
 			m.aborted = true
 			return m, tea.Quit
 
@@ -58,29 +65,47 @@ func (m InputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down":
 			if m.cursorIndex < len(m.missingParams)-1 {
 				m.cursorIndex++
+				m.cursorPos = len(m.currentValues[m.missingParams[m.cursorIndex]])
 			}
 
 		case "up":
 			if m.cursorIndex > 0 {
 				m.cursorIndex--
+				m.cursorPos = len(m.currentValues[m.missingParams[m.cursorIndex]])
+			}
+
+		case "left":
+			if m.cursorPos > 0 {
+				m.cursorPos--
+			}
+
+		case "right":
+			if m.cursorPos < len(m.currentValues[m.missingParams[m.cursorIndex]]) {
+				m.cursorPos++
 			}
 
 		case "backspace":
 			currentParam := m.missingParams[m.cursorIndex]
 			currentVal := m.currentValues[currentParam]
-			if len(currentVal) > 0 {
-				m.currentValues[currentParam] = currentVal[:len(currentVal)-1]
+			if m.cursorPos > 0 && len(currentVal) > 0 {
+				m.currentValues[currentParam] = currentVal[:m.cursorPos-1] + currentVal[m.cursorPos:]
+				m.cursorPos--
 			}
 
 		default:
 			// Handle regular character input
-			currentParam := m.missingParams[m.cursorIndex]
-			// Allow typing any character
-			m.currentValues[currentParam] += msg.String()
+			if t := msg.Key().Text; t != "" {
+				currentParam := m.missingParams[m.cursorIndex]
+				currentVal := m.currentValues[currentParam]
+				m.currentValues[currentParam] = currentVal[:m.cursorPos] + t + currentVal[m.cursorPos:]
+				m.cursorPos += len(t)
+			}
 		}
 	case tea.PasteMsg:
 		currentParam := m.missingParams[m.cursorIndex]
-		m.currentValues[currentParam] += msg.Content
+		currentVal := m.currentValues[currentParam]
+		m.currentValues[currentParam] = currentVal[:m.cursorPos] + msg.Content + currentVal[m.cursorPos:]
+		m.cursorPos += len(msg.Content)
 	}
 
 	return m, nil
@@ -111,9 +136,17 @@ func (m InputModel) View() tea.View {
 				Bold(true).
 				Render(param + " > ")
 
+			pos := m.cursorPos
+			if pos < 0 {
+				pos = 0
+			}
+			if pos > len(currentValue) {
+				pos = len(currentValue)
+			}
+
 			inputBox := lipgloss.NewStyle().
 				Foreground(lipgloss.Color(styles.ActiveScheme.Muted)).
-				Render(currentValue + "▏")
+				Render(currentValue[:pos] + "▏" + currentValue[pos:])
 
 			b.WriteString(prompt + inputBox + "\n")
 		} else {
@@ -131,7 +164,7 @@ func (m InputModel) View() tea.View {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(styles.Faint.Render("↑: up  ↓: down  Enter: submit  Esc/q: cancel"))
+	b.WriteString(styles.Faint.Render("↑/↓: field  ←/→: move cursor  Enter: submit  Esc: cancel"))
 
 	return tea.NewView(b.String())
 }

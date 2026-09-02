@@ -57,14 +57,14 @@ func (m Model) handleSearchInput(msg tea.KeyPressMsg) (Model, tea.Cmd) {
 			m.searchCursor++
 		}
 	default:
-		if len(msg.String()) == 1 {
+		if t := msg.Key().Text; t != "" {
 			before := m.searchQuery[:m.searchCursor]
 			after := ""
 			if m.searchCursor < len(m.searchQuery) {
 				after = m.searchQuery[m.searchCursor:]
 			}
-			m.searchQuery = before + msg.String() + after
-			m.searchCursor++
+			m.searchQuery = before + t + after
+			m.searchCursor += len(t)
 		}
 	}
 	return m, nil
