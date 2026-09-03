@@ -1,3 +1,5 @@
+//go:build !nomysql
+
 package db
 
 import (
@@ -7,6 +9,12 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewMySQLConnection(name, connStr)
+	}, "mysql", "mariadb")
+}
 
 type MySQLConnection struct {
 	*BaseConnection

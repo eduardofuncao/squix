@@ -50,17 +50,13 @@ func InferDBType(connString string) string {
 	return ""
 }
 
-// GetSupportedDBTypes returns a list of all supported database types.
+// GetSupportedDBTypes returns the drivers compiled into this binary.
 func GetSupportedDBTypes() []string {
-	return []string{
-		"postgres",
-		"mysql",
-		"sqlite",
-		"sqlserver",
-		"clickhouse",
-		"oracle",
-		"firebird",
-		"duckdb",
-		"snowflake",
+	var supported []string
+	for _, t := range canonicalTypes {
+		if IsDriverBuilt(t) {
+			supported = append(supported, t)
+		}
 	}
+	return supported
 }

@@ -1,3 +1,5 @@
+//go:build !noracle
+
 package db
 
 import (
@@ -7,6 +9,12 @@ import (
 
 	_ "github.com/sijms/go-ora/v2"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewOracleConnection(name, EncodeUserinfo(connStr))
+	}, "oracle", "godror")
+}
 
 type OracleConnection struct {
 	*BaseConnection

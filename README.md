@@ -81,10 +81,7 @@ go build -o squix ./cmd/squix
 ```
 The squix binary will be available in the root project directory
 
-DuckDB requires CGO and is included in the default build. To build without DuckDB:
-```bash
-CGO_ENABLED=0 go build -o squix ./cmd/squix
-```
+See [Build variants](docs/features.md#build-variants) for the full/lite/minimal builds and which drivers each one includes.
 </details>
 
 <details>

@@ -1,3 +1,5 @@
+//go:build !nosqlite
+
 package db
 
 import (
@@ -7,6 +9,12 @@ import (
 
 	_ "modernc.org/sqlite"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewSQLiteConnection(name, connStr)
+	}, "sqlite", "sqlite3")
+}
 
 type SQLiteConnection struct {
 	*BaseConnection
