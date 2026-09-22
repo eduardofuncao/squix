@@ -1,3 +1,5 @@
+//go:build !nopostgres
+
 package db
 
 import (
@@ -7,6 +9,12 @@ import (
 
 	_ "github.com/lib/pq"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewPostgresConnection(name, EncodeUserinfo(connStr))
+	}, "postgres", "postgresql")
+}
 
 type PostgresConnection struct {
 	*BaseConnection

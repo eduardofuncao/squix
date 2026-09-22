@@ -1,4 +1,4 @@
-//go:build cgo
+//go:build cgo && !noduckdb
 
 package db
 
@@ -9,6 +9,12 @@ import (
 
 	_ "github.com/duckdb/duckdb-go/v2"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewDuckDBConnection(name, connStr)
+	}, "duckdb")
+}
 
 type DuckDBConnection struct {
 	*BaseConnection

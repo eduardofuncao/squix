@@ -1,3 +1,5 @@
+//go:build !nosqlserver
+
 package db
 
 import (
@@ -7,6 +9,12 @@ import (
 
 	_ "github.com/microsoft/go-mssqldb"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewSQLServerConnection(name, EncodeUserinfo(connStr))
+	}, "sqlserver", "mssql")
+}
 
 type SQLServerConnection struct {
 	*BaseConnection
@@ -431,7 +439,7 @@ func (s *SQLServerConnection) ApplyRowLimit(sql string, limit int) string {
 		return sql
 	}
 
- 	// Don't apply row limit if select-statement contains distinct
+	// Don't apply row limit if select-statement contains distinct
 	if strings.Contains(trimmedSQL, "DISTINCT") {
 		return sql
 	}

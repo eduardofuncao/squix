@@ -161,3 +161,31 @@ squix@mydb> status
 | `list`, `ls`, `\l` | List queries or connections |
 
 Multi-line: type SQL without trailing `;` to continue. End with `;` or press Enter on blank line to execute.
+
+## Build variants
+
+Squix ships in three variants so you can trade driver coverage for binary size and portability. DuckDB is the only driver needing CGO; the slimmer variants build without it.
+
+| Variant | Excluded drivers | Included drivers |
+|---------|------------------|------------------|
+| full | none | postgres, mysql, sqlite, sqlserver, clickhouse, oracle, firebird, duckdb, snowflake |
+| lite | duckdb, snowflake, oracle | postgres, mysql, sqlite, sqlserver, clickhouse, firebird |
+| minimal | duckdb, snowflake, oracle, clickhouse, firebird, sqlserver | postgres, mysql, sqlite |
+
+Check what your binary supports:
+
+```bash
+squix --drivers
+```
+
+Excluded drivers report which build tag removes them, e.g. `not included (excluded via -tags noduckdb)`. Rebuild without the tag, or install the full build, to enable them.
+
+Build a variant from source:
+
+```bash
+make build          # full
+make build-lite     # lite (-tags "noduckdb,nosnowflake,noracle")
+make build-minimal  # minimal (-tags "noduckdb,nosnowflake,noracle,noclickhouse,nofirebird,nosqlserver")
+```
+
+Or via Nix flakes: `squix.packages.<system>.default` / `.lite` / `.minimal`. Release pages carry all three per platform (`squix-<os>-<arch>`, `squix-lite-<os>-<arch>`, `squix-minimal-<os>-<arch>`); the Homebrew formula and nixpkgs package track the full build.

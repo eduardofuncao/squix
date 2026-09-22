@@ -1,3 +1,5 @@
+//go:build !nosnowflake
+
 package db
 
 import (
@@ -12,6 +14,12 @@ import (
 	"github.com/snowflakedb/gosnowflake"
 	"github.com/youmark/pkcs8"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewSnowflakeConnection(name, EncodeUserinfo(connStr))
+	}, "snowflake")
+}
 
 type SnowflakeConnection struct {
 	*BaseConnection

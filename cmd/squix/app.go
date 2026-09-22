@@ -32,6 +32,11 @@ func (a *App) Run() {
 		os.Exit(0)
 	}
 
+	if os.Args[1] == "--drivers" {
+		a.handleDrivers()
+		os.Exit(0)
+	}
+
 	command := os.Args[1]
 	switch command {
 	case "init":
@@ -123,6 +128,11 @@ func (a *App) printUsage() {
 	fmt.Println(
 		"  squix ls               " + styles.Faint.Render(
 			"List database connections",
+		),
+	)
+	fmt.Println(
+		"  squix --drivers        " + styles.Faint.Render(
+			"List database drivers in this build",
 		),
 	)
 	fmt.Println(

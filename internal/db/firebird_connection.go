@@ -1,3 +1,5 @@
+//go:build !nofirebird
+
 package db
 
 import (
@@ -7,6 +9,12 @@ import (
 
 	_ "github.com/nakagami/firebirdsql"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewFirebirdConnection(name, EncodeUserinfo(connStr))
+	}, "firebird", "interbase")
+}
 
 type FirebirdConnection struct {
 	*BaseConnection

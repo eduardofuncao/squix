@@ -1,3 +1,5 @@
+//go:build !noclickhouse
+
 package db
 
 import (
@@ -8,6 +10,12 @@ import (
 
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 )
+
+func init() {
+	registerDriver(func(name, connStr string) (DatabaseConnection, error) {
+		return NewClickHouseConnection(name, EncodeUserinfo(connStr))
+	}, "clickhouse")
+}
 
 type ClickHouseConnection struct {
 	*BaseConnection

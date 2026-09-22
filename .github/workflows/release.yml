@@ -16,11 +16,25 @@ jobs:
   build-darwin:
     strategy:
       matrix:
+        goarch: [amd64, arm64]
+        variant: [full, lite, minimal]
         include:
           - goarch: amd64
             runner: macos-15-intel
           - goarch: arm64
             runner: macos-latest
+          - variant: full
+            tags: ""
+            suffix: ""
+            cgo: "1"
+          - variant: lite
+            tags: noduckdb,nosnowflake,noracle
+            suffix: lite-
+            cgo: "0"
+          - variant: minimal
+            tags: noduckdb,nosnowflake,noracle,noclickhouse,nofirebird,nosqlserver
+            suffix: minimal-
+            cgo: "0"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -33,19 +47,35 @@ jobs:
 
       - name: Build
         env:
-          CGO_ENABLED: 1
+          CGO_ENABLED: ${{ matrix.cgo }}
           GOOS: darwin
           GOARCH: ${{ matrix.goarch }}
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -o dist/${{ env.APP_NAME }}-darwin-${{ matrix.goarch }} ./cmd/squix
+          go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -tags "${{ matrix.tags }}" -o dist/${{ env.APP_NAME }}-${{ matrix.suffix }}darwin-${{ matrix.goarch }} ./cmd/squix
 
       - uses: actions/upload-artifact@v4
         with:
-          name: darwin-${{ matrix.goarch }}
-          path: dist/${{ env.APP_NAME }}-darwin-${{ matrix.goarch }}
+          name: darwin-${{ matrix.goarch }}-${{ matrix.variant }}
+          path: dist/${{ env.APP_NAME }}-${{ matrix.suffix }}darwin-${{ matrix.goarch }}
 
   build-windows:
+    strategy:
+      matrix:
+        variant: [full, lite, minimal]
+        include:
+          - variant: full
+            tags: ""
+            suffix: ""
+            cgo: "1"
+          - variant: lite
+            tags: noduckdb,nosnowflake,noracle
+            suffix: lite-
+            cgo: "0"
+          - variant: minimal
+            tags: noduckdb,nosnowflake,noracle,noclickhouse,nofirebird,nosqlserver
+            suffix: minimal-
+            cgo: "0"
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,27 +88,39 @@ jobs:
 
       - name: Build
         env:
-          CGO_ENABLED: 1
+          CGO_ENABLED: ${{ matrix.cgo }}
           GOOS: windows
           GOARCH: amd64
         run: |
           mkdir dist
-          go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -o dist/${{ env.APP_NAME }}-windows-amd64.exe ./cmd/squix
+          go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -tags "${{ matrix.tags }}" -o dist/${{ env.APP_NAME }}-${{ matrix.suffix }}windows-amd64.exe ./cmd/squix
 
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-amd64
-          path: dist/${{ env.APP_NAME }}-windows-amd64.exe
+          name: windows-amd64-${{ matrix.variant }}
+          path: dist/${{ env.APP_NAME }}-${{ matrix.suffix }}windows-amd64.exe
 
   build-linux:
     strategy:
       matrix:
+        goarch: [amd64, arm64]
+        variant: [full, lite, minimal]
         include:
-          - goarch: amd64
-            packages: ""
           - goarch: arm64
+            variant: full
             cc: aarch64-linux-gnu-gcc
-            packages: "gcc-aarch64-linux-gnu g++-aarch64-linux-gnu"
+          - variant: full
+            tags: ""
+            suffix: ""
+            cgo: "1"
+          - variant: lite
+            tags: noduckdb,nosnowflake,noracle
+            suffix: lite-
+            cgo: "0"
+          - variant: minimal
+            tags: noduckdb,nosnowflake,noracle,noclickhouse,nofirebird,nosqlserver
+            suffix: minimal-
+            cgo: "0"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -90,23 +132,23 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Install cross-compiler
-        if: matrix.packages != ''
-        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
+        if: matrix.goarch == 'arm64' && matrix.variant == 'full'
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Build
         env:
-          CGO_ENABLED: 1
+          CGO_ENABLED: ${{ matrix.cgo }}
           GOOS: linux
           GOARCH: ${{ matrix.goarch }}
           CC: ${{ matrix.cc }}
         run: |
           mkdir -p dist
-          go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -o dist/${{ env.APP_NAME }}-linux-${{ matrix.goarch }} ./cmd/squix
+          go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -tags "${{ matrix.tags }}" -o dist/${{ env.APP_NAME }}-${{ matrix.suffix }}linux-${{ matrix.goarch }} ./cmd/squix
 
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-${{ matrix.goarch }}
-          path: dist/${{ env.APP_NAME }}-linux-${{ matrix.goarch }}
+          name: linux-${{ matrix.goarch }}-${{ matrix.variant }}
+          path: dist/${{ env.APP_NAME }}-${{ matrix.suffix }}linux-${{ matrix.goarch }}
 
   create-release:
     needs:
