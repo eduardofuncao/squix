@@ -37,11 +37,11 @@ jobs:
             cgo: "0"
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -54,7 +54,7 @@ jobs:
           mkdir -p dist
           go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -tags "${{ matrix.tags }}" -o dist/${{ env.APP_NAME }}-${{ matrix.suffix }}darwin-${{ matrix.goarch }} ./cmd/squix
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: darwin-${{ matrix.goarch }}-${{ matrix.variant }}
           path: dist/${{ env.APP_NAME }}-${{ matrix.suffix }}darwin-${{ matrix.goarch }}
@@ -78,11 +78,11 @@ jobs:
             cgo: "0"
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -95,7 +95,7 @@ jobs:
           mkdir dist
           go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -tags "${{ matrix.tags }}" -o dist/${{ env.APP_NAME }}-${{ matrix.suffix }}windows-amd64.exe ./cmd/squix
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows-amd64-${{ matrix.variant }}
           path: dist/${{ env.APP_NAME }}-${{ matrix.suffix }}windows-amd64.exe
@@ -123,11 +123,11 @@ jobs:
             cgo: "0"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -145,7 +145,7 @@ jobs:
           mkdir -p dist
           go build -buildvcs=false -ldflags="-s -w -X main.Version=${{ github.ref_name }}" -tags "${{ matrix.tags }}" -o dist/${{ env.APP_NAME }}-${{ matrix.suffix }}linux-${{ matrix.goarch }} ./cmd/squix
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.goarch }}-${{ matrix.variant }}
           path: dist/${{ env.APP_NAME }}-${{ matrix.suffix }}linux-${{ matrix.goarch }}
@@ -157,9 +157,9 @@ jobs:
       - build-linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: artifacts
 
@@ -190,7 +190,7 @@ jobs:
           echo "linux_arm64_sha=$(sha256sum release/${{ env.APP_NAME }}-linux-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Update homebrew tap
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           repository: eduardofuncao/homebrew-squix
